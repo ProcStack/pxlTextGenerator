@@ -1,34 +1,33 @@
 ############################################
-## Website Optimizer v0.0.1               ##
-## Image and Web Site Compressor          ##
-##  Written by Kevin Edzenga; ~2017       ##
+## pxlTextGenerator v0.0.1                ##
+## Text to Handwriting Generator          ##
+##  Written by Kevin Edzenga; ~2018       ##
 ##   http://metal-asylum.net              ##
 ##                                        ##
 ## For aditional work, see my github-     ##
 ##  https://github.com/procstack          ##
 ############################################
 """
- This tool has been designed to reduce bandwidth from web servers.
- Transferring most of the strain to the user themselves.
- By reducing requested data from the server, websites can load much faster
-   all the while, maintaining the same ammount of information as before.
- But requires that visitors decompile and load appropriate data as needed.
- Not all at once, which is where I see potential slowdowns moving forward.
- 
- With the pending loss of Net Neutrality in USA (December 19th, 2017), small time websites might be hit
-   with far less bandwidth from the ISPs.
- I'd like to combat this however I can.
- 
- Web sites were the core reason I got into scriptings and I find great joy in the ever growing tech.
- As such, the web should be a source of inspiration for youngsters and curious bodies trying to learning something new.
- Especially that web scripting isn't so low level, not causing their heads to spin. (C, C++, Java, Pearl, Bash, etc...)
+ This tool is designed to allow users to gather hand written characters,
+  (Or I guess, any connected mass)
+  In photos and export them to an image library.
+ A database is built so later iterations of this tool can take the exported
+  characters and use them to convert typed text into an image that is seemingly hand written.
+ Currently, You can save out hand written characters into individual PNG files with options
+   to modify the alpha fall off from the dynamically built mask of the ink.
+ Since I have an intended purpose for this, it is expecting white/tan/beige paper and dark ink.
+ Being that, the color threshold will tell the script to select only neighboring pixels of color
+   darker than the designated magnitude of brightness set.
    
- We should not be forced to give up on new social/technological/commercial outlets
-   because the ISPs decide bandwidth allotments now.
-   
- Please help how ever you can!
+ The long term goal is to adapt this to be more of an OCR for many books I've written that other's have failed on.
+ To actually train the system, where it builds vectors and quadratic curves to make assumptions
+  for what characters are what.
+ It is slow right now, but hoping to expand this out toward OpenGL or C++ in the future.
+ Python and PyQt was just the easy route to start with.
+  
+ Help if you'd like!
  Submit bugs; make a branch and send in pull requests;
- Get this working for the less knowledgable out there!!
+ Get this working for the less knowledgeable  out there!!
  
  Stay awesome and open source for life!
  
