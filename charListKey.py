@@ -3,7 +3,7 @@ charList={
 		'char_exc_4':{
 			'premultiply':6171,
 			'imgName':'thumb',
-			'baseline':243,
+			'baseline':239,
 			'textBaseFile':'E:/projects/pxlTextGenerator/ZSymbols.png',
 			'charSamplePoints':[[724, 1430], [681, 1549]],
 			'paddingTop':0,

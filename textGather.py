@@ -694,38 +694,6 @@ class ImageProcessor(QtGui.QMainWindow):
 				self.loadExistingData()
 				self.dispCheckerBoard(self.curImageFull,1)
 				#self.textBaseViewWindow.setDefaultScroll() ### GET THIS WORKING
-	def loadExistingData(self):
-		path=self.dirField.text()
-		if path[-1] != "/":
-			path+="/"
-		path="\\".join(str(path).split("/"))
-		path+="charListKey.py"
-		if os.path.exists(path):
-			self.statusBarUpdate(" -- Reading and building characters from local CharListKey file --", 0,0)
-			import charListKey
-			reload(charListKey)
-			#print " -- Found & Loading from --"
-			#print "  "+path
-			#execfile(path)
-			charListKeys=charListKey.charList.keys()
-			charListKeys=sorted( charListKeys, key=lambda k: k.lower() )
-			for letter in charListKeys:
-				for char in charListKey.charList[letter].keys():
-					curChar=IndexImageEntry(self,1,'thumb','local',[128,128], 'preload')
-					curChar.charBase=letter
-					for data in charListKey.charList[letter][char].keys():
-						curCharData=charListKey.charList[letter][char][data]
-						setattr(curChar,data,curCharData)
-					curTextBasePath=charListKey.charList[letter][char]['textBaseFile']
-					curChar.textBaseFile=curTextBasePath
-					curChar.exported=1
-					curChar.loadImage()
-					curChar.charFileName=char
-					curChar.charField.setText(char)
-					self.curImgListPushTop(curChar)
-					#self.curImgListBlock.addWidget(curChar)
-			#print " -- All characters from local CharListKey file built --"
-			self.statusBarUpdate(" -- All characters from local CharListKey file built --", 5000,1)
 	def extendEdges(self):
 		self.textBaseViewWindow.extendReachEdges()
 	def setOutputDir(self, setDir=None):
@@ -934,15 +902,22 @@ class ImageProcessor(QtGui.QMainWindow):
 		#self.curImgListBlock.addWidget(curChar)
 		self.resetCurTextCharacter()
 		self.unsavedChanges=1
-	def curImgListPushTop(self, addChar):
-		childRebuildArr=[addChar]
-		for c in range(self.curImgListBlock.count()):
-			curChar=self.curImgListBlock.itemAt(c).widget()
-			childRebuildArr.append(curChar)
-		for x,c in enumerate(childRebuildArr):
-			c.setParent(None)
-			c.index=x
-			self.curImgListBlock.addWidget(c)
+	def curImgListPushTop(self, addChar, mode='top'):
+		if mode == 'top':
+			childRebuildArr=[addChar]
+			for c in range(self.curImgListBlock.count()):
+				curChar=self.curImgListBlock.itemAt(c).widget()
+				childRebuildArr.append(curChar)
+			for x,c in enumerate(childRebuildArr):
+				c.setParent(None)
+				c.index=x
+				self.curImgListBlock.addWidget(c)
+		elif mode=='fast':
+			self.curImgListBlock.addWidget(addChar)
+		elif mode=='update':
+			for c in range(self.curImgListBlock.count()):
+				curChar=self.curImgListBlock.itemAt(c).widget()
+				curChar.index=c
 	def resetCurTextCharacter(self):
 		self.textBaseViewWindow.resetScanRange()
 		self.charSamplePoints=[]
@@ -1137,6 +1112,35 @@ class ImageProcessor(QtGui.QMainWindow):
 			fread=f.read()
 		exec(fread)
 		patternRecognition(self,self.curEntryObj,self.textBaseViewWindow)
+	def loadExistingData(self):
+		path=self.dirField.text()
+		if path[-1] != "/":
+			path+="/"
+		path="\\".join(str(path).split("/"))
+		path+="charListKey.py"
+		if os.path.exists(path):
+			self.statusBarUpdate(" -- Reading and building characters from local CharListKey file --", 0,0)
+			import charListKey
+			reload(charListKey)
+			
+			charListKeys=charListKey.charList.keys()
+			charListKeys=sorted( charListKeys, key=lambda k: k.lower() )
+			for letter in charListKeys:
+				for char in charListKey.charList[letter].keys():
+					curChar=IndexImageEntry(self,1,'thumb','local',[128,128], 'preload')
+					curChar.charBase=letter
+					for data in charListKey.charList[letter][char].keys():
+						curCharData=charListKey.charList[letter][char][data]
+						setattr(curChar,data,curCharData)
+					curTextBasePath=charListKey.charList[letter][char]['textBaseFile']
+					curChar.textBaseFile=curTextBasePath
+					curChar.exported=1
+					curChar.loadImage()
+					curChar.charFileName=char
+					curChar.charField.setText(char)
+					self.curImgListPushTop(curChar, mode='fast')
+			self.curImgListPushTop(curChar, mode='update')
+			self.statusBarUpdate(" -- All characters from local CharListKey file built --", 5000,1)
 	def exportCharList(self):
 		if hasattr(self, "curImgListBlock"):
 			if self.curImgListBlock.count()>0:

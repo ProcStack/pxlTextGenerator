@@ -147,6 +147,7 @@ class IndexImageEntry(QtGui.QWidget): #Individual indexList image entries
 		#pmap=pmap.scaledToWidth(scaleSize[0])
 		pmap=pmap.scaled(self.imgSizeIndexList[0],self.imgSizeIndexList[1], QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
 		self.img.setPixmap(pmap)
+		self.loaded=1
 	def charCheck(self):
 		val=self.charField.text()
 		val=str(val)
@@ -262,6 +263,7 @@ class IndexImageEntry(QtGui.QWidget): #Individual indexList image entries
 		if curTextBaseFile not in self.imgData.keys():
 			print "Loading - "+curTextBaseFile
 			print "Not active yet, MAKE IT WORK"
+			print "Load image connected to entry, update textBase, scan image"
 			#pmap=QtGui.QPixmap()
 			#pmap.load(self.imgPath)
 			#self.imgData[self.curImage]=pmap
@@ -288,6 +290,7 @@ class IndexImageEntry(QtGui.QWidget): #Individual indexList image entries
 			self.win.runValChangeEvent=1
 			
 			self.win.curImageFinalDisplay.thumbIndex=-1
+			self.win.charSampled=1
 			self.win.curImageFinalDisplay.pullCharacterRect(self)
 		else:
 			self.win.loadImageEntry(self)

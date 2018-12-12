@@ -224,17 +224,22 @@ class TextToCharDisplay(QtGui.QWidget):
 					painter=QtGui.QPainter(baseImg)
 					
 					self.runner=0
+					printText=[]
 					for c in val:
 						self.runner+=1.0
 						if c == " ":
 							leftStart=leftStart+50
+							printText.append(' ')
 						else:
 							charData=self.pullCharData(c)
 							offset=[ leftStart-charData['spacingLeft'],-charData['baseline']+self.baseLine ]
 							leftStart=leftStart-charData['spacingLeft']+charData['spacingRight']
 							painter.drawPixmap(offset[0],offset[1],charData['data'])
+							printText.append("_".join(charData['name'].split("_")[1::]))
 					painter.end()
 					self.textBuildData=baseImg
+					printText=", ".join(printText)
+					print printText
 				else:
 					self.textBuildData=None
 				self.updateTextBackground()
@@ -245,6 +250,7 @@ class TextToCharDisplay(QtGui.QWidget):
 			retDict={}
 			random.seed( self.runner + self.seed )
 			charVar=random.choice(self.charListArray[curChar].keys())
+			retDict['name']=charVar
 			charVar=self.charListArray[curChar][charVar]
 			export=charVar['exported']
 			pmap=None
