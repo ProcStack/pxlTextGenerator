@@ -16,6 +16,7 @@ class TextCharacterViewer(QtGui.QWidget):
 		self.baseScale=baseScale
 		self.thumbIndex=-1
 		self.valAdjustLock=-1
+		self.res=[256,256]
 		
 		self.img=QtGui.QLabel()
 		self.img.setGeometry(0,0,self.cW,self.cH) # Placeholder
@@ -39,6 +40,7 @@ class TextCharacterViewer(QtGui.QWidget):
 	def pullCharacterRect(self, scaleMode):
 		if self.mode == 3:
 			init=0
+			rotationVal=float(self.win.sliderRotate.value())/100.0
 			if type(scaleMode) is not int or self.thumbIndex>-1:
 				if self.thumbIndex>-1:
 					scaleMode=self.win.curImgListBlock.itemAt(self.thumbIndex).widget()
@@ -46,14 +48,20 @@ class TextCharacterViewer(QtGui.QWidget):
 				else:
 					self.thumbIndex=scaleMode.index
 					pmap=None
+					"""
 					if scaleMode.exported==0:
 						pmap=QtGui.QPixmap.fromImage(scaleMode.data.toImage())
 						pmap.setAlphaChannel(scaleMode.dataAlpha)
 					else:
 						pmap=QtGui.QPixmap.fromImage(scaleMode.data.toImage())
+					"""
+					pmap=QtGui.QPixmap.fromImage(scaleMode.data.toImage())
 			else:
 				pmap=self.win.curImageDisplay.data
 				pmap=QtGui.QPixmap.fromImage(pmap.toImage())
+				if rotationVal != 0:
+					rotation=QtGui.QTransform().rotate(rotationVal)
+					pmap=pmap.transformed(rotation, QtCore.Qt.SmoothTransformation)
 				wVal=256-pmap.width()
 				if self.displayData == None:
 					init=1
@@ -75,6 +83,9 @@ class TextCharacterViewer(QtGui.QWidget):
 			
 				pmapAlpha=self.win.curImageMaskDisplay.data
 				pmapAlpha=QtGui.QPixmap.fromImage(pmapAlpha.toImage())
+				if rotationVal != 0:
+					rotation=QtGui.QTransform().rotate(rotationVal)
+					pmapAlpha=pmapAlpha.transformed(rotation, QtCore.Qt.SmoothTransformation)
 				if topPadVal!=0 or bottomPadVal!=0:
 					baseImg=QtGui.QPixmap( pmapAlpha.width(), max(1, pmapAlpha.height()+topPadVal-bottomPadVal) )
 					baseImg.fill(QtGui.QColor(0,0,0,255))
@@ -85,7 +96,7 @@ class TextCharacterViewer(QtGui.QWidget):
 					pmapAlpha=baseImg
 					
 				pmap.setAlphaChannel(pmapAlpha)
-			self.data=pmap
+			self.data=pmap.scaled(self.res[0], self.res[1], QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
 			self.displayData=pmap.scaled(self.baseScale,self.baseScale, QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
 			
 			if self.win.displayCheckerBoard == 1:
@@ -134,14 +145,42 @@ class TextCharacterViewer(QtGui.QWidget):
 				self.win.sliderPreMult.setValue(premult)
 			elif self.mode == 1:
 				img=pmap.toImage()
-				for xy in self.win.textBaseViewWindow.reachPixels:
-					x=xy[0]-rect[0]
-					y=xy[1]-rect[1]
-					img.setPixel(x,y,QtGui.QColor(0,255,0,255).rgb())
+				if self.win.textBaseViewWindow.extendShrinkEdge == 1:
+					for xy in self.win.textBaseViewWindow.reachPixels:
+						x=xy[0]-rect[0]
+						y=xy[1]-rect[1]
+						img.setPixel(x,y,QtGui.QColor(0,255,0,255).rgb())
+					for xy in self.win.textBaseViewWindow.edgePixels:
+						x=xy[0]-rect[0]
+						y=xy[1]-rect[1]
+						img.setPixel(x,y,QtGui.QColor(0,0,255,255).rgb())
+				elif self.win.textBaseViewWindow.extendShrinkEdge == 0:
+					reachPixels=[]
+					reachPixels.extend(self.win.textBaseViewWindow.reachPixels)
+					edgePixels=self.win.textBaseViewWindow.edgePixels
+					for e in edgePixels:
+						if e in reachPixels:
+							reachPixels.remove(e)
+					for xy in self.win.textBaseViewWindow.reachPixels:
+						x=xy[0]-rect[0]
+						y=xy[1]-rect[1]
+						img.setPixel(x,y,QtGui.QColor(0,255,0,255).rgb())
+				else:
+					for xy in self.win.textBaseViewWindow.reachPixels:
+						x=xy[0]-rect[0]
+						y=xy[1]-rect[1]
+						img.setPixel(x,y,QtGui.QColor(0,255,0,255).rgb())
 				pmap=QtGui.QPixmap.fromImage(img)
 			elif self.mode == 2:
 				reachPixels=[]
 				reachPixels.extend(self.win.textBaseViewWindow.reachPixels)
+				if self.win.textBaseViewWindow.extendShrinkEdge == 1:
+					reachPixels.extend(self.win.textBaseViewWindow.edgePixels)
+				elif self.win.textBaseViewWindow.extendShrinkEdge == 0:
+					edgePixels=self.win.textBaseViewWindow.edgePixels
+					for e in edgePixels:
+						if e in reachPixels:
+							reachPixels.remove(e)
 				reachPixels=map(lambda x: [ max(0, min(rect[2]-1,x[0]-rect[0])), max(0, min(rect[3]-1,x[1]-rect[1])) ], reachPixels)
 				#reachPixels=map(lambda x: [int(x.split(",")[0])-rect[0], int(x.split(",")[1])-rect[1]] , reachPixels)
 				contrast=float(self.win.sliderContrast.value())/100.0

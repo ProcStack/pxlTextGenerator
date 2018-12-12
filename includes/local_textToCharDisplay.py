@@ -11,8 +11,8 @@ class TextToCharDisplay(QtGui.QWidget):
 		self.bgW=0
 		self.bgH=0
 		self.cW=1000
-		self.cH=100
-		self.baseLine=75
+		self.cH=150
+		self.baseLine=120
 		self.runner=0.0
 		self.seed=0.0
 		
@@ -126,7 +126,7 @@ class TextToCharDisplay(QtGui.QWidget):
 					
 					if buildImageData == 1:
 						difData=curChar.data
-						difData.setAlphaChannel(curChar.dataAlpha)
+						#difData.setAlphaChannel(curChar.dataAl	pha)
 						charListData[char][title]['imgData']=difData
 			self.charListArray=charListData
 		else:
@@ -588,7 +588,7 @@ class PageBuilderViewer(QtGui.QWidget):
 					
 					if buildImageData == 1:
 						difData=curChar.data
-						difData.setAlphaChannel(curChar.dataAlpha)
+						#difData.setAlphaChannel(curChar.dataAlpha)
 						charListData[char][title]['imgData']=difData
 			self.charListArray=charListData
 		else:

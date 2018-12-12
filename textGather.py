@@ -104,6 +104,7 @@ class ImageProcessor(QtGui.QMainWindow):
 		self.curImageFull=512
 		self.curImageHelpers=196
 		self.unsavedChanges=0
+		self.charSampled=0
 		
 		## BELOW IS OLD ##
 		self.websiteName=""
@@ -461,6 +462,9 @@ class ImageProcessor(QtGui.QMainWindow):
 				resetCharBlock.addLayout(thresholdColorBlock)
 				######
 				
+				self.edgeGrowthSlider=SliderGroup(self,"Edge Grow/Shrink", [-10,10,0],7,"int","px", "extendEdges()")
+				resetCharBlock.addWidget(self.edgeGrowthSlider)
+				
 				curEntryEditScrollBlock=QtGui.QScrollArea() #QAbstractScrollArea()
 				curEntryEditScrollBlock.setWidgetResizable(True)
 				#curEntryEditScrollBlock.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
@@ -698,19 +702,21 @@ class ImageProcessor(QtGui.QMainWindow):
 		path+="charListKey.py"
 		if os.path.exists(path):
 			self.statusBarUpdate(" -- Reading and building characters from local CharListKey file --", 0,0)
-			from charListKey import charList
+			import charListKey
+			reload(charListKey)
 			#print " -- Found & Loading from --"
 			#print "  "+path
-			charListKeys=charList.keys()
+			#execfile(path)
+			charListKeys=charListKey.charList.keys()
 			charListKeys=sorted( charListKeys, key=lambda k: k.lower() )
 			for letter in charListKeys:
-				for char in charList[letter].keys():
+				for char in charListKey.charList[letter].keys():
 					curChar=IndexImageEntry(self,1,'thumb','local',[128,128], 'preload')
 					curChar.charBase=letter
-					for data in charList[letter][char].keys():
-						curCharData=charList[letter][char][data]
+					for data in charListKey.charList[letter][char].keys():
+						curCharData=charListKey.charList[letter][char][data]
 						setattr(curChar,data,curCharData)
-					curTextBasePath=charList[letter][char]['textBaseFile']
+					curTextBasePath=charListKey.charList[letter][char]['textBaseFile']
 					curChar.textBaseFile=curTextBasePath
 					curChar.exported=1
 					curChar.loadImage()
@@ -720,6 +726,8 @@ class ImageProcessor(QtGui.QMainWindow):
 					#self.curImgListBlock.addWidget(curChar)
 			#print " -- All characters from local CharListKey file built --"
 			self.statusBarUpdate(" -- All characters from local CharListKey file built --", 5000,1)
+	def extendEdges(self):
+		self.textBaseViewWindow.extendReachEdges()
 	def setOutputDir(self, setDir=None):
 		if setDir == None:
 			folderPicker=QtGui.QFileDialog.getExistingDirectory(self,"Set Output Directory")
@@ -806,18 +814,19 @@ class ImageProcessor(QtGui.QMainWindow):
 		###
 		self.sliderRotate=QtGui.QSlider()
 		self.sliderRotate.setOrientation(QtCore.Qt.Horizontal)
-		self.sliderRotate.setMinimum(-20)
-		self.sliderRotate.setMaximum(20)
+		self.sliderRotate.setMinimum(-6000)
+		self.sliderRotate.setMaximum(6000)
 		self.sliderRotate.setValue(0)
 		curImageMedSettings.addWidget(self.sliderRotate)
 		###
-		self.medSizeVal=QtGui.QLabel()
-		self.medSizeVal.setText("0 deg")
-		self.medSizeVal.setMinimumWidth(90)
-		self.medSizeVal.setAlignment(QtCore.Qt.AlignRight)
-		curImageMedSettings.addWidget(self.medSizeVal)
+		self.rotateSliderVal=QtGui.QLabel()
+		self.rotateSliderVal.setText("0.0 deg")
+		self.rotateSliderVal.setMinimumWidth(90)
+		self.rotateSliderVal.setAlignment(QtCore.Qt.AlignRight)
+		curImageMedSettings.addWidget(self.rotateSliderVal)
 		self.curImageSettings.addLayout(curImageMedSettings)
 		self.sliderRotate.valueChanged.connect(self.degreesSliderChange)
+		self.sliderRotate.sliderReleased.connect(self.degreesSliderReleased)
 		
 		curImageThumbSettings=QtGui.QHBoxLayout()
 		thumbSizeText=QtGui.QLabel()
@@ -879,11 +888,11 @@ class ImageProcessor(QtGui.QMainWindow):
 		self.sliderContrast.setOrientation(QtCore.Qt.Horizontal)
 		self.sliderContrast.setMinimum(0)
 		self.sliderContrast.setMaximum(200)
-		self.sliderContrast.setValue(65)
+		self.sliderContrast.setValue(70)
 		curImageThumbSettings.addWidget(self.sliderContrast)
 		###
 		self.contrastVal=QtGui.QLabel()
-		self.contrastVal.setText("65")	
+		self.contrastVal.setText("70")	
 		self.contrastVal.setMinimumWidth(90)
 		self.contrastVal.setAlignment(QtCore.Qt.AlignRight)
 		curImageThumbSettings.addWidget(self.contrastVal)
@@ -900,6 +909,7 @@ class ImageProcessor(QtGui.QMainWindow):
 		updateButton.clicked.connect(self.finishCurTextCharacter)
 		self.curImageSettings.addWidget(updateButton)
 	def pullFittedScale(self):
+		self.charSampled=1
 		self.sliderRotate.setValue(0)
 		self.sliderTopPadding.setValue(0)
 		self.paddingTopVal.setText(" \n \n \n0\np\nx")
@@ -917,7 +927,7 @@ class ImageProcessor(QtGui.QMainWindow):
 		##self.curImageDisplay.addCharacterToList()
 		#charData=TextCharacterViewer(self,self.textBase,4)
 		#charData.pullCharacterRect(1)
-		curChar=IndexImageEntry(self,1,'thumb','local',[128,128], [self.curImageDisplay, self.curImageMaskDisplay])
+		curChar=IndexImageEntry(self,1,'thumb','local',[128,128], [self.curImageFinalDisplay])#[self.curImageDisplay, self.curImageMaskDisplay])
 		self.curImgListPushTop(curChar)
 		curChar.charField.setFocus()
 		curChar.charField.selectAll()
@@ -942,11 +952,14 @@ class ImageProcessor(QtGui.QMainWindow):
 	def paddingTopSliderChange(self):
 		val=self.sliderTopPadding.value()
 		strVal=str(val)
+		#else:
+		#self.charSampled=1
+		#	self.win.statusBarUpdate(" -- Please 'Load Text Image' to load existing character data -- ", 5000,1)
 		for x in range(len(strVal),4):
 			strVal=" "+strVal
 		strVal='\n'.join(strVal)
 		self.paddingTopVal.setText(strVal+"\np\nx")
-		if self.runValChangeEvent == 1:
+		if self.runValChangeEvent == 1 and self.charSampled==1:
 			try:
 				self.curImageFinalDisplay.pullCharacterRect(1)
 				self.unsavedChanges=1
@@ -959,14 +972,14 @@ class ImageProcessor(QtGui.QMainWindow):
 			strVal=" "+strVal
 		strVal='\n'.join(strVal)
 		self.paddingBottomVal.setText(strVal+"\np\nx")
-		if self.runValChangeEvent == 1:
+		if self.runValChangeEvent == 1 and self.charSampled==1:
 			try:
 				self.curImageFinalDisplay.pullCharacterRect(1)
 				self.unsavedChanges=1
 			except:
 				pass;
 	def leftRightAlignSliderChange(self):
-		if self.runValChangeEvent == 1:
+		if self.runValChangeEvent == 1 and self.charSampled==1:
 			try:
 				thumbIndex=self.curImageFinalDisplay.thumbIndex
 				if thumbIndex>-1:
@@ -981,7 +994,7 @@ class ImageProcessor(QtGui.QMainWindow):
 	def baseLineSliderChange(self):
 		val=self.sliderBaseLine.value()
 		self.fullSizeVal.setText(str(val)+" px")
-		if self.runValChangeEvent == 1:
+		if self.runValChangeEvent == 1 and self.charSampled==1:
 			thumbIndex=self.curImageFinalDisplay.thumbIndex
 			if thumbIndex>-1:
 				thumbWidget=self.curImgListBlock.itemAt(thumbIndex).widget()
@@ -989,12 +1002,19 @@ class ImageProcessor(QtGui.QMainWindow):
 			self.curImageFinalDisplay.setPaddingLine()
 			self.unsavedChanges=1
 	def degreesSliderChange(self):
-		val=self.sliderRotate.value()
-		self.medSizeVal.setText(str(val)+" deg")
+		val=float(self.sliderRotate.value())
+		self.rotateSliderVal.setText(str(val/100.0)+" deg")
+	def degreesSliderReleased(self):
+		val=float(self.sliderRotate.value())
+		self.rotateSliderVal.setText(str(val/100.0)+" deg")
+		if self.runValChangeEvent == 1 and self.charSampled==1:
+			self.curImageMaskDisplay.pullCharacterRect(1)
+			self.curImageFinalDisplay.pullCharacterRect(1)
+			self.unsavedChanges=1
 	def preMultScaleSliderChange(self):
 		val=float(self.sliderPreMult.value())
 		self.preMultVal.setText(str(val/100.0)+" %")
-		if self.runValChangeEvent == 1:
+		if self.runValChangeEvent == 1 and self.charSampled==1:
 			thumbIndex=self.curImageFinalDisplay.thumbIndex
 			if thumbIndex>-1:
 				thumbWidget=self.curImgListBlock.itemAt(thumbIndex).widget()
@@ -1006,7 +1026,7 @@ class ImageProcessor(QtGui.QMainWindow):
 	def contrastSliderReleased(self):
 		val=self.sliderContrast.value()
 		self.contrastVal.setText(str(val))
-		if self.runValChangeEvent == 1:
+		if self.runValChangeEvent == 1 and self.charSampled==1:
 			self.curImageMaskDisplay.pullCharacterRect(1)
 			self.curImageFinalDisplay.pullCharacterRect(1)
 			self.unsavedChanges=1
@@ -1016,7 +1036,7 @@ class ImageProcessor(QtGui.QMainWindow):
 	def alphaReachSliderReleased(self):
 		val=self.sliderAlphaReach.value()
 		self.qualityVal.setText(str(val)+" px")
-		if self.runValChangeEvent == 1:
+		if self.runValChangeEvent == 1 and self.charSampled==1:
 			self.curImageDisplay.pullCharacterRect(1)
 			self.curImageOverlayDisplay.pullCharacterRect(1)
 			self.curImageMaskDisplay.pullCharacterRect(1)
@@ -1153,7 +1173,12 @@ class ImageProcessor(QtGui.QMainWindow):
 				exportDataKeys=exportData.keys()
 				exportDataKeys=sorted( exportDataKeys, key=lambda k: k.lower() )
 				for k in exportDataKeys:
-					export+="\t'"+k+"':{\n"
+					if k in ["'", "b'"]:
+						export+='\t"'+k+'":{\n'
+					elif k == "\\":
+						export+="\t'\\\\':{\n"
+					else:
+						export+="\t'"+k+"':{\n"
 					for title in exportData[k].keys():
 						export+="\t\t'"+title+"':{\n"
 						for sub in exportData[k][title].keys():

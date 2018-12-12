@@ -70,21 +70,36 @@ class IndexImageEntry(QtGui.QWidget): #Individual indexList image entries
 			self.img.setAlignment(QtCore.Qt.AlignCenter)
 			self.img.setGeometry(0,0,self.imgSizeIndexList[0],self.imgSizeIndexList[1]) # Placeholder
 			if type(qtImg) == list:
-				offset=[ int((float(self.outputSize[0])-float(qtImg[0].data.width()))/2.0), int((float(self.outputSize[1])-float(qtImg[0].data.height()))/2.0) ]
+				rotationVal=float(self.win.sliderRotate.value())/100.0
+				offset=[ int(float(self.outputSize[0]-qtImg[0].data.width())/2.0), int(float(self.outputSize[1]-qtImg[0].data.height())/2.0) ]
 				
 				pmap=QtGui.QPixmap(self.outputSize[0],self.outputSize[1])
+				pmap.fill(QtGui.QColor(0,0,0,0))
 				painter=QtGui.QPainter(pmap)
 				painter.drawPixmap(offset[0],offset[1],QtGui.QPixmap.fromImage(qtImg[0].data.toImage()))
 				painter.end()
+				"""if rotationVal != 0:
+					rotation=QtGui.QTransform().rotate(rotationVal)
+					pmap=pmap.transformed(rotation, QtCore.Qt.SmoothTransformation)
+				"""
 				self.data=pmap
-			
+				"""
 				pmap=QtGui.QPixmap(self.outputSize[0],self.outputSize[1])
+				pmap.fill(QtGui.QColor(0,0,0,0))
 				painter=QtGui.QPainter(pmap)
 				painter.drawPixmap(offset[0],offset[1],QtGui.QPixmap.fromImage(qtImg[1].data.toImage()))
 				painter.end()
+				if rotationVal != 0:
+					rotation=QtGui.QTransform().rotate(rotationVal)
+					pmap=pmap.transformed(rotation, QtCore.Qt.SmoothTransformation)
 				self.dataAlpha=pmap
-				
+				"""
+				#self.data=qtImg[0].data
 				qtImg=qtImg[0].data.scaled(self.imgSizeIndexList[0],self.imgSizeIndexList[1], QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
+				"""if rotationVal != 0:
+					rotation=QtGui.QTransform().rotate(rotationVal)
+					qtImg=qtImg.transformed(rotation, QtCore.Qt.SmoothTransformation)
+				"""
 				self.img.setPixmap(qtImg)
 			else:
 				self.img.setText("[ Placeholder ]") # Stand-in for image, pre load
@@ -225,7 +240,20 @@ class IndexImageEntry(QtGui.QWidget): #Individual indexList image entries
 			diffuse=self.charFileName+".png"
 			if self.exported == 0:
 				difData=self.data
+				"""
 				difData.setAlphaChannel(self.dataAlpha)
+				res=[difData.width(), difData.height()]
+				offset= [ int(float(self.outputSize[0]-res[0])/2.0), int(float(self.outputSize[1]-res[1])/2.0) ]
+				
+				baseImg=QtGui.QPixmap( self.outputSize[0], self.outputSize[1] )
+				baseImg.fill(QtGui.QColor(0,0,0,0))
+				painter=QtGui.QPainter(baseImg)
+				painter.setCompositionMode(painter.CompositionMode_SourceOver)
+				painter.drawPixmap(offset[0], offset[1], difData)
+				painter.end()
+				difData=baseImg
+				"""
+				
 				difData.save(path+diffuse, "png")
 		return path+diffuse
 	def loadFromTextBase(self):

@@ -5,7 +5,7 @@ def ClearLayout(layout):
 	postRemoveItem=[]
 	for l in range(layout.count()):
 		if type(layout.itemAt(l)) in [QtGui.QHBoxLayout, QtGui.QVBoxLayout]:
-			self.clearLayout(layout.itemAt(l)) # Recurse through sub layouts
+			ClearLayout(layout.itemAt(l)) # Recurse through sub layouts
 			children.append(layout.itemAt(l))
 		else:
 			typ=type(layout.itemAt(l))
@@ -23,7 +23,7 @@ def ClearLayout(layout):
 ### Will take some time is all
 ### Leaving them be for now
 ######
-### SliderGroup(self,"Random Seed", [0,200,0],"float","%")
+### SliderGroup(self,"Bottom",[0,2048,1948],7,"int",' px',"updatePaddingBars()")
 class SliderGroup(QtGui.QWidget):	
 	def __init__(self, win,title,minMaxVal,padding,type,suffix,function=None):
 		QtGui.QWidget.__init__(self)
@@ -105,7 +105,10 @@ class SliderGroup(QtGui.QWidget):
 		self.sliderValueText.setAlignment(QtCore.Qt.AlignCenter)
 		self.sliderValueText.mousePressEvent=self.valueTextPress
 		self.sliderValueTextBlock.addWidget(self.sliderValueText)
-		self.slider.setValue(-1)
+		if self.min < 0:
+			self.slider.setValue(0)
+		else:
+			self.slider.setValue(-1)
 		self.editTextMode=0
 		self.slider.setValue(val)
 	def sliderChange(self):
