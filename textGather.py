@@ -210,34 +210,16 @@ class ImageProcessor(QtGui.QMainWindow):
 		self.processingTabLayout.addLayout(self.imageDisplayBlock)
 		
 		### Character Test ###
-		
-		self.textCharDisplay=TextToCharDisplay(self)
-		self.processingTabLayout.addWidget(self.textCharDisplay)
+		self.textCharDisplayBlock=QtGui.QVBoxLayout()
+		self.textCharDisplayBlock.setSpacing(0)
+		self.textCharDisplayBlock.setMargin(0)
+		self.processingTabLayout.addLayout(self.textCharDisplayBlock)
 		
 		### Process Block ###
 		pad=1
 		self.processLayout=QtGui.QVBoxLayout()
 		self.processLayout.setSpacing(pad)
 		self.processLayout.setMargin(pad)
-		# Load directory text field
-		self.outDirBlock=QtGui.QHBoxLayout()
-		self.outDirField=QtGui.QLineEdit()
-		self.outDirBlock.addWidget(self.outDirField)
-		# Create Load Dir button
-		self.setOutDir=QtGui.QPushButton('Output Dir', self)
-		self.setOutDir.setStyleSheet(self.buttonStyle)
-		self.setOutDir.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-		self.setOutDir.clicked.connect(self.setOutputDir)
-		self.outDirBlock.addWidget(self.setOutDir)
-		#tab0.addLayout(self.dirBlock)
-		self.processLayout.addLayout(self.outDirBlock)
-
-		# Process Full Button #
-		self.processSiteButton=QtGui.QPushButton('Export Character List', self)
-		self.processSiteButton.setStyleSheet(self.buttonStyle)
-		self.processSiteButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-		self.processSiteButton.clicked.connect(self.exportCharList)
-		self.processLayout.addWidget(self.processSiteButton)
 		self.processingTabLayout.addLayout(self.processLayout)
 		self.tabLayout_processing.setLayout(self.processingTabLayout)
 		
@@ -661,6 +643,31 @@ class ImageProcessor(QtGui.QMainWindow):
 				scrollInner.setLayout(self.curImgListBlock)
 				self.curImgListBlock.setSpacing(pad)
 				self.curImgListBlock.setMargin(pad)
+				
+				###### ADD TEXTBED ######
+				self.textCharDisplay=TextToCharDisplay(self)
+				self.textCharDisplayBlock.addWidget(self.textCharDisplay)
+				
+				###### OUTPUT AND EXPORT ######
+				# Load directory text field
+				self.outDirBlock=QtGui.QHBoxLayout()
+				self.outDirField=QtGui.QLineEdit()
+				self.outDirBlock.addWidget(self.outDirField)
+				# Create Load Dir button
+				self.setOutDir=QtGui.QPushButton('Output Dir', self)
+				self.setOutDir.setStyleSheet(self.buttonStyle)
+				self.setOutDir.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+				self.setOutDir.clicked.connect(self.setOutputDir)
+				self.outDirBlock.addWidget(self.setOutDir)
+				#tab0.addLayout(self.dirBlock)
+				self.processLayout.addLayout(self.outDirBlock)
+
+				# Process Full Button #
+				self.processSiteButton=QtGui.QPushButton('Export Character List', self)
+				self.processSiteButton.setStyleSheet(self.buttonStyle)
+				self.processSiteButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+				self.processSiteButton.clicked.connect(self.exportCharList)
+				self.processLayout.addWidget(self.processSiteButton)
 				
 				size=self.scrollIndexBlock.frameGeometry()
 				#size=[size.width()-sizeSub, size.height()]
@@ -1143,7 +1150,9 @@ class ImageProcessor(QtGui.QMainWindow):
 			charListKeys=charListKey.charList.keys()
 			charListKeys=sorted( charListKeys, key=lambda k: k.lower() )
 			for letter in charListKeys:
-				for char in charListKey.charList[letter].keys():
+				curCharKeys=charListKey.charList[letter].keys()
+				curCharKeys.sort()
+				for char in curCharKeys:
 					curChar=IndexImageEntry(self,1,'thumb','local',[128,128], 'preload')
 					curChar.charBase=letter
 					for data in charListKey.charList[letter][char].keys():

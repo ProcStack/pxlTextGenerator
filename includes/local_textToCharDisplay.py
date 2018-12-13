@@ -32,7 +32,7 @@ class TextToCharDisplay(QtGui.QWidget):
 		self.charTestBlock.setMargin(0) 
 		
 		charTextSeedBlockWidget=QtGui.QWidget()
-		charTextSeedBlockWidget.setFixedHeight(70)
+		charTextSeedBlockWidget.setFixedHeight(100)
 		
 		self.charTestOptionBlock=QtGui.QVBoxLayout()
 		self.charTestOptionBlock.setSpacing(0)
@@ -62,9 +62,39 @@ class TextToCharDisplay(QtGui.QWidget):
 		self.seedSliderVal.setMinimumWidth(90)
 		self.seedSliderVal.setAlignment(QtCore.Qt.AlignCenter)
 		charTestSeedBlock.addWidget(self.seedSliderVal)
+		self.charTestOptionBlock.addLayout(charTestSeedBlock)
+		
+		charTestBuildCharListBlock=QtGui.QHBoxLayout()
+		charTestBuildCharListBlock.setSpacing(5)
+		charTestBuildCharListBlock.setMargin(0)
+		###
+		charTestCapitalButton=QtGui.QPushButton('Pull Capital Letters', self)
+		charTestCapitalButton.setStyleSheet(self.win.buttonStyle)
+		charTestCapitalButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+		charTestCapitalButton.clicked.connect(lambda: self.pullCharacters("capital"))
+		charTestBuildCharListBlock.addWidget(charTestCapitalButton)
+		###
+		charTestLowerButton=QtGui.QPushButton('Pull Lower Letter', self)
+		charTestLowerButton.setStyleSheet(self.win.buttonStyle)
+		charTestLowerButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+		charTestLowerButton.clicked.connect(lambda: self.pullCharacters("lower"))
+		charTestBuildCharListBlock.addWidget(charTestLowerButton)
+		###
+		charTestNumberButton=QtGui.QPushButton('Pull Numbers', self)
+		charTestNumberButton.setStyleSheet(self.win.buttonStyle)
+		charTestNumberButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+		charTestNumberButton.clicked.connect(lambda: self.pullCharacters("numbers"))
+		charTestBuildCharListBlock.addWidget(charTestNumberButton)
+		###
+		charTestNonAlphaButton=QtGui.QPushButton('Pull Non-Alphanumeric', self)
+		charTestNonAlphaButton.setStyleSheet(self.win.buttonStyle)
+		charTestNonAlphaButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+		charTestNonAlphaButton.clicked.connect(lambda: self.pullCharacters("special"))
+		charTestBuildCharListBlock.addWidget(charTestNonAlphaButton)
+		###
+		self.charTestOptionBlock.addLayout(charTestBuildCharListBlock)
 		
 		self.charTestBlock.addWidget(charTextSeedBlockWidget)
-		self.charTestOptionBlock.addLayout(charTestSeedBlock)
 		charTextSeedBlockWidget.setLayout(self.charTestOptionBlock)
 
 		charTestButtonBlock=QtGui.QVBoxLayout()
@@ -90,7 +120,6 @@ class TextToCharDisplay(QtGui.QWidget):
 		###
 		self.charTestBlock.addLayout(charTestButtonBlock)
 
-		
 		capPadLinesBlock=QtGui.QVBoxLayout()
 		capPadLinesBlock.setSpacing(4)
 		capPadLinesBlock.setMargin(4) 
@@ -111,7 +140,6 @@ class TextToCharDisplay(QtGui.QWidget):
 		capPadLinesBlock.addWidget(self.sliderCapLineValText)
 		self.charTestBlock.addLayout(capPadLinesBlock)
 		self.sliderCapLineSlider.valueChanged.connect(self.updateCapLowLines)
-		
 		
 		lowPadLinesBlock=QtGui.QVBoxLayout()
 		lowPadLinesBlock.setSpacing(4)
@@ -142,7 +170,30 @@ class TextToCharDisplay(QtGui.QWidget):
 		self.charTestBlock.addWidget(self.charTestDisplay)
 		
 		self.setLayout(self.charTestBlock) # Layout to display in parent window
-		
+	def pullCharacters(self, pullType):
+		charList=[]
+		for c in range(self.win.curImgListBlock.count()):
+			curChar=self.win.curImgListBlock.itemAt(c).widget()
+			charList.append(str(curChar.charBase))
+		outputStr=""
+		if pullType=="capital":
+			for c in charList:
+				if c.isupper():
+					outputStr+=c
+		elif pullType=="lower":
+			for c in charList:
+				if c.islower() and c not in ['b"',"b'","b`"]:
+					outputStr+=c
+		elif pullType=="numbers":
+			for c in charList:
+				if c.isdigit():
+					outputStr+=c
+		elif pullType=="special":
+			for c in charList:
+				if (not c.isupper() and not c.islower() and not c.isdigit()) or c in ['b"',"b'","b`"]:
+					outputStr+=c
+		self.charTestText.setText(outputStr)
+		self.reloadText()
 	def updateCapLowLines(self):
 		capVal=self.baseLine-self.sliderCapLineSlider.value()
 		lowVal=self.baseLine-self.sliderLowLineSlider.value()
@@ -316,17 +367,36 @@ class TextToCharDisplay(QtGui.QWidget):
 					
 					self.runner=0
 					printText=[]
-					for c in val:
+					counter=[]
+					val=list(val)
+					backChars=["'",'"',"`"]
+					skip=0
+					for x,c in enumerate(val):
 						self.runner+=1.0
-						if c == " ":
-							leftStart=leftStart+50
-							printText.append(' ')
+						if c == "b":
+							if x < len(val)-1:
+								if val[x+1] in backChars:
+									skip=1
+									cc=c
+						if skip==0:
+							cc=c
+						elif skip==2:
+							skip=0
+							cc+=c
+						if skip == 0:
+							if cc == " ":
+								leftStart=leftStart+50
+								printText.append(' ')
+							else:
+								count=counter.count(cc)
+								charData=self.pullCharData(cc,count)
+								offset=[ leftStart-charData['spacingLeft'],-charData['baseline']+self.baseLine ]
+								leftStart=leftStart-charData['spacingLeft']+charData['spacingRight']
+								painter.drawPixmap(offset[0],offset[1],charData['data'])
+								printText.append("_".join(charData['name'].split("_")[1::]))
+							counter.append(cc)
 						else:
-							charData=self.pullCharData(c)
-							offset=[ leftStart-charData['spacingLeft'],-charData['baseline']+self.baseLine ]
-							leftStart=leftStart-charData['spacingLeft']+charData['spacingRight']
-							painter.drawPixmap(offset[0],offset[1],charData['data'])
-							printText.append("_".join(charData['name'].split("_")[1::]))
+							skip+=1
 					painter.end()
 					self.textBuildData=baseImg
 					printText=", ".join(printText)
@@ -334,13 +404,15 @@ class TextToCharDisplay(QtGui.QWidget):
 				else:
 					self.textBuildData=None
 				self.updateTextBackground()
-	def pullCharData(self,curChar):
+	def pullCharData(self,curChar,entry):
 		curChar=str(curChar)
 		charKeys=self.charListArray.keys()
 		if curChar in charKeys:
 			retDict={}
 			random.seed( self.runner + self.seed )
-			charVar=random.choice(self.charListArray[curChar].keys())
+			#charVar=random.choice(self.charListArray[curChar].keys())
+			curCharKeys=self.charListArray[curChar].keys()
+			charVar=curCharKeys[entry%len(curCharKeys)]
 			retDict['name']=charVar
 			charVar=self.charListArray[curChar][charVar]
 			export=charVar['exported']

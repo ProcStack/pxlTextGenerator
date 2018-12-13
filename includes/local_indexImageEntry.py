@@ -159,7 +159,7 @@ class IndexImageEntry(QtGui.QWidget): #Individual indexList image entries
 				"@":"at",
 				"#":"num",
 				"$":"dol",
-				"%":"per",
+				"%":"prc",
 				"^":"up",
 				"&":"and",
 				"*":"str",
