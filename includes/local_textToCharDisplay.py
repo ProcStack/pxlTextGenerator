@@ -11,10 +11,11 @@ class TextToCharDisplay(QtGui.QWidget):
 		self.bgW=0
 		self.bgH=0
 		self.cW=1000
-		self.cH=150
+		self.cH=180
 		self.baseLine=120
 		self.runner=0.0
 		self.seed=0.0
+		self.autoUpdate=False
 		
 		self.charListArray=None
 		
@@ -66,12 +67,73 @@ class TextToCharDisplay(QtGui.QWidget):
 		self.charTestOptionBlock.addLayout(charTestSeedBlock)
 		charTextSeedBlockWidget.setLayout(self.charTestOptionBlock)
 
+		charTestButtonBlock=QtGui.QVBoxLayout()
+		charTestButtonBlock.setSpacing(0)
+		charTestButtonBlock.setMargin(0) 
+		###
 		charTestButton=QtGui.QPushButton('Load Text Image', self)
 		charTestButton.setStyleSheet(self.win.buttonStyle)
 		charTestButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 		charTestButton.clicked.connect(self.loadTextBackground)
-		self.charTestBlock.addWidget(charTestButton)
+		charTestButtonBlock.addWidget(charTestButton)
+		###
+		charTestReloadButton=QtGui.QPushButton('Reload Text', self)
+		charTestReloadButton.setStyleSheet(self.win.buttonStyle)
+		charTestReloadButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+		charTestReloadButton.clicked.connect(self.reloadText)
+		charTestButtonBlock.addWidget(charTestReloadButton)
+		###
+		self.charTestAutoReload=QtGui.QCheckBox()
+		self.charTestAutoReload.setText("Auto Update")
+		self.charTestAutoReload.stateChanged.connect(self.setAutoReload)
+		charTestButtonBlock.addWidget(self.charTestAutoReload)
+		###
+		self.charTestBlock.addLayout(charTestButtonBlock)
 
+		
+		capPadLinesBlock=QtGui.QVBoxLayout()
+		capPadLinesBlock.setSpacing(4)
+		capPadLinesBlock.setMargin(4) 
+		###
+		self.sliderCapLineSlider=QtGui.QSlider()
+		self.sliderCapLineSlider.setOrientation(QtCore.Qt.Vertical)
+		self.sliderCapLineSlider.setMinimum(0)
+		self.sliderCapLineSlider.setMaximum(self.baseLine)
+		self.sliderCapLineSlider.setFixedHeight(150)
+		curVal=self.baseLine-int(self.baseLine*.1)
+		self.sliderCapLineSlider.setValue(curVal)
+		capPadLinesBlock.addWidget(self.sliderCapLineSlider)
+		###
+		self.sliderCapLineValText=QtGui.QLabel()
+		self.sliderCapLineValText.setText(str(self.baseLine-curVal))
+		self.sliderCapLineValText.setAlignment(QtCore.Qt.AlignCenter)
+		self.sliderCapLineValText.setFixedWidth(40)
+		capPadLinesBlock.addWidget(self.sliderCapLineValText)
+		self.charTestBlock.addLayout(capPadLinesBlock)
+		self.sliderCapLineSlider.valueChanged.connect(self.updateCapLowLines)
+		
+		
+		lowPadLinesBlock=QtGui.QVBoxLayout()
+		lowPadLinesBlock.setSpacing(4)
+		lowPadLinesBlock.setMargin(4) 
+		###
+		self.sliderLowLineSlider=QtGui.QSlider()
+		self.sliderLowLineSlider.setOrientation(QtCore.Qt.Vertical)
+		self.sliderLowLineSlider.setMinimum(0)
+		self.sliderLowLineSlider.setMaximum(self.baseLine)
+		self.sliderLowLineSlider.setFixedHeight(150)
+		curVal=self.baseLine-int(self.baseLine*.5)
+		self.sliderLowLineSlider.setValue(curVal)
+		lowPadLinesBlock.addWidget(self.sliderLowLineSlider)
+		###
+		self.sliderLowLineValText=QtGui.QLabel()
+		self.sliderLowLineValText.setText(str(self.baseLine-curVal))
+		self.sliderLowLineValText.setAlignment(QtCore.Qt.AlignCenter)
+		self.sliderLowLineValText.setFixedWidth(40)
+		lowPadLinesBlock.addWidget(self.sliderLowLineValText)
+		self.charTestBlock.addLayout(lowPadLinesBlock)
+		self.sliderLowLineSlider.valueChanged.connect(self.updateCapLowLines)
+		
 		self.charTestDisplay=QtGui.QLabel()
 		self.charTestDisplay.setText("[ Character Test Display ]")
 		self.charTestDisplay.setMinimumWidth(self.cW)
@@ -80,11 +142,38 @@ class TextToCharDisplay(QtGui.QWidget):
 		self.charTestBlock.addWidget(self.charTestDisplay)
 		
 		self.setLayout(self.charTestBlock) # Layout to display in parent window
+		
+	def updateCapLowLines(self):
+		capVal=self.baseLine-self.sliderCapLineSlider.value()
+		lowVal=self.baseLine-self.sliderLowLineSlider.value()
+		strCapVal=str(capVal)
+		strLowVal=str(lowVal)
+		self.sliderCapLineValText.setText(strCapVal)
+		self.sliderLowLineValText.setText(strLowVal)
+		self.updateTextBackground()
+	def setPaddingLine(self,pmap):
+		capVal=self.baseLine-int(self.sliderCapLineSlider.value())
+		lowVal=self.baseLine-int(self.sliderLowLineSlider.value())
+		baseVal=self.baseLine
+		img=pmap.toImage()
+		for x in range(pmap.width()):
+			img.setPixel(x,capVal,QtGui.QColor(255,0,0,255).rgba())
+			if x%30<15:
+				img.setPixel(x,lowVal,QtGui.QColor(255,0,0,255).rgba())
+			img.setPixel(x,baseVal,QtGui.QColor(255,0,0,255).rgba())
+		pmap=QtGui.QPixmap.fromImage(img)
+		return pmap
+	def reloadText(self):
+		self.buildTextDisplay(1)
+	def setAutoReload(self):
+		val=self.charTestAutoReload.isChecked()
+		self.autoUpdate=val
+		self.reloadText()
 	def updateRandomSeed(self):
 		val=float(self.seedSlider.value())/100.00
 		self.seedSliderVal.setText(str(val))
 		self.seed=val
-		self.buildTextDisplay(1)
+		self.reloadText()
 	def buildCharListArray(self):
 		if hasattr(self.win, "curImgListBlock"):
 			charListData={}
@@ -179,8 +268,10 @@ class TextToCharDisplay(QtGui.QWidget):
 		if self.backgroundData != None:
 			label=self.charTestDisplay
 			res=[label.width(), label.height()]
+			
 			pmap=QtGui.QPixmap.fromImage(self.backgroundData.toImage()).copy(self.offset[0],self.offset[1],res[0],res[1])
-			palpha=QtGui.QPixmap(self.cW, self.cH)
+			pmap=self.setPaddingLine(pmap)
+			palpha=QtGui.QPixmap(res[0],res[1])
 			palpha.fill(QtGui.QColor(255,255,255))
 			pmap.setAlphaChannel(palpha)
 			self.displayData=QtGui.QPixmap.fromImage(pmap.toImage())
@@ -629,7 +720,6 @@ class PageBuilderViewer(QtGui.QWidget):
 		return str(self.parent.inputText.toPlainText())
 	def buildTextDisplay(self, force=0):
 		val=self.inputText()
-		print val
 		if val != self.pastTest or force==1:
 			self.pastTest=val
 			res=[self.cWOrig, self.cHOrig]

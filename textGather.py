@@ -35,6 +35,7 @@
 
 import sys, os
 import re
+import datetime as dt
 from PIL import Image
 from PyQt4 import QtGui, QtCore
 from functools import partial
@@ -938,6 +939,8 @@ class ImageProcessor(QtGui.QMainWindow):
 			try:
 				self.curImageFinalDisplay.pullCharacterRect(1)
 				self.unsavedChanges=1
+				if self.textCharDisplay.autoUpdate==True:
+					self.textCharDisplay.reloadText()
 			except:
 				pass;
 	def paddingBottomSliderChange(self):
@@ -951,6 +954,8 @@ class ImageProcessor(QtGui.QMainWindow):
 			try:
 				self.curImageFinalDisplay.pullCharacterRect(1)
 				self.unsavedChanges=1
+				if self.textCharDisplay.autoUpdate==True:
+					self.textCharDisplay.reloadText()
 			except:
 				pass;
 	def leftRightAlignSliderChange(self):
@@ -963,6 +968,8 @@ class ImageProcessor(QtGui.QMainWindow):
 					thumbWidget.spacingRight=self.rightAlignSlider.value()+128
 				self.curImageFinalDisplay.pullCharacterRect(1)
 				self.unsavedChanges=1
+				if self.textCharDisplay.autoUpdate==True:
+					self.textCharDisplay.reloadText()
 			except:
 				pass;
 		######
@@ -976,6 +983,8 @@ class ImageProcessor(QtGui.QMainWindow):
 				thumbWidget.baseline=val
 			self.curImageFinalDisplay.setPaddingLine()
 			self.unsavedChanges=1
+			if self.textCharDisplay.autoUpdate==True:
+				self.textCharDisplay.reloadText()
 	def degreesSliderChange(self):
 		val=float(self.sliderRotate.value())
 		self.rotateSliderVal.setText(str(val/100.0)+" deg")
@@ -986,6 +995,8 @@ class ImageProcessor(QtGui.QMainWindow):
 			self.curImageMaskDisplay.pullCharacterRect(1)
 			self.curImageFinalDisplay.pullCharacterRect(1)
 			self.unsavedChanges=1
+			if self.textCharDisplay.autoUpdate==True:
+				self.textCharDisplay.reloadText()
 	def preMultScaleSliderChange(self):
 		val=float(self.sliderPreMult.value())
 		self.preMultVal.setText(str(val/100.0)+" %")
@@ -995,6 +1006,8 @@ class ImageProcessor(QtGui.QMainWindow):
 				thumbWidget=self.curImgListBlock.itemAt(thumbIndex).widget()
 				thumbWidget.premultiply=self.sliderPreMult.value()
 			self.unsavedChanges=1
+			if self.textCharDisplay.autoUpdate==True:
+				self.textCharDisplay.reloadText()
 	def contrastSliderChange(self):
 		val=self.sliderContrast.value()
 		self.contrastVal.setText(str(val))
@@ -1005,6 +1018,8 @@ class ImageProcessor(QtGui.QMainWindow):
 			self.curImageMaskDisplay.pullCharacterRect(1)
 			self.curImageFinalDisplay.pullCharacterRect(1)
 			self.unsavedChanges=1
+			if self.textCharDisplay.autoUpdate==True:
+				self.textCharDisplay.reloadText()
 	def alphaReachSliderChange(self):
 		val=self.sliderAlphaReach.value()
 		self.qualityVal.setText(str(val)+" px")
@@ -1017,6 +1032,8 @@ class ImageProcessor(QtGui.QMainWindow):
 			self.curImageMaskDisplay.pullCharacterRect(1)
 			self.curImageFinalDisplay.pullCharacterRect(1)
 			self.unsavedChanges=1
+			if self.textCharDisplay.autoUpdate==True:
+				self.textCharDisplay.reloadText()
 	def dispCheckerBoard(self,res,vis):
 		if self.checkerBoard==None:
 			size=8
@@ -1204,6 +1221,7 @@ class ImageProcessor(QtGui.QMainWindow):
 					f.write(export)
 				#print "Wrote out to - "+path
 				self.statusBarUpdate(" -- Wrote out to - "+path+" --", 10000,1)
+				curTime=dt.datetime.now().strftime("%H:%M - %m/%d/%Y")
 				self.unsavedChanges=0
 			else:
 				self.statusBarUpdate(" -- No created characters, please select and 'Finish Character' first -- ", 5000,2)
