@@ -27,6 +27,8 @@ class TextToCharDisplay(QtGui.QWidget):
 		
 		######
 		
+		self.setFixedHeight(self.cH)
+		
 		self.charTestBlock=QtGui.QHBoxLayout()
 		self.charTestBlock.setSpacing(0)
 		self.charTestBlock.setMargin(0) 

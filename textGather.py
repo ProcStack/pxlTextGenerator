@@ -624,6 +624,7 @@ class ImageProcessor(QtGui.QMainWindow):
 				entryBlock.addLayout(entryEditBlock)
 				
 				##### ENTRY INDEX LIST ######
+				sideBarWidth=152
 				self.sideBarBlock=QtGui.QVBoxLayout()
 				self.sideBarTextBase=QtGui.QVBoxLayout()
 				self.sideBarTextBase.setAlignment(QtCore.Qt.AlignCenter)
@@ -631,9 +632,20 @@ class ImageProcessor(QtGui.QMainWindow):
 				self.sideBarTextBaseWidget.setLayout(self.sideBarTextBase)
 				self.sideBarBlock.addWidget(self.sideBarTextBaseWidget)
 
+				self.filterCharBlock=QtGui.QVBoxLayout()
+				self.filterCharText=QtGui.QLabel()
+				self.filterCharText.setText("Filter:")
+				self.filterCharText.setFixedWidth(sideBarWidth)
+				self.filterCharBlock.addWidget(self.filterCharText)
+				self.filterCharVal=QtGui.QLineEdit()
+				self.filterCharVal.setFixedWidth(sideBarWidth)
+				self.filterCharVal.editingFinished.connect(self.filterCharacters)
+				self.filterCharBlock.addWidget(self.filterCharVal)
+				self.sideBarBlock.addLayout(self.filterCharBlock)
+				
 				self.scrollIndexBlock=QtGui.QScrollArea()
 				self.scrollIndexBlock.setWidgetResizable(True)
-				self.scrollIndexBlock.setFixedWidth(152)
+				self.scrollIndexBlock.setFixedWidth(sideBarWidth)
 				self.scrollIndexBlock.setStyleSheet("QWidget {background-color:#2a2a2a;}")
 				self.scrollIndexBlock.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 				scrollInner=QtGui.QWidget(self.scrollIndexBlock)
@@ -645,29 +657,32 @@ class ImageProcessor(QtGui.QMainWindow):
 				self.curImgListBlock.setMargin(pad)
 				
 				###### ADD TEXTBED ######
-				self.textCharDisplay=TextToCharDisplay(self)
-				self.textCharDisplayBlock.addWidget(self.textCharDisplay)
+				try:
+					exists=self.textCharDisplay
+				except:
+					self.textCharDisplay=TextToCharDisplay(self)
+					self.textCharDisplayBlock.addWidget(self.textCharDisplay)
 				
-				###### OUTPUT AND EXPORT ######
-				# Load directory text field
-				self.outDirBlock=QtGui.QHBoxLayout()
-				self.outDirField=QtGui.QLineEdit()
-				self.outDirBlock.addWidget(self.outDirField)
-				# Create Load Dir button
-				self.setOutDir=QtGui.QPushButton('Output Dir', self)
-				self.setOutDir.setStyleSheet(self.buttonStyle)
-				self.setOutDir.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-				self.setOutDir.clicked.connect(self.setOutputDir)
-				self.outDirBlock.addWidget(self.setOutDir)
-				#tab0.addLayout(self.dirBlock)
-				self.processLayout.addLayout(self.outDirBlock)
+					###### OUTPUT AND EXPORT ######
+					# Load directory text field
+					self.outDirBlock=QtGui.QHBoxLayout()
+					self.outDirField=QtGui.QLineEdit()
+					self.outDirBlock.addWidget(self.outDirField)
+					# Create Load Dir button
+					self.setOutDir=QtGui.QPushButton('Output Dir', self)
+					self.setOutDir.setStyleSheet(self.buttonStyle)
+					self.setOutDir.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+					self.setOutDir.clicked.connect(self.setOutputDir)
+					self.outDirBlock.addWidget(self.setOutDir)
+					#tab0.addLayout(self.dirBlock)
+					self.processLayout.addLayout(self.outDirBlock)
 
-				# Process Full Button #
-				self.processSiteButton=QtGui.QPushButton('Export Character List', self)
-				self.processSiteButton.setStyleSheet(self.buttonStyle)
-				self.processSiteButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-				self.processSiteButton.clicked.connect(self.exportCharList)
-				self.processLayout.addWidget(self.processSiteButton)
+					# Process Full Button #
+					self.processSiteButton=QtGui.QPushButton('Export Character List', self)
+					self.processSiteButton.setStyleSheet(self.buttonStyle)
+					self.processSiteButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+					self.processSiteButton.clicked.connect(self.exportCharList)
+					self.processLayout.addWidget(self.processSiteButton)
 				
 				size=self.scrollIndexBlock.frameGeometry()
 				#size=[size.width()-sizeSub, size.height()]
@@ -926,6 +941,23 @@ class ImageProcessor(QtGui.QMainWindow):
 			for c in range(self.curImgListBlock.count()):
 				curChar=self.curImgListBlock.itemAt(c).widget()
 				curChar.index=c
+	def filterCharacters(self):
+		filterVar=str(self.filterCharVal.text()).strip()
+		if filterVar != '':
+			filterVar=list(filterVar)
+			for c in range(self.curImgListBlock.count()):
+				curChar=self.curImgListBlock.itemAt(c).widget()
+				curChar.hide()
+			for f in filterVar:
+				for c in range(self.curImgListBlock.count()):
+					curChar=self.curImgListBlock.itemAt(c).widget()
+					curBase=str(curChar.charBase)
+					if f in curBase:
+						curChar.show()
+		else:
+			for c in range(self.curImgListBlock.count()):
+				curChar=self.curImgListBlock.itemAt(c).widget()
+				curChar.show()
 	def resetCurTextCharacter(self):
 		self.textBaseViewWindow.resetScanRange()
 		self.charSamplePoints=[]
