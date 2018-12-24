@@ -402,7 +402,6 @@ class TextToCharDisplay(QtGui.QWidget):
 					painter.end()
 					self.textBuildData=baseImg
 					printText=", ".join(printText)
-					print printText
 				else:
 					self.textBuildData=None
 				self.updateTextBackground()
@@ -496,6 +495,8 @@ class PageBuilder(QtGui.QWidget):
 		self.charTestOptionBlock.addLayout(self.pageFileLocationBlock)
 		
 		### Page Options ###
+		self.fontScale=SliderGroup(self,"Font Scale",[0,2,.75],7,"float",' %')
+		self.charTestOptionBlock.addWidget(self.fontScale)
 		self.spaceSize=SliderGroup(self,"Space Size",[0,200,50],7,"int",' px')
 		self.charTestOptionBlock.addWidget(self.spaceSize)
 		self.lineHeight=SliderGroup(self,"Line Height",[0,200,75],7,"int",' px')
@@ -614,7 +615,8 @@ class PageBuilder(QtGui.QWidget):
 		
 		self.setLayout(self.charTestBlock) # Layout to display in parent window
 	def updatePaddingBars(self):
-		print "hit"
+		#self.pageOutput.updateTextBackground()
+		self.pageOutput.buildTextDisplay()
 	def updateRandomSeed(self):
 		val=float(self.seedSlider.value())/100.00
 		self.seedSliderVal.setText(str(val))
@@ -710,6 +712,7 @@ class PageBuilderViewer(QtGui.QWidget):
 		self.cH=res[1]
 		self.cWOrig=res[0]
 		self.cHOrig=res[1]
+		self.updateTextBackground()
 		"""
 		pmap=QtGui.QPixmap()
 		pmap.load(bgPicker)
@@ -788,70 +791,170 @@ class PageBuilderViewer(QtGui.QWidget):
 		if set==1:
 			#self.img.setPixmap(pmap)
 			self.pageImgData=QtGui.QPixmap.fromImage(pmap.toImage())
+			pmap=self.setPaddingLine(pmap)
 			self.displayData=QtGui.QPixmap.fromImage(pmap.toImage())
 			self.setZoom()
+	def setPaddingLine(self,pmap):
+		topPad=self.parent.pageIndentTop.value
+		bottomPad=self.parent.pageIndentBottom.value
+		leftPad=self.parent.pageIndentLeft.value
+		rightPad=self.parent.pageIndentRight.value
+		"""
+		capVal=self.baseLine-int(self.sliderCapLineSlider.value())
+		lowVal=self.baseLine-int(self.sliderLowLineSlider.value())
+		baseVal=self.baseLine
+		"""
+		img=pmap.toImage()
+		for x in range(pmap.width()):
+			img.setPixel(x,topPad,QtGui.QColor(255,0,0,255).rgba())
+			img.setPixel(x,bottomPad,QtGui.QColor(255,0,0,255).rgba())
+		for y in range(pmap.height()):
+			img.setPixel(leftPad,y,QtGui.QColor(255,0,0,255).rgba())
+			img.setPixel(rightPad,y,QtGui.QColor(255,0,0,255).rgba())
+		pmap=QtGui.QPixmap.fromImage(img)
+		return pmap
 	def inputText(self):
 		return str(self.parent.inputText.toPlainText())
 	def buildTextDisplay(self, force=0):
 		val=self.inputText()
-		if val != self.pastTest or force==1:
-			self.pastTest=val
-			res=[self.cWOrig, self.cHOrig]
-			
-			spaceSize=self.parent.spaceSize.value
-			lineHeight=self.parent.lineHeight.value
-			lineIndent=self.parent.lineIndent.value
-			###
-			seedVal=float(self.parent.charSeed.value)/100.00
-			self.seed=seedVal
-			###
-			padLeft=self.parent.pageIndentLeft.value
-			padRight=self.parent.pageIndentRight.value
-			padTop=self.parent.pageIndentTop.value
-			padBottom=self.parent.pageIndentBottom.value
-			
-			charOffsets=[padLeft,padTop]
-			
-			if hasattr(self.win, "curImgListBlock"):
-				if self.win.curImgListBlock.count() == 0:
-					self.win.statusBarUpdate(" -- No character data found, please create characters first -- ", 5000,2)
-					return
-			else:
-				self.win.statusBarUpdate(" -- Please 'Load Text Image' to load existing character data -- ", 5000,2)
+		#if val != self.pastTest or force==1:
+		self.pastTest=val
+		res=[self.cWOrig, self.cHOrig]
+		
+		fontScale=self.parent.fontScale.value
+		spaceSize=self.parent.spaceSize.value
+		lineHeight=self.parent.lineHeight.value
+		lineIndent=self.parent.lineIndent.value
+		###
+		seedVal=float(self.parent.charSeed.value)/100.00
+		self.seed=seedVal
+		###
+		padLeft=self.parent.pageIndentLeft.value
+		padRight=self.parent.pageIndentRight.value
+		padTop=self.parent.pageIndentTop.value
+		padBottom=self.parent.pageIndentBottom.value
+		
+		charOffsets=[padLeft,padTop]
+		
+		if hasattr(self.win, "curImgListBlock"):
+			if self.win.curImgListBlock.count() == 0:
+				self.win.statusBarUpdate(" -- No character data found, please create characters first -- ", 5000,2)
 				return
-			dir=str(self.win.dirField.text()).strip()
-			if dir != '':
-				if val != '':
-					self.buildCharListArray()
-					baseImg=QtGui.QPixmap(res[0], res[1])
-					baseImg.fill(QtGui.QColor(0,0,0,0))
-					painter=QtGui.QPainter(baseImg)
+		else:
+			self.win.statusBarUpdate(" -- Please 'Load Text Image' to load existing character data -- ", 5000,2)
+			return
+		dir=str(self.win.dirField.text()).strip()
+		if dir != '':
+			if val != '':
+				"""
+				self.buildCharListArray()
+				baseImg=QtGui.QPixmap(res[0], res[1])
+				baseImg.fill(QtGui.QColor(0,0,0,0))
+				painter=QtGui.QPainter(baseImg)
+				
+				self.runner=0
+				for c in val:
+					self.runner+=1.0
+					if c == " ":
+						charOffsets[0]=charOffsets[0]+50
+					elif c=="\n":
+						charOffsets=[padLeft,charOffsets[1]+lineHeight]
+					else:
+						charData=self.pullCharData(c)
+						print c
+						curOffset=[ charOffsets[0]-charData['spacingLeft'],charOffsets[1]-charData['baseline']+self.baseLine ]
+						charOffsets[0]=charOffsets[0]-charData['spacingLeft']+charData['spacingRight']
+						painter.drawPixmap(curOffset[0],curOffset[1],charData['data'])
+				painter.end()
+				self.textBuildData=baseImg
+				"""
+				self.buildCharListArray()
+				baseImg=QtGui.QPixmap(res[0], res[1])
+				baseImg.fill(QtGui.QColor(0,0,0,0))
+				
+				self.runner=0
+				val=list(val)
+				backChars=["'",'"',"`"]
+				skip=0
+				
+				curLineData=[]
+				paintLine=0
+				genNewLine=1
+				fontScaleLine=fontScale
+				fontScaleChar=fontScale
+				for x,c in enumerate(val):
+					self.runner+=1.0
+					if genNewLine==1:
+						newLineData={}
+						newLineData['wordData']=[]
+						newWord={}
+						newWord['size']=[0,0]
+						newWord['chars']=[]
+						newWord['fontScale']=1.0
+						newLineData['wordData'].append(newWord)
+						newLineData['spaceWidth']=spaceSize
+						newLineData['fontScale']=1.0
+						newLineData['lineOffsets']=charOffsets
+						curLineData.append(newLineData)
+						genNewLine=0
 					
-					self.runner=0
-					for c in val:
-						self.runner+=1.0
-						if c == " ":
-							charOffsets[0]=charOffsets[0]+50
-						elif c=="\n":
+						fontScale=self.parent.fontScale.value
+					
+					if c == "b":
+						if x < len(val)-1:
+							if val[x+1] in backChars:
+								skip=1
+								cc=c
+					if skip==0:
+						cc=c
+					elif skip==2:
+						skip=0
+						cc+=c
+					if skip == 0:
+						if cc == " ":
+							#leftStart=leftStart+spaceSize
+							charOffsets[0]=charOffsets[0]+spaceSize
+							newWord={}
+							newWord['size']=[0,0]
+							newWord['chars']=[]
+							newWord['fontScale']=1.0
+							curLineData[-1]['wordData'].append(newWord)
+						elif cc=="\n":
 							charOffsets=[padLeft,charOffsets[1]+lineHeight]
+							genNewLine=1
 						else:
-							charData=self.pullCharData(c)
-							print c
-							curOffset=[ charOffsets[0]-charData['spacingLeft'],charOffsets[1]-charData['baseline']+self.baseLine ]
-							charOffsets[0]=charOffsets[0]-charData['spacingLeft']+charData['spacingRight']
-							painter.drawPixmap(curOffset[0],curOffset[1],charData['data'])
-					painter.end()
-					self.textBuildData=baseImg
-				else:
-					self.textBuildData=None
-				self.updateTextBackground()
-	def pullCharData(self,curChar):
+							charData=self.pullCharData(cc,fontScaleChar)
+							if charData != None:
+								curOffset=[ charOffsets[0]-charData['spacingLeft'],charOffsets[1]-charData['baseline']+self.baseLine ]
+								charData['offset']=curOffset
+								charOffsets[0]=charOffsets[0]-charData['spacingLeft']+charData['spacingRight']
+
+								curLineData[-1]['wordData'][-1]['chars'].append(charData)
+					else:
+						skip+=1
+				
+				painter=QtGui.QPainter(baseImg)
+				for line in curLineData:
+					for word in line['wordData']:
+						print word
+						for char in word['chars']:
+							pmap=char['data']
+							curOffset=char['offset']
+							painter.drawPixmap(curOffset[0],curOffset[1],pmap)
+				painter.end()	
+				self.textBuildData=baseImg
+			else:
+				self.textBuildData=None
+			self.updateTextBackground()
+	def pullCharData(self,curChar, fontScale):
 		curChar=str(curChar)
 		charKeys=self.charListArray.keys()
 		if curChar in charKeys:
 			retDict={}
+			retDict['char']=curChar
 			random.seed( self.runner + self.seed )
 			charVar=random.choice(self.charListArray[curChar].keys())
+			retDict['key']=charVar
 			charVar=self.charListArray[curChar][charVar]
 			export=charVar['exported']
 			pmap=None
@@ -859,7 +962,7 @@ class PageBuilderViewer(QtGui.QWidget):
 				pmap=charVar['imgData']
 			else:
 				pmap=self.win.curImgListBlock.itemAt(charVar['imgIndex']).widget().data
-			retDict['premultiply']=float(charVar['premultiply'])/10000.0
+			retDict['premultiply']=float(charVar['premultiply'])/10000.0*fontScale
 			mm=int(float(max(pmap.width(), pmap.height()))*retDict['premultiply'])
 			retDict['resMax']=[mm,mm]
 			res=[ int(float(pmap.width())*retDict['premultiply']), int(float(pmap.height())*retDict['premultiply']) ]

@@ -34,9 +34,13 @@ class SliderGroup(QtGui.QWidget):
 		self.type=type
 		self.min=minMaxVal[0]
 		self.max=minMaxVal[1]
-		if self.type == "float":
-			self.max=minMaxVal[1]*100
 		self.value=minMaxVal[2]
+		startVal=self.value
+		if self.type == "float":
+			self.min=minMaxVal[0]*100
+			self.max=minMaxVal[1]*100
+			self.value=float(minMaxVal[2])
+			startVal=minMaxVal[2]*100
 		self.function=function
 		self.editTextMode=0
 		self.runEvents=0
@@ -53,7 +57,7 @@ class SliderGroup(QtGui.QWidget):
 		self.slider.setOrientation(QtCore.Qt.Horizontal)
 		self.slider.setMinimum(self.min)
 		self.slider.setMaximum(self.max)
-		self.slider.setValue(self.value)
+		self.slider.setValue(startVal)
 		self.slider.valueChanged.connect(self.sliderChange)
 		sliderBlock.addWidget(self.slider)
 		###
@@ -74,8 +78,6 @@ class SliderGroup(QtGui.QWidget):
 			self.sliderValueTextEdit.setFixedWidth(80)
 			self.sliderValueTextEdit.setAlignment(QtCore.Qt.AlignCenter)
 			text=self.value
-			if self.type == "float":
-				text=self.value/100.0
 			text=str(text)
 			self.sliderValueTextEdit.setText(text)
 			self.sliderValueTextEdit.setStyleSheet("QLineEdit {selection-color:#ffffff;selection-background-color:#454545;background-color:#909090;}")
@@ -96,9 +98,10 @@ class SliderGroup(QtGui.QWidget):
 				val=int(varr[0]+varr[1])
 			else:
 				val=int(val)*100
+			self.value=float(val)
 		else:
 			val=int(val)
-		self.value=val
+			self.value=val
 		ClearLayout(self.sliderValueTextBlock)
 		self.sliderValueText=QtGui.QLabel()
 		self.sliderValueText.setFixedWidth(80)
@@ -118,15 +121,16 @@ class SliderGroup(QtGui.QWidget):
 	def setValueText(self,val=None):
 		if val == None:
 			val=self.slider.value()
-		self.value=val
 		if self.type == "float":
 			valText=str(float(val)/100.0)+self.suffix
 			self.sliderValueText.setText(valText)
 			self.text=valText
+			self.value=val/100.0
 		if self.type == "int":
 			valText=str(val)+self.suffix
 			self.sliderValueText.setText(valText)
 			self.text=valText
+			self.value=val
 			
 class HorizontalBar(QtGui.QFrame):	
 	def __init__(self):

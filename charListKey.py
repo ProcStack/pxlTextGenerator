@@ -704,7 +704,7 @@ charList={
 			'fileName':'E:/projects/pxlTextGenerator/textCharacterOutput/char_sub_1.png',
 			'degRotation':0,
 			'contrast':90,
-			'spacingLeft':1,
+			'spacingLeft':0,
 		},
 		'char_sub_2':{
 			'premultiply':2178,
@@ -722,7 +722,7 @@ charList={
 			'fileName':'E:/projects/pxlTextGenerator/textCharacterOutput/char_sub_2.png',
 			'degRotation':133,
 			'contrast':90,
-			'spacingLeft':1,
+			'spacingLeft':0,
 		},
 		'char_sub_3':{
 			'premultiply':2178,
@@ -740,7 +740,7 @@ charList={
 			'fileName':'E:/projects/pxlTextGenerator/textCharacterOutput/char_sub_3.png',
 			'degRotation':-277,
 			'contrast':90,
-			'spacingLeft':1,
+			'spacingLeft':0,
 		},
 	},
 	'.':{
@@ -1651,9 +1651,9 @@ charList={
 	},
 	':':{
 		'char_col_4':{
-			'premultiply':1735,
+			'premultiply':1810,
 			'imgName':'thumb',
-			'baseline':478,
+			'baseline':364,
 			'textBaseFile':'E:/projects/pxlTextGenerator/ZSymbols.png',
 			'charSamplePoints':[[1866, 1769], [1876, 1712]],
 			'paddingTop':0,
@@ -1669,9 +1669,9 @@ charList={
 			'spacingLeft':83,
 		},
 		'char_col_5':{
-			'premultiply':1994,
+			'premultiply':1920,
 			'imgName':'thumb',
-			'baseline':433,
+			'baseline':348,
 			'textBaseFile':'E:/projects/pxlTextGenerator/ZSymbols.png',
 			'charSamplePoints':[[2168, 1801], [2181, 1735]],
 			'paddingTop':0,
@@ -1689,7 +1689,7 @@ charList={
 		'char_col_1':{
 			'premultiply':1994,
 			'imgName':'thumb',
-			'baseline':436,
+			'baseline':340,
 			'textBaseFile':'E:/projects/pxlTextGenerator/ZSymbols.png',
 			'charSamplePoints':[[1697, 1748], [1700, 1700]],
 			'paddingTop':0,
@@ -1707,7 +1707,7 @@ charList={
 		'char_col_2':{
 			'premultiply':1846,
 			'imgName':'thumb',
-			'baseline':450,
+			'baseline':353,
 			'textBaseFile':'E:/projects/pxlTextGenerator/ZSymbols.png',
 			'charSamplePoints':[[1788, 1759], [1795, 1708]],
 			'paddingTop':0,
@@ -1725,7 +1725,7 @@ charList={
 		'char_col_3':{
 			'premultiply':1920,
 			'imgName':'thumb',
-			'baseline':446,
+			'baseline':345,
 			'textBaseFile':'E:/projects/pxlTextGenerator/ZSymbols.png',
 			'charSamplePoints':[[2064, 1787], [2073, 1729]],
 			'paddingTop':0,
@@ -1745,7 +1745,7 @@ charList={
 		'char_sem_3':{
 			'premultiply':2369,
 			'imgName':'thumb',
-			'baseline':356,
+			'baseline':279,
 			'textBaseFile':'E:/projects/pxlTextGenerator/ZSymbols.png',
 			'charSamplePoints':[[2801, 1855], [2802, 1792]],
 			'paddingTop':0,
@@ -1763,7 +1763,7 @@ charList={
 		'char_sem_2':{
 			'premultiply':2285,
 			'imgName':'thumb',
-			'baseline':370,
+			'baseline':288,
 			'textBaseFile':'E:/projects/pxlTextGenerator/ZSymbols.png',
 			'charSamplePoints':[[3066, 1884], [3071, 1818]],
 			'paddingTop':0,
@@ -1781,7 +1781,7 @@ charList={
 		'char_sem_1':{
 			'premultiply':2473,
 			'imgName':'thumb',
-			'baseline':345,
+			'baseline':269,
 			'textBaseFile':'E:/projects/pxlTextGenerator/ZSymbols.png',
 			'charSamplePoints':[[2550, 1826], [2555, 1769]],
 			'paddingTop':0,
@@ -1799,7 +1799,7 @@ charList={
 		'char_sem_4':{
 			'premultiply':2171,
 			'imgName':'thumb',
-			'baseline':384,
+			'baseline':302,
 			'textBaseFile':'E:/projects/pxlTextGenerator/ZSymbols.png',
 			'charSamplePoints':[[2462, 1827], [2466, 1768]],
 			'paddingTop':0,
