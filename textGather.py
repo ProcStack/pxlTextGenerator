@@ -176,7 +176,6 @@ class ImageProcessor(QtGui.QMainWindow):
 		self.mainLayout.addWidget(self.tabWidget)
 		
 		######
-		
 		self.processingTabLayout=QtGui.QVBoxLayout()
 		pad=2
 		self.processingTabLayout.setSpacing(pad)
@@ -224,7 +223,6 @@ class ImageProcessor(QtGui.QMainWindow):
 		self.tabLayout_processing.setLayout(self.processingTabLayout)
 		
 		######
-		
 		pageBuilderTabLayout=QtGui.QVBoxLayout()
 		pageBuilderTabLayout.setSpacing(0)
 		pageBuilderTabLayout.setMargin(0) 
@@ -233,7 +231,6 @@ class ImageProcessor(QtGui.QMainWindow):
 		self.tabLayout_pageOutput.setLayout(pageBuilderTabLayout)
 		
 		######
-		
 		self.setCentralWidget(self.mainWidget)
 		
 		"""def newButton(self,name,txt,cmd,layout):

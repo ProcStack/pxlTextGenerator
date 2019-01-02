@@ -16,7 +16,104 @@ def ClearLayout(layout):
 	if len(postRemoveItem) > 0: # Removing spacers in the loop will skip widgets after that point in the array
 		for i in postRemoveItem: # So delete them after the fact
 			layout.removeItem(i)
-			
+
+### CLEAN THIS UP!!! ###
+### This turned into a complete mess..... ###
+### Check dictionary, if else of len(keys), go from there ###
+### Bleh... ###
+### -- Day later -- ###
+### HOLY HELL, CLEAN THIS UP!!! ###
+### CLLLEAAANANNN ITITITITI UPPPPPP!!!!!! ###
+def formatArrayToString(depth, arrayData):
+	ret=''
+	tabIn="\t"*depth
+	if type(arrayData) == list:
+		for x in arrayData:
+			if type(x) == list:
+				nests=0
+				listBuild="["
+				for c in curDict:
+					if type(c) == list:
+						nests=1
+						break;
+					if type(c) == dict:
+						nests=1
+						break;
+					listBuild+=strCheck(c)+","
+				if nests==1:
+					formatted=formatArrayToString(depth+1, curDict)
+					cr=""
+					if "\n" in formatted:
+						cr="\n"
+					ret+=tabIn+"["+cr
+					ret+=formatted
+					ret+=cr+tabIn+"],\n"
+				else:
+					listBuild=listBuild[:-1]+"],\n"
+					ret+=listBuild
+			elif type(x) == dict:
+				ret+=tabIn+"{\n"
+				ret+=formatArrayToString(depth+1, x)
+				ret+="\n"+tabIn+"},\n"
+			else:
+				out=strCheck(x)
+				ret+=out+",\n"
+	elif type(arrayData) == dict:
+		keysArr=arrayData.keys()
+		for x in keysArr:
+			curDict=arrayData[x]
+			if type(curDict) == list:
+				nests=0
+				listBuild="["
+				for c in curDict:
+					if type(c) == list:
+						nests=1
+						break;
+					if type(c) == dict:
+						nests=1
+						break;
+					listBuild+=strCheck(c)+","
+				if nests==1:
+					keyName=strCheck(x)
+					formatted=formatArrayToString(depth+1, curDict)
+					cr=""
+					if "\n" in formatted:
+						cr="\n"
+					ret+=tabIn+keyName+":["+cr
+					ret+=formatted
+					ret+=cr+tabIn+"],\n"
+				else:
+					listBuild=listBuild[:-1]+"],\n"
+					out=strCheck(x)
+					ret+=tabIn+out+":"+listBuild
+			elif type(curDict) == dict:
+				keyName=strCheck(x)
+				ret+=tabIn+keyName+":{\n"
+				ret+=formatArrayToString(depth+1, curDict)
+				ret+="\n"+tabIn+"},\n"
+			else:
+				out=strCheck(x)
+				val=strCheck(curDict)
+				ret+=tabIn+out+":"+val+",\n"
+	else:
+		out=strCheck(x)
+		ret+=tabIn+out+",\n"
+	if ret[-2:] == ",\n":
+		ret=ret[:-2]
+	return ret
+def strCheck(val):
+	out=str(val)
+	if type(val) == str:
+		qu='"'
+		hit=0
+		if '"' in val and "'" not in val:
+			qu="'"
+		elif '"' in val and "'" in val:
+			hit=1
+		if "\n" in val or hit == 1:
+			qu='"""'
+		out=qu+out+qu
+	return out
 ######
 ### Added late in the game
 ### I'll convert over all other slider groups to this in the future
@@ -71,6 +168,13 @@ class SliderGroup(QtGui.QWidget):
 		sliderBlock.addLayout(self.sliderValueTextBlock)
 		self.runEvents=1
 		self.setLayout(sliderBlock)
+	def setValue(self,val): # Expecting str()
+		val=str(val)
+		if "." in val:
+			val=str("".join( filter( lambda x: x!=".", list(val) ) ))
+		if val.isdigit() == True:
+			self.slider.setValue( int(val) )
+			#self.setValueText(self,val)
 	def valueTextPress(self, e):
 		if self.editTextMode==0:
 			ClearLayout(self.sliderValueTextBlock)

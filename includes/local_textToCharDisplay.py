@@ -15,7 +15,7 @@ class TextToCharDisplay(QtGui.QWidget):
 		self.baseLine=120
 		self.runner=0.0
 		self.seed=0.0
-		self.autoUpdate=False
+		self.autoUpdate=True
 		
 		self.charListArray=None
 		
@@ -117,6 +117,7 @@ class TextToCharDisplay(QtGui.QWidget):
 		###
 		self.charTestAutoReload=QtGui.QCheckBox()
 		self.charTestAutoReload.setText("Auto Update")
+		self.charTestAutoReload.setCheckState(QtCore.Qt.Checked)
 		self.charTestAutoReload.stateChanged.connect(self.setAutoReload)
 		charTestButtonBlock.addWidget(self.charTestAutoReload)
 		###
@@ -458,6 +459,8 @@ class PageBuilder(QtGui.QWidget):
 		self.baseLine=75
 		self.runner=0.0
 		self.seed=0.0
+		self.autoUpdate=True
+		self.editPrep=False
 		
 		self.charListArray=None
 		
@@ -466,6 +469,9 @@ class PageBuilder(QtGui.QWidget):
 		self.startPos=[0,0]
 		self.curPos=[0,0]
 		self.mouseDown=0
+		
+		self.pageData=[]
+		self.curPage=0
 		
 		######
 		
@@ -495,15 +501,15 @@ class PageBuilder(QtGui.QWidget):
 		self.charTestOptionBlock.addLayout(self.pageFileLocationBlock)
 		
 		### Page Options ###
-		self.fontScale=SliderGroup(self,"Font Scale",[0,2,.75],7,"float",' %')
+		self.fontScale=SliderGroup(self,"Font Scale",[0,2,.75],7,"float",' %', "buildTextOutput(0)")
 		self.charTestOptionBlock.addWidget(self.fontScale)
-		self.spaceSize=SliderGroup(self,"Space Size",[0,200,50],7,"int",' px')
+		self.spaceSize=SliderGroup(self,"Space Size",[0,200,50],7,"int",' px', "buildTextOutput(0)")
 		self.charTestOptionBlock.addWidget(self.spaceSize)
-		self.lineHeight=SliderGroup(self,"Line Height",[0,200,75],7,"int",' px')
+		self.lineHeight=SliderGroup(self,"Line Height",[0,200,75],7,"int",' px', "buildTextOutput(0)")
 		self.charTestOptionBlock.addWidget(self.lineHeight)
-		self.lineIndent=SliderGroup(self,"Line Indent",[0,200,50],7,"int",' px')
+		self.lineIndent=SliderGroup(self,"Line Indent",[0,200,50],7,"int",' px', "buildTextOutput(0)")
 		self.charTestOptionBlock.addWidget(self.lineIndent)
-		self.charSeed=SliderGroup(self,"Random Seed",[0,200,0],7,"float",'')
+		self.charSeed=SliderGroup(self,"Random Seed",[0,200,0],7,"float",'', "buildTextOutput(0)")
 		self.charTestOptionBlock.addWidget(self.charSeed)
 		
 		hBar=HorizontalBar()#[0,30],2) ## For custome bar
@@ -554,11 +560,25 @@ class PageBuilder(QtGui.QWidget):
 		self.inputText.resize(700,400)
 		self.inputTextBlock.addWidget(self.inputText)
 		###
-		convertInputText=QtGui.QPushButton('Convert Text to Writing', self)
+		self.pageAutoUpdate=QtGui.QCheckBox()
+		self.pageAutoUpdate.setText("Auto Update")
+		self.pageAutoUpdate.setCheckState(QtCore.Qt.Checked)
+		self.pageAutoUpdate.stateChanged.connect(self.setAutoReload)
+		self.inputTextBlock.addWidget(self.pageAutoUpdate)
+		###
+		convertInputText=QtGui.QPushButton('Update Output Text to Writing', self)
 		convertInputText.setStyleSheet(self.win.buttonStyle)
 		convertInputText.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 		convertInputText.setStyleSheet("QPushButton {margin-top:5px;}")
+		convertInputText.clicked.connect(self.buildTextOutput)
 		self.inputTextBlock.addWidget(convertInputText)
+		###
+		buildToNewPage=QtGui.QPushButton('Set to New Page Entry', self)
+		buildToNewPage.setStyleSheet(self.win.buttonStyle)
+		buildToNewPage.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+		buildToNewPage.setStyleSheet("QPushButton {margin-top:5px;}")
+		buildToNewPage.clicked.connect(self.addPageIndex)
+		self.inputTextBlock.addWidget(buildToNewPage)
 		###
 		self.charTestOptionBlock.addLayout(self.inputTextBlock)
 		
@@ -585,15 +605,28 @@ class PageBuilder(QtGui.QWidget):
 		self.pageOutputDirBlock.addLayout(self.pageOutputDirTextBlock)
 		self.charTestOptionBlock.addLayout(self.pageOutputDirBlock)
 		
-		exportAllPages=QtGui.QPushButton('Export All Pages', self)
+		outputButtonBlock=QtGui.QHBoxLayout()
+		outputButtonBlock.setSpacing(3)
+		outputButtonBlock.setMargin(0)
+		###
+		exportPageDataFile=QtGui.QPushButton('Write Page Data File', self)
+		exportPageDataFile.setStyleSheet(self.win.buttonStyle)
+		exportPageDataFile.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+		exportPageDataFile.setStyleSheet("QPushButton {margin-top:5px;}")
+		exportPageDataFile.clicked.connect(self.writePageDataFile)
+		outputButtonBlock.addWidget(exportPageDataFile)
+		###
+		exportAllPages=QtGui.QPushButton('Export All Page Data && Images', self)
 		exportAllPages.setStyleSheet(self.win.buttonStyle)
 		exportAllPages.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 		exportAllPages.setStyleSheet("QPushButton {margin-top:5px;}")
-		self.charTestOptionBlock.addWidget(exportAllPages)
-		
+		exportAllPages.clicked.connect(self.exportAllPageData)
+		outputButtonBlock.addWidget(exportAllPages)
+		###
+		self.charTestOptionBlock.addLayout(outputButtonBlock)
 		######
 		######
-		
+		pagePanel=QtGui.QVBoxLayout()
 		self.pageOutputBlock=QtGui.QScrollArea() #QAbstractScrollArea()
 		self.pageOutputBlock.setWidgetResizable(True)
 		pageOutputInner=QtGui.QWidget(self.pageOutputBlock)
@@ -607,21 +640,83 @@ class PageBuilder(QtGui.QWidget):
 		self.curPageBlock.setMargin(0)
 		self.pageOutput=PageBuilderViewer(self)
 		self.curPageBlock.addWidget(self.pageOutput)
-		convertInputText.clicked.connect(self.pageOutput.buildTextDisplay)
-		exportAllPages.clicked.connect(self.pageOutput.saveImage)
 		
 		self.pageOutputBlock.setWidget(pageOutputInner)
-		self.charTestBlock.addWidget(self.pageOutputBlock)
+		pagePanel.addWidget(self.pageOutputBlock)
+		
+		##### PAGE ENTRY LIST ######
+		bottomBarHeight=200
+		self.sideBarBlock=QtGui.QHBoxLayout()
+		self.sideBarTextBase=QtGui.QVBoxLayout()
+		self.sideBarTextBase.setAlignment(QtCore.Qt.AlignCenter)
+		self.sideBarTextBaseWidget=QtGui.QWidget()
+		self.sideBarTextBaseWidget.setLayout(self.sideBarTextBase)
+		self.sideBarBlock.addWidget(self.sideBarTextBaseWidget)
+		###
+		self.scrollIndexBlock=QtGui.QScrollArea()
+		self.scrollIndexBlock.setWidgetResizable(True)
+		self.scrollIndexBlock.setFixedHeight(bottomBarHeight)
+		self.scrollIndexBlock.setStyleSheet("QWidget {background-color:#2a2a2a;}")
+		#self.scrollIndexBlock.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+		self.scrollIndexBlock.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+		scrollInner=QtGui.QWidget(self.scrollIndexBlock)
+		###
+		self.curPageListBlock=QtGui.QHBoxLayout(scrollInner)
+		#self.curPageListBlock.setAlignment(QtCore.Qt.AlignCenter)
+		scrollInner.setLayout(self.curPageListBlock)
+		self.curPageListBlock.setSpacing(0)
+		self.curPageListBlock.setMargin(0)
+		###
+		size=self.scrollIndexBlock.frameGeometry()
+		size=[128,128]
+		scrollOffset=0
+		scrollAdd=0
+		loadObj=-1
+		""""for x,p in enumerate(activeList):
+			scrollOffset+=scrollAdd
+			curImg=IndexImageEntry(self,x,p,folderPicker+'/',size, None)
+			#self.curPageListBlock.addWidget(curImg)
+			self.sideBarTextBase.addWidget(curImg)
+		"""
+		self.scrollIndexBlock.setWidget(scrollInner)
+		self.sideBarBlock.addWidget(self.scrollIndexBlock)
+		pagePanel.addLayout(self.sideBarBlock)
+		
+		self.charTestBlock.addLayout(pagePanel)
 		
 		self.setLayout(self.charTestBlock) # Layout to display in parent window
+	def resetSettings(self):
+		### I need to set a better method to reset values ... ###
+		self.fontScale.setVale(.75)
+		self.spaceSize.setVale(50)
+		self.lineHeight.setVale(75)
+		self.lineIndent.setVale(50)
+		self.charSeed.setVale(0)
+		self.pageIndentLeft.setVale(150)
+		self.pageIndentTop.setVale(100)
+		self.pageIndentRight.setVale(1500)
+		self.pageIndentBottom.setVale(1948)
+		self.inputText.setPlainText("")
 	def updatePaddingBars(self):
-		#self.pageOutput.updateTextBackground()
-		self.pageOutput.buildTextDisplay()
+		if self.editPrep==False:
+			#self.pageOutput.updateTextBackground()
+			self.pageOutput.buildTextDisplay()
 	def updateRandomSeed(self):
 		val=float(self.seedSlider.value())/100.00
 		self.seedSliderVal.setText(str(val))
 		self.seed=val
-		self.buildTextDisplay(1)
+		self.buildTextDisplay()
+	def setAutoReload(self):
+		val=self.pageAutoUpdate.isChecked()
+		self.autoUpdate=val
+		self.buildTextOutput()
+	def buildTextOutput(self, force=1):
+		runUpdate=1
+		if force==0:
+			if self.autoUpdate == False:
+				runUpdate=0
+		if runUpdate==1 and self.editPrep==False:
+			self.pageOutput.buildTextDisplay()
 	def loadPageBackground(self):
 		ext=("jpg", "jpeg", "png", "bmp")
 		bgPicker=QtGui.QFileDialog.getOpenFileName(self,"Select Background Image",curDir, "Image files (*.jpg *.jpeg *.png *.bmp)")
@@ -641,7 +736,6 @@ class PageBuilder(QtGui.QWidget):
 				
 				self.pageFileLocation.setText(bgPicker)
 				self.pageOutput.loadPageBackground(bgPicker)
-				
 	def setPageOutputDir(self, setDir=None):
 		if setDir == None or setDir == False:
 			folderPicker=QtGui.QFileDialog.getExistingDirectory(self,"Set Output Directory")
@@ -652,7 +746,76 @@ class PageBuilder(QtGui.QWidget):
 				self.pageOutputDirText.setText(folderPicker)
 		else:
 			self.pageOutputDirText.setText(setDir)
+	def updatePageIndex(self, thumbIndex=None):
+		if len(self.pageData)>0:
+			if self.editPrep==False:
+				if thumbIndex==None:
+					thumbIndex=self.curPage
+				curThumb=None
+				if thumbIndex>=self.curPageListBlock.count():
+					curThumb=IndexPageEntry(self.win, self, self.curPage, "Page_"+str(thumbIndex), self.imgPath, [152,152], "H", [self.pageOutput.pageImgData], self.pageData[thumbIndex])
+					self.curPageListBlock.addWidget(curThumb)
+				else:
+					curThumb=self.curPageListBlock.itemAt(self.curPage).widget()
+					curThumb.pageData=self.pageData[self.curPage] # I don't like this method.....
+				curThumb.updatePageThumb(self.pageOutput.groupPage,self.pageOutput.pageImgData)
+	def addPageIndex(self):
+		self.pageOutput.buildTextDisplay(1)
+	def writePageDataFile(self):
+		### When I get multi pages going, this might become an issue here ###
+		### The line data will be set within a Page dictionary ###
+		if self.curPageListBlock.count() > 0:
+			exportData=[]
+			for e in range(self.curPageListBlock.count()):
+				curEntry=self.curPageListBlock.itemAt(e).widget()
+				exportData.append( curEntry.pageData )
+			for group in exportData:
+				for line in group['lineData']:
+					for wordData in line['wordData']:
+						for char in wordData['chars']:
+							char['data']=None
+			export=formatArrayToString(0, exportData)
+			export="pageList="+export+"\n"
+			print export
+			"""
+			export='pageList={\n'
+			exportDataKeys=exportData.keys()
+			exportDataKeys=sorted( exportDataKeys, key=lambda k: k.lower() )
+			for k in exportDataKeys:
+				if k in ["'", "b'"]:
+					export+='\t"'+k+'":{\n'
+				elif k == "\\":
+					export+="\t'\\\\':{\n"
+				else:
+					export+="\t'"+k+"':{\n"
+				for title in exportData[k].keys():
+					export+="\t\t'"+title+"':{\n"
+					for sub in exportData[k][title].keys():
+						curSub=exportData[k][title][sub]
+						if type(curSub)==str and "[" not in curSub:
+							export+="\t\t\t'"+sub+"':'"+exportData[k][title][sub]+"',\n"
+						else:
+							export+="\t\t\t'"+sub+"':"+str(exportData[k][title][sub])+",\n"
+					export+="\t\t},\n"
+				export+="\t},\n"
+			export+='}\n'
+			"""
 			
+			path=self.win.dirField.text()
+			if path[-1] != "/":
+				path+="/"
+			path="\\".join(str(path).split("/"))
+			path+="pageListKey.py"
+			with open(path, "w") as f:
+				f.write(export)
+				
+			self.win.statusBarUpdate(" -- Wrote out to - "+path+" --", 10000,1)
+			curTime=dt.datetime.now().strftime("%H:%M - %m/%d/%Y")
+			self.win.unsavedChanges=0
+		else:
+			self.win.statusBarUpdate(" -- No characters found, please 'Load Text Image' to load existing character data -- ", 5000,2)
+	def exportAllPageData(self):
+		self.pageOutput.saveImage()
 class PageBuilderViewer(QtGui.QWidget):	
 	def __init__(self, win):
 		QtGui.QWidget.__init__(self)
@@ -665,6 +828,8 @@ class PageBuilderViewer(QtGui.QWidget):
 		self.displayData=None
 		self.backgroundData=None
 		self.pageImgData=None
+		self.group=0
+		self.groupPage=0
 		self.textBuildData=None
 		self.pastTest=''
 		self.cW=0
@@ -794,6 +959,7 @@ class PageBuilderViewer(QtGui.QWidget):
 			pmap=self.setPaddingLine(pmap)
 			self.displayData=QtGui.QPixmap.fromImage(pmap.toImage())
 			self.setZoom()
+			self.parent.updatePageIndex()
 	def setPaddingLine(self,pmap):
 		topPad=self.parent.pageIndentTop.value
 		bottomPad=self.parent.pageIndentBottom.value
@@ -815,26 +981,16 @@ class PageBuilderViewer(QtGui.QWidget):
 		return pmap
 	def inputText(self):
 		return str(self.parent.inputText.toPlainText())
-	def buildTextDisplay(self, force=0):
+	def buildTextDisplay(self, newPage=0):
 		val=self.inputText()
 		#if val != self.pastTest or force==1:
+		textUpdated=0
+		if val != self.pastTest:
+			textUpdated=1
 		self.pastTest=val
 		res=[self.cWOrig, self.cHOrig]
 		
-		fontScale=self.parent.fontScale.value
-		spaceSize=self.parent.spaceSize.value
-		lineHeight=self.parent.lineHeight.value
-		lineIndent=self.parent.lineIndent.value
-		###
-		seedVal=float(self.parent.charSeed.value)/100.00
-		self.seed=seedVal
-		###
-		padLeft=self.parent.pageIndentLeft.value
-		padRight=self.parent.pageIndentRight.value
-		padTop=self.parent.pageIndentTop.value
-		padBottom=self.parent.pageIndentBottom.value
-		
-		charOffsets=[padLeft,padTop]
+		charOffsets=[0,0]
 		
 		if hasattr(self.win, "curImgListBlock"):
 			if self.win.curImgListBlock.count() == 0:
@@ -846,38 +1002,44 @@ class PageBuilderViewer(QtGui.QWidget):
 		dir=str(self.win.dirField.text()).strip()
 		if dir != '':
 			if val != '':
-				"""
+				curPageData={}
+				curLineData=[]
+				pageFlip=0
+				#if textUpdated == 1:
 				self.buildCharListArray()
-				baseImg=QtGui.QPixmap(res[0], res[1])
-				baseImg.fill(QtGui.QColor(0,0,0,0))
-				painter=QtGui.QPainter(baseImg)
 				
-				self.runner=0
-				for c in val:
-					self.runner+=1.0
-					if c == " ":
-						charOffsets[0]=charOffsets[0]+50
-					elif c=="\n":
-						charOffsets=[padLeft,charOffsets[1]+lineHeight]
-					else:
-						charData=self.pullCharData(c)
-						print c
-						curOffset=[ charOffsets[0]-charData['spacingLeft'],charOffsets[1]-charData['baseline']+self.baseLine ]
-						charOffsets[0]=charOffsets[0]-charData['spacingLeft']+charData['spacingRight']
-						painter.drawPixmap(curOffset[0],curOffset[1],charData['data'])
-				painter.end()
-				self.textBuildData=baseImg
-				"""
-				self.buildCharListArray()
-				baseImg=QtGui.QPixmap(res[0], res[1])
-				baseImg.fill(QtGui.QColor(0,0,0,0))
+				fontScale=self.parent.fontScale.value
+				spaceSize=self.parent.spaceSize.value
+				lineHeight=self.parent.lineHeight.value
+				lineIndent=self.parent.lineIndent.value
+				###
+				charSeed=self.parent.charSeed.value
+				self.seed=charSeed
+				###
+				padLeft=self.parent.pageIndentLeft.value
+				padRight=self.parent.pageIndentRight.value
+				padTop=self.parent.pageIndentTop.value
+				padBottom=self.parent.pageIndentBottom.value
 				
+				curPageData={}
+				curPageData['inputText']=val
+				curPageData['pageFlip']=pageFlip
+				curPageData['fontScale']=fontScale
+				curPageData['spaceSize']=spaceSize
+				curPageData['lineHeight']=lineHeight
+				curPageData['lineIndent']=lineIndent
+				curPageData['charSeed']=charSeed
+				curPageData['pageIndentLeft']=padLeft
+				curPageData['pageIndentRight']=padRight
+				curPageData['pageIndentTop']=padTop
+				curPageData['pageIndentBottom']=padBottom
+				
+				curLineData=[]
 				self.runner=0
 				val=list(val)
 				backChars=["'",'"',"`"]
 				skip=0
 				
-				curLineData=[]
 				paintLine=0
 				genNewLine=1
 				fontScaleLine=fontScale
@@ -920,7 +1082,7 @@ class PageBuilderViewer(QtGui.QWidget):
 							newWord['fontScale']=1.0
 							curLineData[-1]['wordData'].append(newWord)
 						elif cc=="\n":
-							charOffsets=[padLeft,charOffsets[1]+lineHeight]
+							charOffsets=[0,charOffsets[1]+lineHeight]
 							genNewLine=1
 						else:
 							charData=self.pullCharData(cc,fontScaleChar)
@@ -932,17 +1094,36 @@ class PageBuilderViewer(QtGui.QWidget):
 								curLineData[-1]['wordData'][-1]['chars'].append(charData)
 					else:
 						skip+=1
-				
+				curPageData['lineData']=curLineData
+				if self.parent.curPage>=len(self.parent.pageData):
+					self.parent.pageData.append(curPageData)
+				else:
+					self.parent.pageData[self.parent.curPage]=curPageData
+				"""else:
+					if len(self.parent.pageData)==0:
+						return None
+					curPageData=self.parent.pageData[self.parent.curPage]
+					curLineData=curPageData['lineData']
+					pageFlip=curPageData['pageFlip']
+					padLeft=curPageData['pageIndentLeft']
+					padRight=curPageData['pageIndentRight']
+					padTop=curPageData['pageIndentTop']
+					padBottom=curPageData['pageIndentBottom']
+				"""
+				baseImg=QtGui.QPixmap(res[0], res[1])
+				baseImg.fill(QtGui.QColor(0,0,0,0))
 				painter=QtGui.QPainter(baseImg)
 				for line in curLineData:
 					for word in line['wordData']:
-						print word
 						for char in word['chars']:
 							pmap=char['data']
 							curOffset=char['offset']
-							painter.drawPixmap(curOffset[0],curOffset[1],pmap)
-				painter.end()	
+							painter.drawPixmap(curOffset[0]+padLeft,curOffset[1]+padTop,pmap)
+				painter.end()
 				self.textBuildData=baseImg
+				if newPage==1:
+					self.parent.curPage+=1
+					self.parent.pageData.append(curPageData)
 			else:
 				self.textBuildData=None
 			self.updateTextBackground()

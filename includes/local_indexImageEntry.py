@@ -1,3 +1,15 @@
+### Entry Lists ###
+"""
+This file is quite inefficient.
+I'm simply looking to create lickable list entries
+  which retain data for setting parameter values in window.
+These could be all one class, but both need to address
+  vastly different parameters, and hold different data.
+Making it one might be clunky, but easier to update.
+I'll need to make a decision in the the future to merge or not.
+"""
+
+### CHARACTER DISPLAY ENTRY ###
 class IndexImageEntry(QtGui.QWidget): #Individual indexList image entries
 	def __init__(self, win, index, name, path, scaleSize, qtImg):
 		super(IndexImageEntry,self).__init__(win)
@@ -269,6 +281,258 @@ class IndexImageEntry(QtGui.QWidget): #Individual indexList image entries
 			#self.imgData[self.curImage]=pmap
 		else:
 			print "Found textBase image"
+	def mouseReleaseEvent(self, e):
+		if self.imgName == "thumb":
+			"""if self.exported==0:
+				difData=curChar.data
+				difData.setAlphaChannel(curChar.dataAlpha)
+				charListData[char][title]['imgData']=difData
+			"""
+			#self.charSamplePoints=self.win.charSamplePoints
+			self.win.runValChangeEvent=0
+			self.win.sliderBaseLine.setValue(self.baseline)
+			self.win.sliderPreMult.setValue(self.premultiply)
+			self.win.sliderTopPadding.setValue(self.paddingTop)
+			self.win.sliderBottomPadding.setValue(self.paddingBottom)
+			self.win.leftAlignSlider.setValue(self.spacingLeft)
+			self.win.rightAlignSlider.setValue(self.spacingRight-128)
+			self.win.sliderRotate.setValue(self.degRotation)
+			self.win.sliderContrast.setValue(self.contrast)
+			self.win.sliderAlphaReach.setValue(self.alphaReach)
+			self.win.runValChangeEvent=1
+			
+			self.win.curImageFinalDisplay.thumbIndex=-1
+			self.win.charSampled=1
+			self.win.curImageFinalDisplay.pullCharacterRect(self)
+		else:
+			self.win.loadImageEntry(self)
+			
+### PAGE DISPLAY ENTRY ###
+### Notes -- ###
+# Support page groups per IndexPageEntry
+class IndexPageEntry(QtGui.QWidget): #Individual indexList image entries
+	def __init__(self, win, parent, index, name, bgPath, scaleSize, align, qtImg, pageData):
+		super(IndexPageEntry,self).__init__(win)
+		self.win=win
+		self.parent=parent
+		
+		self.imgName=name
+		self.pagePathBG=bgPath
+		
+		self.pageSize=[-1,-1] # Disk image size
+		self.thumbSize=scaleSize
+		self.imgSizeIndexList=scaleSize
+		
+		self.group=index
+		self.groupPage=[]
+		self.groupImg=None
+		
+		curImgBlock=QtGui.QVBoxLayout()
+		curImgBlock.setSpacing(0) # Spacing & Margin was giving me trouble calculating dynamic loading in window
+		curImgBlock.setMargin(0) # ||
+		self.data=None
+		self.pageData=pageData
+		self.img=QtGui.QLabel()
+		self.exported=0
+		self.fileName=None #Export file name
+
+		if qtImg != None:
+			self.pageSize=[ qtImg[0].width(), qtImg[0].height() ] # Disk image size
+			
+			self.img.setAlignment(QtCore.Qt.AlignCenter)
+			self.img.setGeometry(0,0,self.thumbSize[0],self.thumbSize[1]) # Placeholder
+			
+			self.data=qtImg
+			
+			pageGroupBlock=None
+			pageGroupBlock=QtGui.QVBoxLayout()
+			pageGroupBlock.setSpacing(0) # Spacing & Margin was giving me trouble calculating dynamic loading in window
+			pageGroupBlock.setMargin(0) # ||
+			###
+			self.charField=QtGui.QLineEdit()
+			self.charField.setText(self.imgName)
+			self.charField.editingFinished.connect(self.charCheck)
+			pageGroupBlock.addWidget(self.charField)
+			###
+			pageAndOptionBlock=QtGui.QHBoxLayout()
+			pageAndOptionBlock.setSpacing(0) # Spacing & Margin was giving me trouble calculating dynamic loading in window
+			pageAndOptionBlock.setMargin(0) # ||
+			pageGroupBlock.addLayout(pageAndOptionBlock)
+			###
+			pageOptionBlock=QtGui.QVBoxLayout()
+			pageOptionBlock.setSpacing(0) # Spacing & Margin was giving me trouble calculating dynamic loading in window
+			pageOptionBlock.setMargin(0) # ||
+			pageAndOptionBlock.addLayout(pageOptionBlock)
+			#
+			spacer=QtGui.QSpacerItem(10,10, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+			pageAndOptionBlock.addItem(spacer)
+			#
+			editPages=QtGui.QPushButton('Edit Pages', self)
+			editPages.setStyleSheet(self.win.buttonStyle)
+			editPages.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+			editPages.setStyleSheet("QPushButton {margin-top:5px;}")
+			editPages.clicked.connect(self.editGroup)
+			pageOptionBlock.addWidget(editPages)
+			#
+			deletePages=QtGui.QPushButton('Delete Pages', self)
+			deletePages.setStyleSheet(self.win.buttonStyle)
+			deletePages.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+			deletePages.setStyleSheet("QPushButton {margin-top:5px;}")
+			deletePages.clicked.connect(self.deleteGroup)
+			pageOptionBlock.addWidget(deletePages)
+			######
+			if align.lower()=="v":
+				self.pageListBlock=QtGui.QVBoxLayout()
+			else:
+				self.pageListBlock=QtGui.QHBoxLayout()
+			self.pageListBlock.setSpacing(0) # Spacing & Margin was giving me trouble calculating dynamic loading in window
+			self.pageListBlock.setMargin(0) # ||
+			for pmap in qtImg:
+				entry=EntryDisplay(win, self, self.group, self.imgName, self.thumbSize, pmap)
+				self.groupPage.append(entry)
+				self.pageListBlock.addWidget(self.groupPage[-1])
+			pageAndOptionBlock.addLayout(self.pageListBlock)
+			###
+			curImgBlock.addLayout(pageGroupBlock)
+			
+			self.entryStyleSheet()
+		self.setFixedSize( (self.imgSizeIndexList[0]*(len(self.groupPage)+1)), self.imgSizeIndexList[1] ) # Layout size for Placeholder
+		self.setLayout(curImgBlock) # Layout to display in parent window
+	def entryStyleSheet(self):
+		styleSheetCss="""
+		* {font-size:10pt;}
+		QToolTip {color:#ffffff;background-color:#202020;border: 1px solid #ffffff;}
+		QPushButton {color:#ffffff;background-color:#232323;padding:4px;border:1px solid #000000;}
+		QLineEdit {color:#111111;selection-color:#cccccc;selection-background-color:#454545;background-color:#909090;padding:2px;border:1px solid #202020;height:25px;}
+		QLabel {color:#ffffff}"""
+		self.setStyleSheet(styleSheetCss)
+	def editGroup(self):
+		self.parent.editPrep=True
+		self.parent.pageOutput.img.setPixmap(self.data[0])
+		self.parent.curPage=self.group
+		#self.parent.pageData[self.group]=[]
+		for k in self.pageData.keys():
+			if k not in ["lineData", "pageFlip"]:
+				if k == "inputText": # Might need to change this to 'in []'
+					eval('self.parent.'+k+'.setPlainText(r"""'+str(self.pageData[k])+'""")')
+				else:
+					eval("self.parent."+k+".setValue(str("+str(self.pageData[k])+"))")
+		self.parent.editPrep=False
+		self.parent.pageOutput.buildTextDisplay()
+	def deleteGroup(self):
+		self.setParent(None)
+		self.deleteLater()
+	def loadImage(self):
+		pmap=QtGui.QPixmap()
+		pmap.load(self.imgPath) #Load image, currently disk path only
+		self.loaded=1
+	def updatePageThumb(self,pageUpdate,pageImg):
+		if pageUpdate<len(self.groupPage):
+			self.groupPage[pageUpdate].updateThumb(pageImg)
+			self.data[pageUpdate]=pageImg
+	def charCheck(self):
+		### UPDATE TO CORRECT ALL SUB PAGES ###
+		self.charField.clearFocus()
+		val=self.charField.text()
+		val=str(val)
+		self.charFileName=val
+		self.win.unsavedChanges=1
+		"""
+		for page in self.pages:
+			page.updateName(val)
+		"""
+	def saveImage(self):
+		path=self.win.outDirField.text()
+		diffuse="Busted"
+		if path[-1] != "/":
+			path+="/"
+		if not os.path.exists(path):
+			buildPath="\\".join(str(path).split("/"))
+			os.makedirs(buildPath)
+		if self.charFileName != "_":
+			diffuse=self.charFileName+".png"
+			if self.exported == 0:
+				difData=self.data[0]
+				difData.save(path+diffuse, "png")
+		return path+diffuse
+	"""def mouseReleaseEvent(self, e):
+		if self.imgName == "thumb":
+			#self.charSamplePoints=self.win.charSamplePoints
+			self.win.runValChangeEvent=0
+			self.win.sliderBaseLine.setValue(self.baseline)
+			self.win.sliderPreMult.setValue(self.premultiply)
+			self.win.sliderTopPadding.setValue(self.paddingTop)
+			self.win.sliderBottomPadding.setValue(self.paddingBottom)
+			self.win.leftAlignSlider.setValue(self.spacingLeft)
+			self.win.rightAlignSlider.setValue(self.spacingRight-128)
+			self.win.sliderRotate.setValue(self.degRotation)
+			self.win.sliderContrast.setValue(self.contrast)
+			self.win.sliderAlphaReach.setValue(self.alphaReach)
+			self.win.runValChangeEvent=1
+			
+			self.win.curImageFinalDisplay.thumbIndex=-1
+			self.win.charSampled=1
+			self.win.curImageFinalDisplay.pullCharacterRect(self)
+		else:
+			self.win.loadImageEntry(self)
+	"""
+class EntryDisplay(QtGui.QWidget): #Individual indexList image entries
+	def __init__(self, win, parent, index, name="Entry_", scaleSize=[196,196], qtImg=None):
+		super(EntryDisplay,self).__init__(win)
+		self.win=win
+		self.parent=parent
+		
+		if name == "Entry_":
+			name=name+str(index)
+		self.imgName=name
+		
+		self.fullSize=[-1,-1] # Disk image size
+		self.thumbSize=scaleSize
+		
+		curImgBlock=QtGui.QVBoxLayout()
+		curImgBlock.setSpacing(0) # Spacing & Margin was giving me trouble calculating dynamic loading in window
+		curImgBlock.setMargin(0) # ||
+		self.index=index
+		self.data=None
+		self.img=QtGui.QLabel()
+
+		if qtImg != None:
+			self.pageSize=[ qtImg.width(), qtImg.height() ] # Disk image size
+			
+			self.img.setAlignment(QtCore.Qt.AlignCenter)
+			self.img.setGeometry(0,0,self.thumbSize[0],self.thumbSize[1]) # Placeholder
+			self.data=qtImg
+			
+			qtImg=qtImg.scaled(self.thumbSize[0],self.thumbSize[1], QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
+			self.img.setPixmap(qtImg)
+			curImgBlock.addWidget(self.img)
+			
+			self.charField=QtGui.QLineEdit()
+			self.charField.setText(self.imgName)
+			#self.charField.editingFinished.connect(self.charCheck)
+			curImgBlock.addWidget(self.charField)
+			
+			self.entryStyleSheet()
+		self.setFixedSize(self.thumbSize[0],self.thumbSize[1]) # Layout size for Placeholder
+		self.setLayout(curImgBlock) # Layout to display in parent window
+	def entryStyleSheet(self):
+		styleSheetCss="""
+		* {font-size:10pt;}
+		QToolTip {color:#ffffff;background-color:#202020;border: 1px solid #ffffff;}
+		QPushButton {color:#ffffff;background-color:#232323;padding:4px;border:1px solid #000000;}
+		QLineEdit {color:#111111;selection-color:#cccccc;selection-background-color:#454545;background-color:#909090;padding:2px;border:1px solid #202020;height:25px;}
+		QLabel {color:#ffffff}"""
+		self.setStyleSheet(styleSheetCss)
+		self.img.setStyleSheet("border: 1px solid #555555; padding:3px;")
+	def updateThumb(self,qtImg):
+		self.data=qtImg
+		qtImg=qtImg.scaled(self.thumbSize[0],self.thumbSize[1], QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
+		self.img.setPixmap(qtImg)
+	def updateName(self, val):
+		if "_" not in val:
+			val=str(val)+"_"
+		self.imgName=val
+		self.charField.setText(val)
 	def mouseReleaseEvent(self, e):
 		if self.imgName == "thumb":
 			"""if self.exported==0:
