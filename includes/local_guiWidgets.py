@@ -26,8 +26,10 @@ def ClearLayout(layout):
 ### CLLLEAAANANNN ITITITITI UPPPPPP!!!!!! ###
 def formatArrayToString(depth, arrayData):
 	ret=''
-	tabIn="\t"*depth
+	tabIn="\t"*(depth+1)
+	addBuffer=0
 	if type(arrayData) == list:
+		addBuffer=1
 		for x in arrayData:
 			if type(x) == list:
 				nests=0
@@ -59,6 +61,7 @@ def formatArrayToString(depth, arrayData):
 				out=strCheck(x)
 				ret+=out+",\n"
 	elif type(arrayData) == dict:
+		addBuffer=2
 		keysArr=arrayData.keys()
 		for x in keysArr:
 			curDict=arrayData[x]
@@ -100,19 +103,26 @@ def formatArrayToString(depth, arrayData):
 		ret+=tabIn+out+",\n"
 	if ret[-2:] == ",\n":
 		ret=ret[:-2]
+	if depth==0 and addBuffer>0:
+		if addBuffer==1:
+			ret="[\n"+ret+"\n]\n"
+		elif addBuffer==1:
+			ret="{\n"+ret+"\n}\n"
 	return ret
 def strCheck(val):
 	out=str(val)
 	if type(val) == str:
-		qu='"'
-		hit=0
-		if '"' in val and "'" not in val:
-			qu="'"
-		elif '"' in val and "'" in val:
-			hit=1
-		if "\n" in val or hit == 1:
+		if "\n" in val:
 			qu='"""'
-		out=qu+out+qu
+			out=qu+out+qu
+			return out
+		else:
+			qu='"'
+			if '"' in val and "'" not in val:
+				qu="'"
+			elif '"' in val and "'" in val:
+				qu='"""'
+			out=qu+out+qu
 	return out
 ######
 ### Added late in the game

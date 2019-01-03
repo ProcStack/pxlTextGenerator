@@ -590,6 +590,16 @@ class PageBuilder(QtGui.QWidget):
 		self.pageOutputDirBlock.setSpacing(0)
 		self.pageOutputDirBlock.setMargin(0) 
 		###
+		loadPageDataFile=QtGui.QPushButton('Load Page Data File', self)
+		loadPageDataFile.setStyleSheet(self.win.buttonStyle)
+		loadPageDataFile.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+		loadPageDataFile.setStyleSheet("QPushButton {margin-top:5px;}")
+		loadPageDataFile.clicked.connect(self.loadPageDataFile)
+		self.pageOutputDirBlock.addWidget(loadPageDataFile)
+		###
+		spacer=QtGui.QSpacerItem(10,10, QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Maximum)
+		self.pageOutputDirBlock.addItem(spacer)
+		###
 		self.pageOutputDirTextBlock=QtGui.QHBoxLayout()
 		self.pageOutputDirTextBlock.setSpacing(0)
 		self.pageOutputDirTextBlock.setMargin(0) 
@@ -736,6 +746,7 @@ class PageBuilder(QtGui.QWidget):
 				
 				self.pageFileLocation.setText(bgPicker)
 				self.pageOutput.loadPageBackground(bgPicker)
+				self.buildTextOutput()
 	def setPageOutputDir(self, setDir=None):
 		if setDir == None or setDir == False:
 			folderPicker=QtGui.QFileDialog.getExistingDirectory(self,"Set Output Directory")
@@ -761,6 +772,25 @@ class PageBuilder(QtGui.QWidget):
 				curThumb.updatePageThumb(self.pageOutput.groupPage,self.pageOutput.pageImgData)
 	def addPageIndex(self):
 		self.pageOutput.buildTextDisplay(1)
+	def editGroup(self,mode,groupData):
+		self.editPrep=True
+		pageDataArray=[]
+		if mode==0: # Edit Existing Group
+			self.pageOutput.img.setPixmap(groupData.data[0])
+			self.curPage=groupData.group
+			pageDataArray=groupData.pageData
+		else:
+			pageDataArray=groupData
+		pageDataKeysArray=pageDataArray.keys()
+		#self.parent.pageData[self.group]=[]
+		for k in pageDataKeysArray:
+			if k not in ["lineData", "pageFlip"]:
+				if k == "inputText": # Might need to change this to 'in []'
+					eval('self.'+k+'.setPlainText(r"""'+str(pageDataArray[k])+'""")')
+				else:
+					eval("self."+k+".setValue(str("+str(pageDataArray[k])+"))")
+		self.editPrep=False
+		self.pageOutput.buildTextDisplay()
 	def writePageDataFile(self):
 		### When I get multi pages going, this might become an issue here ###
 		### The line data will be set within a Page dictionary ###
@@ -775,31 +805,7 @@ class PageBuilder(QtGui.QWidget):
 						for char in wordData['chars']:
 							char['data']=None
 			export=formatArrayToString(0, exportData)
-			export="pageList="+export+"\n"
-			print export
-			"""
-			export='pageList={\n'
-			exportDataKeys=exportData.keys()
-			exportDataKeys=sorted( exportDataKeys, key=lambda k: k.lower() )
-			for k in exportDataKeys:
-				if k in ["'", "b'"]:
-					export+='\t"'+k+'":{\n'
-				elif k == "\\":
-					export+="\t'\\\\':{\n"
-				else:
-					export+="\t'"+k+"':{\n"
-				for title in exportData[k].keys():
-					export+="\t\t'"+title+"':{\n"
-					for sub in exportData[k][title].keys():
-						curSub=exportData[k][title][sub]
-						if type(curSub)==str and "[" not in curSub:
-							export+="\t\t\t'"+sub+"':'"+exportData[k][title][sub]+"',\n"
-						else:
-							export+="\t\t\t'"+sub+"':"+str(exportData[k][title][sub])+",\n"
-					export+="\t\t},\n"
-				export+="\t},\n"
-			export+='}\n'
-			"""
+			export="pageList="+export
 			
 			path=self.win.dirField.text()
 			if path[-1] != "/":
@@ -814,6 +820,38 @@ class PageBuilder(QtGui.QWidget):
 			self.win.unsavedChanges=0
 		else:
 			self.win.statusBarUpdate(" -- No characters found, please 'Load Text Image' to load existing character data -- ", 5000,2)
+	def loadPageDataFile(self):
+		path=self.win.dirField.text()
+		if path[-1] != "/":
+			path+="/"
+		path="\\".join(str(path).split("/"))
+		path+="pageListKey.py"
+		if os.path.exists(path):
+			self.win.statusBarUpdate(" -- Reading and building pages from local PageListKey file --", 0,0)
+			import pageListKey
+			reload(pageListKey)
+			
+			pageList=pageListKey.pageList
+			## Hitting some issues, just clear the layout
+			## Get this working without clear tho
+			#self.pageData=[]
+			#self.curPage=-1
+			#self.pageOutput.group=0
+			#self.pageOutput.groupPage=0
+
+			for pageGroup in pageListKey.pageList:
+				#pageGroupKeys=pageGroup.keys()
+				self.pageOutput.buildTextDisplay(1)
+				self.editGroup(1,pageGroup)
+				#self.pageOutput.buildTextDisplay()
+				###
+				#self.pageOutput.buildTextDisplay(1)
+				#self.pageData[self.curPage]=pageGroup
+				#self.pageOutput.buildTextDisplay()
+	def buildTextDisplay(self, newPage=0):
+		print pageGroupKeys
+			
+		self.win.statusBarUpdate(" -- All pages from local PageListKey file built --", 5000,1)
 	def exportAllPageData(self):
 		self.pageOutput.saveImage()
 class PageBuilderViewer(QtGui.QWidget):	
@@ -1001,131 +1039,131 @@ class PageBuilderViewer(QtGui.QWidget):
 			return
 		dir=str(self.win.dirField.text()).strip()
 		if dir != '':
-			if val != '':
-				curPageData={}
-				curLineData=[]
-				pageFlip=0
-				#if textUpdated == 1:
-				self.buildCharListArray()
+			#if val != '':
+			curPageData={}
+			curLineData=[]
+			pageFlip=0
+			#if textUpdated == 1:
+			self.buildCharListArray()
+			
+			fontScale=self.parent.fontScale.value
+			spaceSize=self.parent.spaceSize.value
+			lineHeight=self.parent.lineHeight.value
+			lineIndent=self.parent.lineIndent.value
+			###
+			charSeed=self.parent.charSeed.value
+			self.seed=charSeed
+			###
+			padLeft=self.parent.pageIndentLeft.value
+			padRight=self.parent.pageIndentRight.value
+			padTop=self.parent.pageIndentTop.value
+			padBottom=self.parent.pageIndentBottom.value
+			
+			curPageData={}
+			curPageData['inputText']=val
+			curPageData['pageFlip']=pageFlip
+			curPageData['fontScale']=fontScale
+			curPageData['spaceSize']=spaceSize
+			curPageData['lineHeight']=lineHeight
+			curPageData['lineIndent']=lineIndent
+			curPageData['charSeed']=charSeed
+			curPageData['pageIndentLeft']=padLeft
+			curPageData['pageIndentRight']=padRight
+			curPageData['pageIndentTop']=padTop
+			curPageData['pageIndentBottom']=padBottom
+			
+			curLineData=[]
+			self.runner=0
+			val=list(val)
+			backChars=["'",'"',"`"]
+			skip=0
+			
+			paintLine=0
+			genNewLine=1
+			fontScaleLine=fontScale
+			fontScaleChar=fontScale
+			for x,c in enumerate(val):
+				self.runner+=1.0
+				if genNewLine==1:
+					newLineData={}
+					newLineData['wordData']=[]
+					newWord={}
+					newWord['size']=[0,0]
+					newWord['chars']=[]
+					newWord['fontScale']=1.0
+					newLineData['wordData'].append(newWord)
+					newLineData['spaceWidth']=spaceSize
+					newLineData['fontScale']=1.0
+					newLineData['lineOffsets']=charOffsets
+					curLineData.append(newLineData)
+					genNewLine=0
 				
-				fontScale=self.parent.fontScale.value
-				spaceSize=self.parent.spaceSize.value
-				lineHeight=self.parent.lineHeight.value
-				lineIndent=self.parent.lineIndent.value
-				###
-				charSeed=self.parent.charSeed.value
-				self.seed=charSeed
-				###
-				padLeft=self.parent.pageIndentLeft.value
-				padRight=self.parent.pageIndentRight.value
-				padTop=self.parent.pageIndentTop.value
-				padBottom=self.parent.pageIndentBottom.value
+					fontScale=self.parent.fontScale.value
 				
-				curPageData={}
-				curPageData['inputText']=val
-				curPageData['pageFlip']=pageFlip
-				curPageData['fontScale']=fontScale
-				curPageData['spaceSize']=spaceSize
-				curPageData['lineHeight']=lineHeight
-				curPageData['lineIndent']=lineIndent
-				curPageData['charSeed']=charSeed
-				curPageData['pageIndentLeft']=padLeft
-				curPageData['pageIndentRight']=padRight
-				curPageData['pageIndentTop']=padTop
-				curPageData['pageIndentBottom']=padBottom
-				
-				curLineData=[]
-				self.runner=0
-				val=list(val)
-				backChars=["'",'"',"`"]
-				skip=0
-				
-				paintLine=0
-				genNewLine=1
-				fontScaleLine=fontScale
-				fontScaleChar=fontScale
-				for x,c in enumerate(val):
-					self.runner+=1.0
-					if genNewLine==1:
-						newLineData={}
-						newLineData['wordData']=[]
+				if c == "b":
+					if x < len(val)-1:
+						if val[x+1] in backChars:
+							skip=1
+							cc=c
+				if skip==0:
+					cc=c
+				elif skip==2:
+					skip=0
+					cc+=c
+				if skip == 0:
+					if cc == " ":
+						#leftStart=leftStart+spaceSize
+						charOffsets[0]=charOffsets[0]+spaceSize
 						newWord={}
 						newWord['size']=[0,0]
 						newWord['chars']=[]
 						newWord['fontScale']=1.0
-						newLineData['wordData'].append(newWord)
-						newLineData['spaceWidth']=spaceSize
-						newLineData['fontScale']=1.0
-						newLineData['lineOffsets']=charOffsets
-						curLineData.append(newLineData)
-						genNewLine=0
-					
-						fontScale=self.parent.fontScale.value
-					
-					if c == "b":
-						if x < len(val)-1:
-							if val[x+1] in backChars:
-								skip=1
-								cc=c
-					if skip==0:
-						cc=c
-					elif skip==2:
-						skip=0
-						cc+=c
-					if skip == 0:
-						if cc == " ":
-							#leftStart=leftStart+spaceSize
-							charOffsets[0]=charOffsets[0]+spaceSize
-							newWord={}
-							newWord['size']=[0,0]
-							newWord['chars']=[]
-							newWord['fontScale']=1.0
-							curLineData[-1]['wordData'].append(newWord)
-						elif cc=="\n":
-							charOffsets=[0,charOffsets[1]+lineHeight]
-							genNewLine=1
-						else:
-							charData=self.pullCharData(cc,fontScaleChar)
-							if charData != None:
-								curOffset=[ charOffsets[0]-charData['spacingLeft'],charOffsets[1]-charData['baseline']+self.baseLine ]
-								charData['offset']=curOffset
-								charOffsets[0]=charOffsets[0]-charData['spacingLeft']+charData['spacingRight']
-
-								curLineData[-1]['wordData'][-1]['chars'].append(charData)
+						curLineData[-1]['wordData'].append(newWord)
+					elif cc=="\n":
+						charOffsets=[0,charOffsets[1]+lineHeight]
+						genNewLine=1
 					else:
-						skip+=1
-				curPageData['lineData']=curLineData
-				if self.parent.curPage>=len(self.parent.pageData):
-					self.parent.pageData.append(curPageData)
+						charData=self.pullCharData(cc,fontScaleChar)
+						if charData != None:
+							curOffset=[ charOffsets[0]-charData['spacingLeft'],charOffsets[1]-charData['baseline']+self.baseLine ]
+							charData['offset']=curOffset
+							charOffsets[0]=charOffsets[0]-charData['spacingLeft']+charData['spacingRight']
+
+							curLineData[-1]['wordData'][-1]['chars'].append(charData)
 				else:
-					self.parent.pageData[self.parent.curPage]=curPageData
-				"""else:
-					if len(self.parent.pageData)==0:
-						return None
-					curPageData=self.parent.pageData[self.parent.curPage]
-					curLineData=curPageData['lineData']
-					pageFlip=curPageData['pageFlip']
-					padLeft=curPageData['pageIndentLeft']
-					padRight=curPageData['pageIndentRight']
-					padTop=curPageData['pageIndentTop']
-					padBottom=curPageData['pageIndentBottom']
-				"""
-				baseImg=QtGui.QPixmap(res[0], res[1])
-				baseImg.fill(QtGui.QColor(0,0,0,0))
-				painter=QtGui.QPainter(baseImg)
-				for line in curLineData:
-					for word in line['wordData']:
-						for char in word['chars']:
-							pmap=char['data']
-							curOffset=char['offset']
-							painter.drawPixmap(curOffset[0]+padLeft,curOffset[1]+padTop,pmap)
-				painter.end()
-				self.textBuildData=baseImg
-				if newPage==1:
-					self.parent.curPage+=1
-					self.parent.pageData.append(curPageData)
+					skip+=1
+			curPageData['lineData']=curLineData
+			if self.parent.curPage>=len(self.parent.pageData):
+				self.parent.pageData.append(curPageData)
 			else:
-				self.textBuildData=None
+				self.parent.pageData[self.parent.curPage]=curPageData
+			"""else:
+				if len(self.parent.pageData)==0:
+					return None
+				curPageData=self.parent.pageData[self.parent.curPage]
+				curLineData=curPageData['lineData']
+				pageFlip=curPageData['pageFlip']
+				padLeft=curPageData['pageIndentLeft']
+				padRight=curPageData['pageIndentRight']
+				padTop=curPageData['pageIndentTop']
+				padBottom=curPageData['pageIndentBottom']
+			"""
+			baseImg=QtGui.QPixmap(res[0], res[1])
+			baseImg.fill(QtGui.QColor(0,0,0,0))
+			painter=QtGui.QPainter(baseImg)
+			for line in curLineData:
+				for word in line['wordData']:
+					for char in word['chars']:
+						pmap=char['data']
+						curOffset=char['offset']
+						painter.drawPixmap(curOffset[0]+padLeft,curOffset[1]+padTop,pmap)
+			painter.end()
+			self.textBuildData=baseImg
+			if newPage==1:
+				self.parent.curPage+=1
+				self.parent.pageData.append(curPageData)
+			#else:
+			#	self.textBuildData=None
 			self.updateTextBackground()
 	def pullCharData(self,curChar, fontScale):
 		curChar=str(curChar)

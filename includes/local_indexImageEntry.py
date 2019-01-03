@@ -407,18 +407,7 @@ class IndexPageEntry(QtGui.QWidget): #Individual indexList image entries
 		QLabel {color:#ffffff}"""
 		self.setStyleSheet(styleSheetCss)
 	def editGroup(self):
-		self.parent.editPrep=True
-		self.parent.pageOutput.img.setPixmap(self.data[0])
-		self.parent.curPage=self.group
-		#self.parent.pageData[self.group]=[]
-		for k in self.pageData.keys():
-			if k not in ["lineData", "pageFlip"]:
-				if k == "inputText": # Might need to change this to 'in []'
-					eval('self.parent.'+k+'.setPlainText(r"""'+str(self.pageData[k])+'""")')
-				else:
-					eval("self.parent."+k+".setValue(str("+str(self.pageData[k])+"))")
-		self.parent.editPrep=False
-		self.parent.pageOutput.buildTextDisplay()
+		self.parent.editGroup(0,self)
 	def deleteGroup(self):
 		self.setParent(None)
 		self.deleteLater()
