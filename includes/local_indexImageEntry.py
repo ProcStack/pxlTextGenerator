@@ -122,7 +122,10 @@ class IndexImageEntry(QtGui.QWidget): #Individual indexList image entries
 			self.charField.editingFinished.connect(self.charCheck)
 			curImgBlock.addWidget(self.charField)
 			
-			self.textBaseFile=self.win.curImagePath
+			curImgPath=self.win.curImagePath
+			if curOS == 'win':
+				curImgPath=delimit.join(curImgPath.split("/"))
+			self.textBaseFile=curImgPath
 			
 			self.charSamplePoints=self.win.charSamplePoints
 			self.baseline=self.win.sliderBaseLine.value()

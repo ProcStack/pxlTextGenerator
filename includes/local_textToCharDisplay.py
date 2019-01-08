@@ -828,29 +828,15 @@ class PageBuilder(QtGui.QWidget):
 		path+="pageListKey.py"
 		if os.path.exists(path):
 			self.win.statusBarUpdate(" -- Reading and building pages from local PageListKey file --", 0,0)
+			
+			sys.path.append(self.projectName)
 			import pageListKey
 			reload(pageListKey)
 			
-			pageList=pageListKey.pageList
-			## Hitting some issues, just clear the layout
-			## Get this working without clear tho
-			#self.pageData=[]
-			#self.curPage=-1
-			#self.pageOutput.group=0
-			#self.pageOutput.groupPage=0
-
 			for pageGroup in pageListKey.pageList:
-				#pageGroupKeys=pageGroup.keys()
 				self.pageOutput.buildTextDisplay(1)
 				self.editGroup(1,pageGroup)
-				#self.pageOutput.buildTextDisplay()
-				###
-				#self.pageOutput.buildTextDisplay(1)
-				#self.pageData[self.curPage]=pageGroup
-				#self.pageOutput.buildTextDisplay()
 	def buildTextDisplay(self, newPage=0):
-		print pageGroupKeys
-			
 		self.win.statusBarUpdate(" -- All pages from local PageListKey file built --", 5000,1)
 	def exportAllPageData(self):
 		self.pageOutput.saveImage()
