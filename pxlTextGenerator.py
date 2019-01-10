@@ -847,6 +847,7 @@ class ImageProcessor(QtGui.QMainWindow):
 				curTo=textBaseMoveToPaths[x]
 				os.rename(v,curTo)
 			textBaseRelPaths=map(lambda x: delimit+scanFolder+delimit+self.textBaseImages+delimit+x, textBaseNames)
+			textBaseAbsPaths=map(lambda x: curDir+delimit+scanFolder+delimit+self.textBaseImages+delimit+x, textBaseNames)
 			
 			self.statusBarUpdate(" -- Project Folder '"+scanFolder+"' Built; "+str(len(textBaseNames))+" Images moved to - "+scanFolder+delimit+self.textBaseImages+delimit+" -- ", 6500,1)
 		else:

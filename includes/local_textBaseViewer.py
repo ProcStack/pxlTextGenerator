@@ -336,14 +336,29 @@ class TextBaseViewer(QtGui.QWidget):
 			self.zoom=targetZoom
 			self.win.zoom=targetZoom
 			self.drawReachMask()
-	def rebuildReachPixels(self):
-		rangePixels=map(lambda x: ",".join(map(str,x)), self.reachPixelsBase)
+	def rebuildReachPixels(self,baseArr=[], draw=0):
+		rangePixels=baseArr
+		if len(rangePixels)==0:
+			rangePixels=self.reachPixelsBase
+		rangePixels=map(lambda x: ",".join(map(str,x)), rangePixels)
 		customPixelsAdd=map(lambda x: ",".join(map(str,x)), self.customPixels['add'])
 		customPixelsRem=map(lambda x: ",".join(map(str,x)), self.customPixels['rem'])
 		rangePixels=list(set(rangePixels).difference(customPixelsRem))
 		rangePixels=list(set(rangePixels+customPixelsAdd))
+		
+		if self.extendShrinkEdge!=-1 and len(self.edgePixelsBase)>0:
+			print "hit",len(self.edgePixelsBase)
+			edgePixels=map(lambda x: ",".join(map(str,x)), self.edgePixelsBase)
+			if self.extendShrinkEdge<0:
+				rangePixels=list(set(rangePixels).difference(edgePixels))
+			elif self.extendShrinkEdge>0:
+				rangePixels=list(set(rangePixels+edgePixels))
 		rangePixels= map(lambda x: list(ast.literal_eval(x)), rangePixels)
 		self.reachPixels=rangePixels
+		
+		if draw==1:
+			self.drawReachMask()
+			
 		return True
 	def extendReachEdges(self,img=None, tempScanRange=None):
 		edgeGrowth=int(self.win.edgeGrowthSlider.value)
@@ -405,9 +420,11 @@ class TextBaseViewer(QtGui.QWidget):
 						curRun=curExtend
 						if len(curExtend) == 0:
 							break;
-					pmap=QtGui.QPixmap.fromImage(img)
-					pmap=pmap.scaled(self.cW,self.cH, QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
-					self.img.setPixmap(pmap)
+					try:
+						pmap=pmap.scaled(self.cW,self.cH, QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
+						self.img.setPixmap(pmap)
+					except:
+						pass;
 					QtGui.QApplication.processEvents()
 					self.win.loopLatch=0
 					if imgLoaded==0:
@@ -437,21 +454,26 @@ class TextBaseViewer(QtGui.QWidget):
 									img.setPixel(cur[0],cur[1],QtGui.QColor(255,150,0,255).rgb())
 									curShrink.append(cur)
 								if refreshRunner == refreshDraw:
-									refreshDraw+=refreshItter+int(15*(refreshDraw/refreshItter))
 									pmap=QtGui.QPixmap.fromImage(img)
+									refreshDraw+=refreshItter+int(15*(refreshDraw/refreshItter))
 									pmap=pmap.scaled(self.cW,self.cH, QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
 									self.img.setPixmap(pmap)
 									QtGui.QApplication.processEvents()
 						self.edgePixels.extend(curShrink)
 						curRun=curShrink
-					self.drawReachMask()
-					self.img.setPixmap(pmap)
+						
+					try:
+						pmap=self.drawReachMask(1,1)
+						self.img.setPixmap(pmap)
+					except:
+						pass;
 					self.win.loopLatch=0
 					if imgLoaded==0:
-							self.win.statusBarUpdate(" -- Shrinking Edge Completed -- ", 5000, 1)
+						self.win.statusBarUpdate(" -- Shrinking Edge Completed -- ", 5000, 1)
 			else:
 				self.extendShrinkEdge=-1
 				
+			self.rebuildReachPixels(self.reachPixels,1)
 			if imgLoaded==0:
 				self.scanRange=tempScanRange
 				alphaPadding=self.win.sliderAlphaReach.value()
@@ -460,11 +482,12 @@ class TextBaseViewer(QtGui.QWidget):
 				self.scanRange[2]=min(tempScanRange[2]+alphaPadding, self.cWOrig) if tempScanRange[2] != self.scanRange[2] else self.scanRange[2]
 				self.scanRange[3]=min(tempScanRange[3]+alphaPadding, self.cHOrig) if tempScanRange[3] != self.scanRange[3] else self.scanRange[3]
 				
-				img=self.drawBoundingBox(img)
+				#img=self.drawBoundingBox(img)
+				self.drawReachMask()
 				
-				pxmap=QtGui.QPixmap.fromImage(img)
+				"""pxmap=QtGui.QPixmap.fromImage(img)
 				pxmap=pxmap.scaled(self.cW,self.cH, QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
-				self.img.setPixmap(pxmap)
+				self.img.setPixmap(pxmap)"""
 		return img,tempScanRange
 	def drawBoundingBox(self, img):
 		# Build Bounding Box
