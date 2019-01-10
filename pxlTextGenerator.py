@@ -41,6 +41,7 @@ from PyQt4 import QtGui, QtCore
 from functools import partial
 import math
 import random
+import ast
 
 ### Local Imports ###
 execfile("includes/local_guiWidgets.py")
@@ -102,6 +103,7 @@ class ImageProcessor(QtGui.QMainWindow):
 		self.zoom=1.0
 		self.runValChangeEvent=1
 		self.loopLatch=0
+		self.textBaseToolMode=0
 		self.selectColorMode=0
 		self.selectColorSamples=[]
 		self.checkerBoard=None
@@ -111,6 +113,15 @@ class ImageProcessor(QtGui.QMainWindow):
 		self.curImageHelpers=196
 		self.unsavedChanges=0
 		self.charSampled=0
+		
+		self.setWindowStyleSheet()
+		self.statusBarMsg=''
+		self.statusBarFade=25
+		self.statusBarFadeMax=25
+		self.statusBarPerc=0
+		self.statusBarLength=1
+		self.statusBarMode=0
+		self.statusBarModeSet=0
 		
 		## BELOW IS OLD ##
 		self.websiteName=""
@@ -125,21 +136,12 @@ class ImageProcessor(QtGui.QMainWindow):
 		self.scrollIndexVal=0
 		self.scrollIndexHeight=-1
 		self.mainWidget=QtGui.QWidget(self)
-		
 		self.imgFullPerc=50
 		self.imgFullTilePerc=5
 		self.imgMedPerc=25
 		self.imgThumbPerc=10
 		self.imgQualityPerc=50
-		
-		self.setWindowStyleSheet()
-		self.statusBarMsg=''
-		self.statusBarFade=25
-		self.statusBarFadeMax=25
-		self.statusBarPerc=0
-		self.statusBarLength=1
-		self.statusBarMode=0
-		self.statusBarModeSet=0
+		###
 		
 		### Menu Bar ###
 		self.menuBar=self.menuBar()
@@ -206,10 +208,10 @@ class ImageProcessor(QtGui.QMainWindow):
 		self.imageDisplayBlock=QtGui.QVBoxLayout()
 		self.imgField=QtGui.QLabel()
 		self.imgField.setText("""\n
-- - Please select your 'Project Folder' containing - -\n\n
-1) Folder with your full sized images for a fresh build.
-( Supported - jpg, jpeg, png, bmp )\n\n\n
-2) Project Folder containing 'Character List' or 'Page Data' exports.\n
+- - Please select your 'Project Folder' containing - -\n\n\n
+( 1 ) - Folder with your full sized images for a fresh build.\n
+( Supported - jpg, jpeg, png, bmp )\n\n\n\n
+( 2 ) - Project Folder containing 'Character List' or 'Page Data' exports.\n
 ( charListKey.py / pageListKey.py )""")
 		self.imgField.setAlignment(QtCore.Qt.AlignCenter)
 		self.imageDisplayBlock.addWidget(self.imgField)
@@ -314,7 +316,9 @@ class ImageProcessor(QtGui.QMainWindow):
 		QScrollBar:horizontal {height:20px;background-color:#808080;border:1px solid #202020;}
 		QStatusBar {color:#ffffff;font-weight:bold;background-color:#606060;border:1px solid #202020;}
 		QMessageBox {background-color:#505050;color:#ffffff}
-		QLabel {color:#ffffff}"""
+		QLabel {color:#ffffff}
+		QListWidget {background-color:#222222;color:#ffffff;padding:2px;margin:2px;border:1px solid #2f2f2f}
+		QListWidgetItem {background-color:#565656;margin:3px}"""
 		self.setStyleSheet(styleSheetCss)
 	def statusBarUpdate(self, msg=None, length=5000, mode=1):
 		self.statusBarMode=mode
@@ -424,10 +428,31 @@ class ImageProcessor(QtGui.QMainWindow):
 				thresholdColorRes=[150,50]
 				fill=QtGui.QColor(66,67,67)
 				###
+				
+				spacer=QtGui.QSpacerItem(10,3, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
+				resetCharBlock.addItem(spacer)
+				###
+				self.baseListOptions=QtGui.QListWidget()
+				self.baseListOptions.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+				self.baseListOptions.itemClicked.connect(self.updateTextBase)
+				self.baseListOptions.setMaximumHeight(400)
+				resetCharBlock.addWidget(self.baseListOptions)
+				###
+				self.toggleTextBaseListButton=QtGui.QPushButton("^^^  Hide TextBase List  ^^^",self)
+				self.toggleTextBaseListButton.visCheck=1
+				self.toggleTextBaseListButton.setFixedHeight(25)
+				self.toggleTextBaseListButton.setStyleSheet(self.buttonStyle)
+				self.toggleTextBaseListButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+				self.toggleTextBaseListButton.clicked.connect(self.toggleTextBaseListVis)
+				resetCharBlock.addWidget(self.toggleTextBaseListButton)
+				###
+				spacer=QtGui.QSpacerItem(10,8, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
+				resetCharBlock.addItem(spacer)
+				
 				thresholdColorBlock=QtGui.QHBoxLayout()
 				###
 				self.thresholdColorNameText=QtGui.QLabel()
-				self.thresholdColorNameText.setText("Color Threshold")
+				self.thresholdColorNameText.setText("Searching Threshold")
 				self.thresholdColorNameText.setMinimumWidth(90)
 				self.thresholdColorNameText.setAlignment(QtCore.Qt.AlignRight)
 				thresholdColorBlock.addWidget(self.thresholdColorNameText)
@@ -442,7 +467,7 @@ class ImageProcessor(QtGui.QMainWindow):
 				thresholdColorMagTextBlock=QtGui.QVBoxLayout()
 				##
 				self.thresholdColorMagText=QtGui.QLabel()
-				self.thresholdColorMagText.setText("230 #\n-20")
+				self.thresholdColorMagText.setText("230 #")
 				self.thresholdColorMagText.setStyleSheet("QLabel {font-size:10pt; line-height:50%}")
 				self.thresholdColorMagText.setMinimumWidth(90)
 				self.thresholdColorMagText.setAlignment(QtCore.Qt.AlignRight)
@@ -458,7 +483,7 @@ class ImageProcessor(QtGui.QMainWindow):
 				self.thresholdColor.setPixmap(baseImg)
 				thresholdColorBlock.addWidget(self.thresholdColor)
 				###
-				thresholdColorSample=QtGui.QPushButton("Sample Color",self)
+				thresholdColorSample=QtGui.QPushButton("Sample Threshold by Color",self)
 				thresholdColorSample.setStyleSheet(self.buttonStyle)
 				thresholdColorSample.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 				thresholdColorSample.clicked.connect(self.sampleNewThresholdColor)
@@ -467,9 +492,44 @@ class ImageProcessor(QtGui.QMainWindow):
 				resetCharBlock.addLayout(thresholdColorBlock)
 				######
 				
+				
+				textBaseModeBlock=QtGui.QHBoxLayout()
+				self.textBaseMode_select=QtGui.QRadioButton("Select Area")
+				self.textBaseMode_select.setChecked(True)
+				self.textBaseMode_select.mode="sel"
+				self.textBaseMode_select.toggled.connect(lambda: self.setTextBaseMode(self.textBaseMode_select))
+				textBaseModeBlock.addWidget(self.textBaseMode_select)
+				###
+				spacer=QtGui.QSpacerItem(10,8, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
+				textBaseModeBlock.addItem(spacer)
+				###
+				self.textBaseMode_add=QtGui.QRadioButton("Add Brush")
+				self.textBaseMode_add.mode="add"
+				self.textBaseMode_add.toggled.connect(lambda: self.setTextBaseMode(self.textBaseMode_add))
+				textBaseModeBlock.addWidget(self.textBaseMode_add)
+				###
+				spacer=QtGui.QSpacerItem(10,8, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
+				textBaseModeBlock.addItem(spacer)
+				###
+				self.textBaseMode_subtract=QtGui.QRadioButton("Remove Brush")
+				self.textBaseMode_subtract.mode="rem"
+				self.textBaseMode_subtract.toggled.connect(lambda: self.setTextBaseMode(self.textBaseMode_subtract))
+				textBaseModeBlock.addWidget(self.textBaseMode_subtract)
+				######
+				spacer=QtGui.QSpacerItem(20,8, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
+				textBaseModeBlock.addItem(spacer)
+				###
+				self.brushSizeSlider=SliderGroup(self,"Add/Rem Brush Size", [1,10,6],2,"int","px")
+				textBaseModeBlock.addWidget(self.brushSizeSlider)
+				resetCharBlock.addLayout(textBaseModeBlock)
+				######
 				self.edgeGrowthSlider=SliderGroup(self,"Edge Grow/Shrink", [-10,10,0],7,"int","px", "extendEdges()")
 				resetCharBlock.addWidget(self.edgeGrowthSlider)
+				#entryEditBlock.addWidget(self.edgeGrowthSlider)
 				
+				######
+				
+				##### textBase Viewer Gui #####
 				curEntryEditScrollBlock=QtGui.QScrollArea() #QAbstractScrollArea()
 				curEntryEditScrollBlock.setWidgetResizable(True)
 				#curEntryEditScrollBlock.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
@@ -716,29 +776,31 @@ class ImageProcessor(QtGui.QMainWindow):
 				loadObj=-1
 				textBasePaths=[]
 				#files=os.listdir(activeList[0])
-				textBasePaths=self.prepProjectFolder(activeList[0])
+				textBasePaths,textBaseAbsPaths=self.prepProjectFolder(activeList[0])	
 				if textBasePaths == None:
 					self.statusBarUpdate(" -- Could not create directory '"+activeList[0]+"', Check for correct File Permissions that pxl can write to disk.  -- ", 5000,2)
 				else:
 					activeList=[textBasePaths[0]]
-					
-					
 					for x,p in enumerate(activeList):
 						scrollOffset+=scrollAdd+pad
 						
 						#IndexImageEntry(win, index, name, relativePath, scaleSize, qtImg):
-						curImg=IndexImageEntry(self,x,p,folderPicker+"/",size, None)
-						
-						#self.curImgListBlock.addWidget(curImg)
-						self.sideBarTextBase.addWidget(curImg)
-						curImg.offset=scrollOffset
-						self.loadIndexList.append(curImg)
-						self.loadScrollList.append([])
-						self.loadScrollList[-1].append(scrollOffset)
-						self.loadScrollList[-1].append(scrollOffset+curImg.imgSizeIndexList[1])
-						scrollAdd=curImg.imgSizeIndexList[1]
 						if loadObj==-1:
+							curImg=IndexImageEntry(self,x,p,folderPicker+"/",size, None)
 							loadObj=curImg
+							#self.curImgListBlock.addWidget(curImg)
+							self.sideBarTextBase.addWidget(curImg)
+							curImg.offset=scrollOffset
+							self.loadIndexList.append(curImg)
+							self.loadScrollList.append([])
+							self.loadScrollList[-1].append(scrollOffset)
+							self.loadScrollList[-1].append(scrollOffset+curImg.imgSizeIndexList[1])
+							scrollAdd=curImg.imgSizeIndexList[1]
+						#textBaseList
+					for x,tbpath in enumerate( textBasePaths ):
+						item=QtGui.QListWidgetItem(tbpath)
+						item.absPath=textBaseAbsPaths[x]
+						self.baseListOptions.addItem(item)
 					self.scrollIndexBlock.setWidget(scrollInner)
 					self.sideBarBlock.addWidget(self.scrollIndexBlock)
 					entryBlock.addLayout(self.sideBarBlock)
@@ -746,7 +808,7 @@ class ImageProcessor(QtGui.QMainWindow):
 					#self.updateScrollIndex()
 					loadObj.loadImage()
 					self.textBasePath=loadObj.imgPath
-					self.loadImageEntry(loadObj)
+					self.loadImageEntry(loadObj,1)
 					
 					self.loadExistingData()
 					self.dispCheckerBoard(self.curImageFull,1)
@@ -775,24 +837,59 @@ class ImageProcessor(QtGui.QMainWindow):
 			
 		files=os.listdir(scanFolder)
 		textBaseNames= filter(lambda x: x.split(".")[-1].lower() in ext, files)
+		textBaseAbsPaths=map(lambda x: curDir+delimit+scanFolder+delimit+x, textBaseNames)
 		#textBaseNames=[]
 		#textBaseNames.extend(textBasePaths)
 
 		if genTextBaseOutputFolder==1:
-			textBaseAbsPaths=map(lambda x: curDir+delimit+scanFolder+delimit+x, textBaseNames)
 			textBaseMoveToPaths=map(lambda x: curDir+delimit+scanFolder+delimit+self.textBaseImages+delimit+x, textBaseNames)
 			for x,v, in enumerate(textBaseAbsPaths):
 				curTo=textBaseMoveToPaths[x]
 				os.rename(v,curTo)
-			textBaseRelPaths=map(lambda x: scanFolder+'/'+self.textBaseImages+'/'+x, textBaseNames)
+			textBaseRelPaths=map(lambda x: delimit+scanFolder+delimit+self.textBaseImages+delimit+x, textBaseNames)
 			
 			self.statusBarUpdate(" -- Project Folder '"+scanFolder+"' Built; "+str(len(textBaseNames))+" Images moved to - "+scanFolder+delimit+self.textBaseImages+delimit+" -- ", 6500,1)
 		else:
-			textBaseRelPaths=map(lambda x: scanFolder+'/'+x, textBaseNames)
+			textBaseRelPaths=map(lambda x: delimit+scanFolder+delimit+x, textBaseNames)
 
-		return textBaseRelPaths
+		return [textBaseRelPaths,textBaseAbsPaths]
+		
+	def setTextBaseMode(self, modeRadio):
+		mode=modeRadio.mode
+		if mode=="sel":
+			self.textBaseToolMode=0
+		if mode=="add":
+			self.textBaseToolMode=1
+		if mode=="rem":
+			self.textBaseToolMode=2
 	def extendEdges(self):
 		self.textBaseViewWindow.extendReachEdges()
+	def updateTextBase(self):
+		sel=str(self.baseListOptions.selectedItems()[0].text())
+		absPath=self.baseListOptions.selectedItems()[0].absPath
+		#IndexImageEntry(win, index, name, relativePath, scaleSize, qtImg):
+		size=[128,128]
+
+		ClearLayout(self.sideBarTextBase)
+		curImg=IndexImageEntry(self,0,sel.split(delimit)[0],"/".join(absPath.split(delimit)),size, None)
+		#self.curImgListBlock.addWidget(curImg)
+		self.sideBarTextBase.addWidget(curImg)
+		self.loadIndexList=[curImg]
+		curImg.loadImage()
+		self.textBasePath=curImg.imgPath
+		self.loadImageEntry(curImg,0)
+	def toggleTextBaseListVis(self):
+		self.toggleTextBaseListButton.visCheck=(self.toggleTextBaseListButton.visCheck+1)%2
+		if self.toggleTextBaseListButton.visCheck==0:
+			self.baseListOptions.setMaximumHeight(0)
+			self.toggleTextBaseListButton.setText("vvv  Show TextBase List  vvv")
+			###
+			#self.toggleTextBaseListButton=QtGui.QPushButton("^ Hide ^",self)
+			#self.toggleTextBaseListButton=QtGui.QPushButton("^ Hide ^",self)
+		else:
+			self.baseListOptions.setMaximumHeight(400)
+			self.toggleTextBaseListButton.setText("^^^  Hide TextBase List  ^^^")
+			
 	def setOutputDir(self, setDir=None):
 		if setDir == None:
 			folderPicker=QtGui.QFileDialog.getExistingDirectory(self,"Set Output Directory")
@@ -816,7 +913,7 @@ class ImageProcessor(QtGui.QMainWindow):
 					rp=len(popList)-1-p
 					del self.loadIndexList[rp]
 					del self.loadScrollList[rp]
-	def loadImageEntry(self,obj):
+	def loadImageEntry(self,obj,boot=0):
 		ClearLayout(self.curImageSettings)
 		
 		### SETTINGS ###
@@ -826,18 +923,17 @@ class ImageProcessor(QtGui.QMainWindow):
 		### MAIN ENTRY ###
 		ClearLayout(self.curEntryBlock)
 		
-		### Set Output Dir ###
-		##outPath="/".join(self.dirField.text().split("/")[:-1])+"/"+str(self.galleryName)+"_compressed"
-		self.dirField.setText(obj.imgFolder+self.projectName+'/')
-		outPath=str(self.dirField.text())+"textCharacterOutput/"
-		self.setOutputDir(outPath)
-		outPath=str(self.dirField.text())+"pageBuilderOutput/"
-		self.pageViewer.setPageOutputDir(outPath)
+		if boot==1:
+			### Set Output Dir ###
+			##outPath="/".join(self.dirField.text().split("/")[:-1])+"/"+str(self.galleryName)+"_compressed"
+			self.dirField.setText(obj.imgFolder+self.projectName+'/')
+			outPath=str(self.dirField.text())+"pxl_textCharacterOutput/"
+			self.setOutputDir(outPath)
+			outPath=str(self.dirField.text())+"pxl_pageBuilderOutput/"
+			self.pageViewer.setPageOutputDir(outPath)
 
 		spacer=QtGui.QSpacerItem(10,100, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Maximum)
 		self.curImageSettings.addItem(spacer)
-		
-		### WebView Image Viwer ###
 		
 		self.textBaseViewWindow=TextBaseViewer(self,obj)
 		self.curEntryBlock.addWidget(self.textBaseViewWindow)
@@ -870,28 +966,6 @@ class ImageProcessor(QtGui.QMainWindow):
 		
 		spacer=QtGui.QSpacerItem(10,3, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Maximum)
 		self.curImageSettings.addItem(spacer)
-		### Medium ###
-		curImageMedSettings=QtGui.QHBoxLayout()
-		medSizeText=QtGui.QLabel()
-		medSizeText.setText("Degree Rotation -")
-		medSizeText.setMinimumWidth(150)
-		curImageMedSettings.addWidget(medSizeText)
-		###
-		self.sliderRotate=QtGui.QSlider()
-		self.sliderRotate.setOrientation(QtCore.Qt.Horizontal)
-		self.sliderRotate.setMinimum(-6000)
-		self.sliderRotate.setMaximum(6000)
-		self.sliderRotate.setValue(0)
-		curImageMedSettings.addWidget(self.sliderRotate)
-		###
-		self.rotateSliderVal=QtGui.QLabel()
-		self.rotateSliderVal.setText("0.0 deg")
-		self.rotateSliderVal.setMinimumWidth(90)
-		self.rotateSliderVal.setAlignment(QtCore.Qt.AlignRight)
-		curImageMedSettings.addWidget(self.rotateSliderVal)
-		self.curImageSettings.addLayout(curImageMedSettings)
-		self.sliderRotate.valueChanged.connect(self.degreesSliderChange)
-		self.sliderRotate.sliderReleased.connect(self.degreesSliderReleased)
 		
 		curImageThumbSettings=QtGui.QHBoxLayout()
 		thumbSizeText=QtGui.QLabel()
@@ -964,6 +1038,29 @@ class ImageProcessor(QtGui.QMainWindow):
 		self.curImageSettings.addLayout(curImageThumbSettings)
 		self.sliderContrast.valueChanged.connect(self.contrastSliderChange)
 		self.sliderContrast.sliderReleased.connect(self.contrastSliderReleased)
+		
+		### Medium ###
+		curImageMedSettings=QtGui.QHBoxLayout()
+		medSizeText=QtGui.QLabel()
+		medSizeText.setText("Degree Rotation -")
+		medSizeText.setMinimumWidth(150)
+		curImageMedSettings.addWidget(medSizeText)
+		###
+		self.sliderRotate=QtGui.QSlider()
+		self.sliderRotate.setOrientation(QtCore.Qt.Horizontal)
+		self.sliderRotate.setMinimum(-6000)
+		self.sliderRotate.setMaximum(6000)
+		self.sliderRotate.setValue(0)
+		curImageMedSettings.addWidget(self.sliderRotate)
+		###
+		self.rotateSliderVal=QtGui.QLabel()
+		self.rotateSliderVal.setText("0.0 deg")
+		self.rotateSliderVal.setMinimumWidth(90)
+		self.rotateSliderVal.setAlignment(QtCore.Qt.AlignRight)
+		curImageMedSettings.addWidget(self.rotateSliderVal)
+		self.curImageSettings.addLayout(curImageMedSettings)
+		self.sliderRotate.valueChanged.connect(self.degreesSliderChange)
+		self.sliderRotate.sliderReleased.connect(self.degreesSliderReleased)
 		
 		spacer=QtGui.QSpacerItem(10,50, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Maximum)
 		self.curImageSettings.addItem(spacer)
@@ -1172,6 +1269,7 @@ class ImageProcessor(QtGui.QMainWindow):
 			self.checkerBoard=baseImg
 	def sampleNewThresholdColor(self):
 		self.selectColorMode=1
+		self.textBaseToolMode=3
 		self.selectColorSamples=[[0,0,0]]
 		self.textBaseViewWindow.setCursor(QtGui.QCursor(QtCore.Qt.CrossCursor))
 		self.statusBarUpdate(" -- Select a new threshold color ... Clicking and draging will blend colors together -- ", 0,1)

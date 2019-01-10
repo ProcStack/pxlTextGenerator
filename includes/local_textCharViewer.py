@@ -146,7 +146,9 @@ class TextCharacterViewer(QtGui.QWidget):
 			elif self.mode == 1:
 				img=pmap.toImage()
 				if self.win.textBaseViewWindow.extendShrinkEdge == 1:
-					for xy in self.win.textBaseViewWindow.reachPixels:
+					reachPixels=[]
+					reachPixels.extend(self.win.textBaseViewWindow.reachPixels)
+					for xy in reachPixels:
 						x=xy[0]-rect[0]
 						y=xy[1]-rect[1]
 						img.setPixel(x,y,QtGui.QColor(0,255,0,255).rgb())
