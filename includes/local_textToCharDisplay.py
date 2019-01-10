@@ -373,6 +373,10 @@ class TextToCharDisplay(QtGui.QWidget):
 					val=list(val)
 					backChars=["'",'"',"`"]
 					skip=0
+					inTag=0
+					maxTagLength=4
+					tags=["ocl","ocr","oll","olr","osl","osr","oal","oar"]
+					curTag=''
 					for x,c in enumerate(val):
 						self.runner+=1.0
 						if c == "b":
@@ -380,12 +384,33 @@ class TextToCharDisplay(QtGui.QWidget):
 								if val[x+1] in backChars:
 									skip=1
 									cc=c
-						if skip==0:
-							cc=c
-						elif skip==2:
-							skip=0
-							cc+=c
+						elif c=="%":
+							if inTag==1:
+								inTag=2
+								skip=0
+							else:
+								for v in range(1,maxTagLength):
+									curTag+=val[x+v]
+									if curTag in tags:
+										inTag=1
+										break;
+									if val[x+v] == "%":
+										inTag=0
+										cc=c
+										break;
+						if inTag==1:
+							skip=1
+						elif inTag==0:
+							if skip==0:
+								cc=c
+							elif skip==2:
+								skip=0
+								cc+=c
 						if skip == 0:
+							if inTag==2:
+								inTag=0
+								cc=curTag
+								curTag=''
 							if cc == " ":
 								leftStart=leftStart+50
 								printText.append(' ')

@@ -216,6 +216,15 @@ class IndexImageEntry(QtGui.QWidget): #Individual indexList image entries
 				"7":"seven",
 				"8":"eight",
 				"9":"nine",
+				
+				"ocl":"oeCurious_L", #Curious eyes
+				"ocr":"oeCurious_R",
+				"oll":"oeLooking_L",
+				"olr":"oeLooking_R",
+				"osl":"oeStern_L",
+				"osr":"oeStern_R",
+				"oal":"oeAngry_L",
+				"oar":"oeAngry_R",
 				}
 			if val in special.keys():
 				val="char_"+special[val]
