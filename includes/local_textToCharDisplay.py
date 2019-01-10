@@ -355,7 +355,6 @@ class TextToCharDisplay(QtGui.QWidget):
 			
 			if hasattr(self.win, "curImgListBlock"):
 				if self.win.curImgListBlock.count() == 0:
-					self.win.statusBarUpdate(" -- No character data found, please create characters first -- ", 5000,2)
 					return
 			else:
 				self.win.statusBarUpdate(" -- Please 'Load Text Image' to load existing character data -- ", 5000,2)

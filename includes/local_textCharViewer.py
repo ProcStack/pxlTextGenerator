@@ -145,9 +145,10 @@ class TextCharacterViewer(QtGui.QWidget):
 				self.win.sliderPreMult.setValue(premult)
 			elif self.mode == 1:
 				img=pmap.toImage()
+				self.win.textBaseViewWindow.rebuildReachPixels()
+				reachPixels=[]
+				reachPixels.extend(self.win.textBaseViewWindow.reachPixels)
 				if self.win.textBaseViewWindow.extendShrinkEdge == 1:
-					reachPixels=[]
-					reachPixels.extend(self.win.textBaseViewWindow.reachPixels)
 					for xy in reachPixels:
 						x=xy[0]-rect[0]
 						y=xy[1]-rect[1]
@@ -157,12 +158,11 @@ class TextCharacterViewer(QtGui.QWidget):
 						y=xy[1]-rect[1]
 						img.setPixel(x,y,QtGui.QColor(0,0,255,255).rgb())
 				elif self.win.textBaseViewWindow.extendShrinkEdge == 0:
-					reachPixels=[]
-					reachPixels.extend(self.win.textBaseViewWindow.reachPixels)
 					edgePixels=self.win.textBaseViewWindow.edgePixels
 					for e in edgePixels:
 						if e in reachPixels:
 							reachPixels.remove(e)
+					reachPixels.extend(self.win.textBaseViewWindow.customPixels['add'])
 					for xy in self.win.textBaseViewWindow.reachPixels:
 						x=xy[0]-rect[0]
 						y=xy[1]-rect[1]
@@ -175,6 +175,7 @@ class TextCharacterViewer(QtGui.QWidget):
 				pmap=QtGui.QPixmap.fromImage(img)
 			elif self.mode == 2:
 				reachPixels=[]
+				self.win.textBaseViewWindow.rebuildReachPixels()
 				reachPixels.extend(self.win.textBaseViewWindow.reachPixels)
 				if self.win.textBaseViewWindow.extendShrinkEdge == 1:
 					reachPixels.extend(self.win.textBaseViewWindow.edgePixels)
@@ -183,6 +184,7 @@ class TextCharacterViewer(QtGui.QWidget):
 					for e in edgePixels:
 						if e in reachPixels:
 							reachPixels.remove(e)
+				reachPixels.extend(self.win.textBaseViewWindow.customPixels['add'])
 				reachPixels=map(lambda x: [ max(0, min(rect[2]-1,x[0]-rect[0])), max(0, min(rect[3]-1,x[1]-rect[1])) ], reachPixels)
 				#reachPixels=map(lambda x: [int(x.split(",")[0])-rect[0], int(x.split(",")[1])-rect[1]] , reachPixels)
 				contrast=float(self.win.sliderContrast.value())/100.0
@@ -209,6 +211,7 @@ class TextCharacterViewer(QtGui.QWidget):
 									reachPixels[-1].append(curXY)
 						if c > 0:
 							reachPixels[0].extend(reachPixels[-1])
+							
 					for c in range(1,blurLevels):
 						curArr=reachPixels[c]
 						fade= 1.0 - (float(c) / (float(blurLevels)+1.0))
@@ -241,6 +244,7 @@ class TextCharacterViewer(QtGui.QWidget):
 							mr,mg,mb,ma=QtGui.QColor(mask.pixel(rand[0]+x,rand[1]+y)).getRgb()
 							r=max(0, min( 255, int((float(r)+float(r)+float(mr))/3.0) ))
 							mask.setPixel(x,y,QtGui.QColor(r,r,r,r).rgba())
+							
 				pmap=QtGui.QPixmap.fromImage(mask)
 				self.preScaleData=pmap
 				

@@ -298,7 +298,7 @@ class ImageProcessor(QtGui.QMainWindow):
 		styleSheetCss="""
 		* {font-size:10pt;}
 		QToolTip {color:#ffffff;background-color:#202020;border: 1px solid #ffffff;}
-		QPushButton {color:#ffffff;background-color:#232323;padding:4px;border:1px solid #000000;}
+		QPushButton {color:#ffffff;background-color:#535353;padding:4px;border:2px groove #353535;}
 		QLineEdit {color:#111111;background-color:#909090;padding:2px;border:1px solid #202020;height:25px;}
 		QScrollArea {color:#ffffff;background-color:#808080;border:1px solid #202020;}
 		QTabWidget::pane {color:#ffffff;background-color:#323232;border:0px;}
