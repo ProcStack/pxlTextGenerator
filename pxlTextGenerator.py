@@ -113,6 +113,7 @@ class ImageProcessor(QtGui.QMainWindow):
 		self.curImageHelpers=196
 		self.unsavedChanges=0
 		self.charSampled=0
+		self.setMouseTracking(True)
 		
 		self.setWindowStyleSheet()
 		self.statusBarMsg=''
@@ -249,7 +250,8 @@ class ImageProcessor(QtGui.QMainWindow):
 		eval(str(name)+"=QtGui.QPushButton('"+str(txt)+"', self)")
 		eval(str(name)+".clicked.connect("+cmd+")")
 		eval(str(layout)+".addWidget("+str(name)+")")"""
-		
+	def mouseMoveEvent(self, event):
+		print "moved"
 	def setTitleBar(self,custDisp=[]):
 		disp=[]
 		disp.extend(custDisp)
@@ -859,6 +861,8 @@ class ImageProcessor(QtGui.QMainWindow):
 		mode=modeRadio.mode
 		if mode=="sel":
 			self.textBaseToolMode=0
+			if hasattr(self, "textBaseViewWindow"):
+				self.textBaseViewWindow.drawBrushRadius(0,None)
 		if mode=="add":
 			self.textBaseToolMode=1
 		if mode=="rem":

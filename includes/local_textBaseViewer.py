@@ -14,6 +14,8 @@ class TextBaseViewer(QtGui.QWidget):
 		self.img=QtGui.QLabel()
 		self.img.setAlignment(QtCore.Qt.AlignCenter)
 		self.img.setGeometry(0,0,self.cW,self.cH) # Placeholder
+		
+		self.curCanvasData=None
 		self.scanRange=[self.cW,self.cH,0,0]
 		self.rect=[0,0,256,256]
 		self.reachPixelsBase=[]
@@ -28,6 +30,10 @@ class TextBaseViewer(QtGui.QWidget):
 		self.mousePressStart=[]
 		self.scrollStart=[]
 		self.mouseDrag=0
+		self.brushSize=-1
+		self.brushPixelData=[]
+		self.brushEdgePixelData=[]
+		self.curButton=-1
 		
 		self.curImgBlock=QtGui.QVBoxLayout()
 		self.curImgBlock.setSpacing(0) # Spacing & Margin was giving me trouble calculating dynamic loading in window
@@ -37,8 +43,16 @@ class TextBaseViewer(QtGui.QWidget):
 		pmap.load(self.imgPath)
 		self.win.imgData[self.win.curImage]=pmap
 		self.img.setPixmap(pmap)
+		self.curCanvasData=pmap
 		self.curImgBlock.addWidget(self.img)
+		
+		#self.setMouseTracking(True)
 		self.setLayout(self.curImgBlock) # Layout to display in parent window
+		#self.setMouseMoveEventDelegate(self)
+		#self.setMouseMoveEventDelegate(self.img)
+		self.img.setMouseTracking(True)
+		self.img.mouseMoveEvent=self.mouseMoveEvent
+
 	def setDefaultScroll(self): ### Not running right now
 		curScrollH=self.curImgBlock.parent().parent().parent().parent().horizontalScrollBar().maximum()
 		curScrollV=self.curImgBlock.parent().parent().parent().parent().verticalScrollBar().maximum()
@@ -48,6 +62,7 @@ class TextBaseViewer(QtGui.QWidget):
 		pmap=QtGui.QPixmap()
 		pmap.load(self.imgPath)
 		self.img.setPixmap(pmap)
+		self.curCanvasData=pmap
 		self.scanRange=[self.cW,self.cH,0,0]
 		self.reachPixelsBase=[]
 		self.reachPixels=[]
@@ -61,37 +76,50 @@ class TextBaseViewer(QtGui.QWidget):
 		pos=event.globalPos()
 		self.mousePressStart=[pos.x(), pos.y()]
 		self.mouseDown=1
+		self.curButton=event.buttons()
 		scrollH=self.curImgBlock.parent().parent().parent().parent().horizontalScrollBar().value()
 		scrollV=self.curImgBlock.parent().parent().parent().parent().verticalScrollBar().value()
 		self.scrollStart=[scrollH, scrollV]
 	def mouseMoveEvent(self, event):
-		if self.win.textBaseToolMode==1 or self.win.textBaseToolMode==2:
-			pos=event.pos()
-			posX=int(pos.x()*(1.0/self.zoom))
-			posY=int(pos.y()*(1.0/self.zoom))
-			self.setCustomPixels( self.win.textBaseToolMode, [posX,posY], self.win.brushSizeSlider.value )
-		elif self.win.selectColorMode==3 and self.win.selectColorMode>0:
-			pos=event.pos()
-			posX=int(pos.x()*(1.0/self.zoom))
-			posY=int(pos.y()*(1.0/self.zoom))
-			self.win.setNewThresholdColor([posX,posY])
-			self.win.selectColorMode+=1
-		else:
-			if self.mouseDown > 0:
-				self.mouseDown+=1
-				if self.mouseDown == 5:
-					self.mouseDrag=1
-				if self.mouseDrag == 1:
-					pos=event.globalPos()
-					curXY=[ self.mousePressStart[0]-pos.x(), self.mousePressStart[1]-pos.y() ]
-					maxScrollH=self.curImgBlock.parent().parent().parent().parent().horizontalScrollBar().maximum()
-					maxScrollV=self.curImgBlock.parent().parent().parent().parent().verticalScrollBar().maximum()
-					curScrollH=min( maxScrollH, max(0, self.scrollStart[0]+curXY[0] ))
-					curScrollV=min( maxScrollV, max(0, self.scrollStart[1]+curXY[1] ))
-					self.curImgBlock.parent().parent().parent().parent().horizontalScrollBar().setValue(curScrollH)
-					self.curImgBlock.parent().parent().parent().parent().verticalScrollBar().setValue(curScrollV)
+		self.curButton=event.buttons()
+		if self.curButton == QtCore.Qt.NoButton:
+			if self.win.textBaseToolMode in [1,2]:
+				pos=event.pos()
+				posX=int(pos.x()*(1.0/self.zoom))
+				posY=int(pos.y()*(1.0/self.zoom))
+				self.drawBrushRadius(self.win.textBaseToolMode, [posX,posY])
+		elif self.curButton == QtCore.Qt.LeftButton:
+			if self.win.textBaseToolMode==1 or self.win.textBaseToolMode==2:
+				pos=event.pos()
+				posX=int(pos.x()*(1.0/self.zoom))
+				posY=int(pos.y()*(1.0/self.zoom))
+				self.setCustomPixels( self.win.textBaseToolMode, [posX,posY], self.win.brushSizeSlider.value )
+			elif self.win.selectColorMode==3 and self.win.selectColorMode>0:
+				pos=event.pos()
+				posX=int(pos.x()*(1.0/self.zoom))
+				posY=int(pos.y()*(1.0/self.zoom))
+				self.win.setNewThresholdColor([posX,posY])
+				self.win.selectColorMode+=1
+			else:
+				if self.mouseDown > 0:
+					self.mouseDown+=1
+					if self.mouseDown == 5:
+						self.mouseDrag=1
+		elif self.curButton == QtCore.Qt.RightButton:
+			self.mouseDrag=1
+			
+		if self.mouseDrag == 1:
+			pos=event.globalPos()
+			curXY=[ self.mousePressStart[0]-pos.x(), self.mousePressStart[1]-pos.y() ]
+			maxScrollH=self.curImgBlock.parent().parent().parent().parent().horizontalScrollBar().maximum()
+			maxScrollV=self.curImgBlock.parent().parent().parent().parent().verticalScrollBar().maximum()
+			curScrollH=min( maxScrollH, max(0, self.scrollStart[0]+curXY[0] ))
+			curScrollV=min( maxScrollV, max(0, self.scrollStart[1]+curXY[1] ))
+			self.curImgBlock.parent().parent().parent().parent().horizontalScrollBar().setValue(curScrollH)
+			self.curImgBlock.parent().parent().parent().parent().verticalScrollBar().setValue(curScrollV)
 	def mouseReleaseEvent(self, event):
-		if self.mouseDrag==0 or self.win.selectColorMode>0:
+		if (self.mouseDrag==0 or self.win.selectColorMode>0) and self.curButton == QtCore.Qt.LeftButton:
+			self.curButton=-1
 			pos=event.pos()
 			posX=int(pos.x()*(1.0/self.zoom))
 			posY=int(pos.y()*(1.0/self.zoom))
@@ -115,6 +143,7 @@ class TextBaseViewer(QtGui.QWidget):
 					midRun=self.img.pixmap()
 					midRun=midRun.scaled(self.cWOrig,self.cHOrig, QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
 					midRun=midRun.toImage()
+					
 					#midRun=self.img.pixmap().toImage()
 					#img=img.toImage()
 					rangeDist=10
@@ -224,7 +253,7 @@ class TextBaseViewer(QtGui.QWidget):
 					for xy in self.reachPixelsBase:
 						x=xy[0]
 						y=xy[1]
-						img.setPixel(x,y,QtGui.QColor(0,255,0,255).rgb())
+						#img.setPixel(x,y,QtGui.QColor(0,255,0,255).rgb())
 						
 					self.reachPixels.extend(self.reachPixelsBase)
 					
@@ -232,10 +261,8 @@ class TextBaseViewer(QtGui.QWidget):
 					for p in self.edgePixelsBase:
 						for a in growArr:
 							xy=map(lambda x,c: x+c, p,a)
-							
 							xy[0]=min(self.cW-1, max(1, xy[0]))
 							xy[1]=min(self.cH-1, max(1, xy[1]))
-					
 							if xy not in self.reachPixels:
 								newEdgeBuild.append(p)
 					self.edgePixelsBase=newEdgeBuild
@@ -252,8 +279,8 @@ class TextBaseViewer(QtGui.QWidget):
 					alphaPadding=self.win.sliderAlphaReach.value()
 					self.scanRange[0]=max(tempScanRange[0]-alphaPadding, 0) if tempScanRange[0] != self.scanRange[0] else self.scanRange[0]
 					self.scanRange[1]=max(tempScanRange[1]-alphaPadding, 0) if tempScanRange[1] != self.scanRange[1] else self.scanRange[1]
-					self.scanRange[2]=min(tempScanRange[2]+alphaPadding, self.cWOrig) if tempScanRange[2] != self.scanRange[2] else self.scanRange[2]
-					self.scanRange[3]=min(tempScanRange[3]+alphaPadding, self.cHOrig) if tempScanRange[3] != self.scanRange[3] else self.scanRange[3]
+					self.scanRange[2]=min(tempScanRange[2]+alphaPadding, self.cWOrig-1) if tempScanRange[2] != self.scanRange[2] else self.scanRange[2]
+					self.scanRange[3]=min(tempScanRange[3]+alphaPadding, self.cHOrig-1) if tempScanRange[3] != self.scanRange[3] else self.scanRange[3]
 										
 					self.drawReachMask()
 					self.win.statusBarUpdate(" -- Character Search Complete! --", 5000, 1)
@@ -267,33 +294,26 @@ class TextBaseViewer(QtGui.QWidget):
 	def setCustomPixels(self,mode,pos,brushSize):
 		brushSize=float(brushSize)/2.0
 		alphaPadding=self.win.sliderAlphaReach.value()
-		curRangePixels=[]
-		if brushSize < 1:
-			curRangePixels.append(pos)
-		else:
-			### Find pixels within brushSize radius
-			### ...I'm sure there is a better way to do this
-			### Like... I'm sure.... My brain is telling me this is wrong
-			### Or is it my gut?  Maybe heart since they found neurons in the heart?
-			### Is anything really a concious choice in the end?
+		origRangePixels=[[0,0]]
+		if brushSize > 1:
+			self.buildBrushPixels()
+			origRangePixels=self.brushPixelData
+			"""
+			
 			mmin=[int(max(0, pos[0]-brushSize)), int(max(0, pos[1]-brushSize))]
 			mmax=[int(min(self.cW-1, pos[0]+brushSize)), int(min(self.cW-1, pos[1]+brushSize))]
-			curmmin=[self.scanRange[0],self.scanRange[1]]
-			curmmax=[self.scanRange[2],self.scanRange[3]]
-			for x in range(mmin[0], mmax[0]):
-				for y in range(mmin[1], mmax[1]):
-					dx=float(x-pos[0])
-					dy=float(y-pos[1])
-					delta=math.sqrt( dx*dx + dy*dy )
-					if delta<=brushSize:
-						curRangePixels.append([x,y])
-						curmmin[0]=min(curmmin[0], x-alphaPadding )
-						curmmin[1]=min(curmmin[1], y-alphaPadding )
-						curmmax[0]=max(curmmax[0], x+alphaPadding )
-						curmmax[1]=max(curmmax[1], y+alphaPadding )
+			curmm=[self.scanRange[0],self.scanRange[1],self.scanRange[2],self.scanRange[3]]
+						curmm[0]=min(curmm[0], x-alphaPadding )
+						curmm[1]=min(curmm[1], y-alphaPadding )
+						curmm[2]=max(curmm[2], x+alphaPadding )
+						curmm[3]=max(curmm[3], y+alphaPadding )
+						"""
 		######
+		#origRangePixels=map(lambda x: [x[0]+pos[0], x[1]+pos[1]], origRangePixels)
+		origRangePixels=map(lambda x: [ max(0, min(self.cWOrig-1, x[0]+pos[0])), max(0, min(self.cHOrig-1, x[1]+pos[1])) ], origRangePixels)
+		curRangePixels=map(lambda x: ",".join(map(str,x)), origRangePixels)
+		
 		rangePixels=map(lambda x: ",".join(map(str,x)), self.reachPixels)
-		curRangePixels=map(lambda x: ",".join(map(str,x)), curRangePixels)
 		customPixelsAdd=map(lambda x: ",".join(map(str,x)), self.customPixels['add'])
 		customPixelsRem=map(lambda x: ",".join(map(str,x)), self.customPixels['rem'])
 		if mode == 1: # Add
@@ -312,13 +332,42 @@ class TextBaseViewer(QtGui.QWidget):
 		self.customPixels['add']= map(lambda x: list(ast.literal_eval(x)), customPixelsAdd)
 		self.customPixels['rem']= map(lambda x: list(ast.literal_eval(x)), customPixelsRem)
 
-		
-		self.scanRange[0]=max(curmmin[0], 0)
-		self.scanRange[1]=max(curmmin[1], 0)
-		self.scanRange[2]=min(curmmax[0], self.cWOrig)
-		self.scanRange[3]=min(curmmax[1], self.cHOrig)
-
+		if mode == 1: # Add
+			for xy in origRangePixels:
+				self.scanRange[0]=max(min(xy[0], self.scanRange[0]), 0)
+				self.scanRange[1]=max(min(xy[1], self.scanRange[1]), 0)
+				self.scanRange[2]=min(max(xy[0], self.scanRange[2]), self.cWOrig-1)
+				self.scanRange[3]=min(max(xy[1], self.scanRange[3]), self.cHOrig-1)
 		self.drawReachMask()
+	def buildBrushPixels(self, force=0):
+		if self.brushSize != self.win.brushSizeSlider.value or force==1:
+			### Find pixels within brushSize radius
+			### ...I'm sure there is a better way to do this
+			### Like... I'm sure.... My brain is telling me this is wrong
+			### Or is it my gut?  Maybe heart since they found neurons in the heart?
+			### Is anything really a concious choice in the end?
+			brushSize=max(1.0, float(self.win.brushSizeSlider.value)/2.0)
+			curRangePixels=[]
+			for x in range(-int(brushSize+.5), int(brushSize+1.5)):
+				for y in range(-int(brushSize+.5), int(brushSize+1.5)):
+					dx=float(x)#-pos[0])
+					dy=float(y)#-pos[1])
+					delta=math.sqrt( dx*dx + dy*dy )
+					if delta<=brushSize:
+						curRangePixels.append([x,y])
+			self.brushPixelData=curRangePixels
+			
+			curBrushEdge=[]
+			#growArr=[[1,1],[1,0],[1,-1], [0,1],[0,-1], [-1,1],[-1,0],[-1,-1]]
+			growArr=[[1,0], [0,1],[0,-1],[-1,0]]
+			for xy in curRangePixels:
+				for grow in growArr:
+					nextArr=[ xy[0]+grow[0], xy[1]+grow[1] ]
+					if nextArr not in curRangePixels:
+						curBrushEdge.append(xy)
+						break;
+			self.brushEdgePixelData=curBrushEdge
+			self.brushSize=self.win.brushSizeSlider.value
 	def drawReachMask(self,bbox=1,ret=0):
 		img=self.win.imgData[self.win.curImage]
 		img=img.toImage()
@@ -332,17 +381,33 @@ class TextBaseViewer(QtGui.QWidget):
 		if bbox==1:
 			img=self.drawBoundingBox(img)
 		pmap=QtGui.QPixmap.fromImage(img)
+		self.curCanvasData=pmap
 		pmap=pmap.scaled(self.cW,self.cH, QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
 		if ret == 1:
 			return pmap
 		else:
 			self.img.setPixmap(pmap)
 			return None
+	def drawBoundingBox(self, img):
+		# Build Bounding Box
+		# Might be cool to make this interactive
+		# Still don't know why I try to avoid QPainter so much
+		# Something about QPainter bothers me, and can't put my finger on it....
+		bboxRun=[]
+		bboxRun.append( [[max(0, self.scanRange[0]-1), self.scanRange[0]], [ self.scanRange[1], self.scanRange[3]] ] )
+		bboxRun.append( [[self.scanRange[2], min(self.cWOrig-1, self.scanRange[2]+1)], [ self.scanRange[1], self.scanRange[3]] ] )
+		bboxRun.append( [[self.scanRange[0], self.scanRange[2]], [ max(0, self.scanRange[1]-1), self.scanRange[1]] ] )
+		bboxRun.append( [[self.scanRange[0], self.scanRange[2]], [ self.scanRange[3], min(self.cHOrig-1, self.scanRange[3]+1)] ] )
+		for xy in bboxRun:
+			for x in range(xy[0][0],xy[0][1]):
+				for y in range(xy[1][0],xy[1][1]):
+					img.setPixel(x,y,QtGui.QColor(255,0,0,255).rgb())
+		return img
 	def setZoom(self, targetZoom):
 		targetW=int(float(self.cWOrig)*targetZoom)
 		targetH=int(float(self.cHOrig)*targetZoom)
 		targetMax=max(targetW, targetH)
-		if targetMax < 10000 and targetMax>0:
+		if targetMax < 15000 and targetMax>0:
 			self.cW=targetW
 			self.cH=targetH
 			self.zoom=targetZoom
@@ -372,6 +437,32 @@ class TextBaseViewer(QtGui.QWidget):
 			self.drawReachMask()
 			
 		return True
+	def drawBrushRadius(self, mode, xy):
+		self.buildBrushPixels()
+		if mode == 0:
+			img=self.curCanvasData.toImage()
+			img=img.scaled(self.cW,self.cH, QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
+			pmap=QtGui.QPixmap.fromImage(img)
+			self.img.setPixmap(pmap)
+			return
+		if len(self.brushEdgePixelData)>0:
+			img=self.curCanvasData
+			img=img.scaled(self.cWOrig,self.cHOrig, QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
+			img=img.toImage()
+			curBrushPixels=self.brushEdgePixelData
+			curBrushPixels=map(lambda x: [ max(0, min(self.cWOrig-1, x[0]+xy[0])), max(0, min(self.cHOrig-1, x[1]+xy[1])) ], curBrushPixels)
+			rgb=QtGui.QColor(150,0,0,150).rgb()
+			if mode == 1:
+				rgb=QtGui.QColor(0,150,50,150).rgb()
+			if mode == 2:
+				rgb=QtGui.QColor(150,0,150,150).rgb()
+			for xy in curBrushPixels:
+				x=xy[0]
+				y=xy[1]
+				img.setPixel(x,y,rgb)
+			img=img.scaled(self.cW,self.cH, QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
+			pmap=QtGui.QPixmap.fromImage(img)
+			self.img.setPixmap(pmap)
 	def extendReachEdges(self,img=None, tempScanRange=None):
 		edgeGrowth=int(self.win.edgeGrowthSlider.value)
 		imgLoaded=1
@@ -435,6 +526,7 @@ class TextBaseViewer(QtGui.QWidget):
 					try:
 						pmap=pmap.scaled(self.cW,self.cH, QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
 						self.img.setPixmap(pmap)
+						self.curCanvasData=pmap
 					except:
 						pass;
 					QtGui.QApplication.processEvents()
@@ -477,6 +569,7 @@ class TextBaseViewer(QtGui.QWidget):
 					try:
 						pmap=self.drawReachMask(1,1)
 						self.img.setPixmap(pmap)
+						self.curCanvasData=pmap
 					except:
 						pass;
 					self.win.loopLatch=0
@@ -501,18 +594,3 @@ class TextBaseViewer(QtGui.QWidget):
 				pxmap=pxmap.scaled(self.cW,self.cH, QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
 				self.img.setPixmap(pxmap)"""
 		return img,tempScanRange
-	def drawBoundingBox(self, img):
-		# Build Bounding Box
-		# Might be cool to make this interactive
-		# Still don't know why I try to avoid QPainter so much
-		# Something about QPainter bothers me, and can't put my finger on it....
-		bboxRun=[]
-		bboxRun.append( [[self.scanRange[0]-1, self.scanRange[0]], [ self.scanRange[1], self.scanRange[3]] ] )
-		bboxRun.append( [[self.scanRange[2], self.scanRange[2]+1], [ self.scanRange[1], self.scanRange[3]] ] )
-		bboxRun.append( [[self.scanRange[0], self.scanRange[2]], [ self.scanRange[1]-1, self.scanRange[1]] ] )
-		bboxRun.append( [[self.scanRange[0], self.scanRange[2]], [ self.scanRange[3], self.scanRange[3]+1] ] )
-		for xy in bboxRun:
-			for x in range(xy[0][0],xy[0][1]):
-				for y in range(xy[1][0],xy[1][1]):
-					img.setPixel(x,y,QtGui.QColor(255,0,0,255).rgb())
-		return img
