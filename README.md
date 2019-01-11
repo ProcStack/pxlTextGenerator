@@ -37,80 +37,82 @@ The tool is expecting a folder in its root with images ( jpg, jpeg, png, bmp )
 <br/>These photos should be scans/photos you took of your handwriting/letters/characters
 <br/>
 <br/>With the tool open, click 'Set Project Folder', and select your folder.
+<br>![Set Your Project Folder](http://metal-asylum.net/python/pxlTextGenerator/show/readMe_setProjectFolder.jpg)
 <br/>The tool will then create three folders,
 <br/>   pxl_textBases_origImages - Your scans/photos will be moved to this directory
 <br/>   pxl_textCharacterOutput - Your exported Characters will be stored here as PNG files
 <br/>   pxl_pageBuilderOutput - Your exported Pages will be stored here as PNG files
+<br>![Folder Structure](http://metal-asylum.net/python/pxlTextGenerator/show/readMe_folderStructure.jpg)
 <br/>
 <br/>If all went well, the tool should load up the first image it finds from `pxl_textBases_origImages`,
 <br/>With a list of all your files on the top of the window
 ##### <p align="right">[^ Top](#index)</p>
 ##
 ## **Character Builder Tab**
-TextBase Image Viewer
-	Set Project Folder
-	Reset Character Data
-	Hide/Show TextBase List
-	Searching Threshold
-	Sample Threshold by Color
-	Modes-
-	_Select Area
-	_Add Brush
-	_Remove Brush
-	Add/Remove Brush Size
-	Edge Grow/Shrink
-Character Settings
-	Top/Bottom
-	Left Align
-	Right Align
-	Base Line
-	PreMultiply Scale
-	Alpha Fade Reach
-	Alpha Contrast
-	Degree Rotation
-	Finish Character
-Side Bar
-	Current TextBase
-	Filter
-	Character Entry List
-TextBed
-	Load Text Image
-	Reload Text
-	Auto Update
-	Text Field
-	Random Seed
-	Pull Capital Letters
-	Pull Lower Letters
-	Pull Numbers
-	Pull Non-Alphanumeric
-	Vertical Sliders 
-	Charicter Test Display
+#### TextBase Image Viewer
+<br/>    Set Project Folder
+<br/>    Reset Character Data
+<br/>    Hide/Show TextBase List
+<br/>    Searching Threshold
+<br/>    Sample Threshold by Color
+<br/>    Modes-
+<br/>    _Select Area
+<br/>    _Add Brush
+<br/>    _Remove Brush
+<br/>    Add/Remove Brush Size
+<br/>    Edge Grow/Shrink
+#### Character Settings
+<br/>    Top/Bottom
+<br/>    Left Align
+<br/>    Right Align
+<br/>    Base Line
+<br/>    PreMultiply Scale
+<br/>    Alpha Fade Reach
+<br/>    Alpha Contrast
+<br/>    Degree Rotation
+<br/>    Finish Character
+#### Side Bar
+<br/>    Current TextBase
+<br/>    Filter
+<br/>    Character Entry List
+#### TextBed
+<br/>    Load Text Image
+<br/>    Reload Text
+<br/>    Auto Update
+<br/>    Text Field
+<br/>    Random Seed
+<br/>    Pull Capital Letters
+<br/>    Pull Lower Letters
+<br/>    Pull Numbers
+<br/>    Pull Non-Alphanumeric
+<br/>    Vertical Sliders 
+<br/>    Charicter Test Display
 ##### <p align="right">[^ Top](#index)</p>
 ##
 ## **Page Output Tab**
-Sidebar Options
-	Load Page BG Image
-	Font Scale
-	Space Size
-	Line Height
-	Line Indent
-	Random Seed
-	Page Indentation; Left, Top, Right, Bottom
-	Auto Update
-	Update Output Text to Writing
-	Set to New Page Entry
-	Load Page Data File
-	Output Directory
-	Write Page Data File
-	Export All Page Data & Images
-Bottom Bar (After loading a Page BG Image)
-	Page Group List
-	Per Group
-		Name of Group
-		Edit Pages
-		Delete Pages
-		Thumbnail
-	
+#### Sidebar Options
+<br/>    Load Page BG Image
+<br/>    Font Scale
+<br/>    Space Size
+<br/>    Line Height
+<br/>    Line Indent
+<br/>    Random Seed
+<br/>    Page Indentation; Left, Top, Right, Bottom
+<br/>    Auto Update
+<br/>    Update Output Text to Writing
+<br/>    Set to New Page Entry
+<br/>    Load Page Data File
+<br/>    Output Directory
+<br/>    Write Page Data File
+<br/>    Export All Page Data & Images
+#### Bottom Bar (After loading a Page BG Image)
+<br/>    Page Group List
+<br/>    Per Group
+<br/>        Name of Group
+<br/>        Edit Pages
+<br/>        Delete Pages
+<br/>        Thumbnail
+<br/>    
 ##### <p align="right">[^ Top](#index)</p>
 ______________________________
 
