@@ -47,70 +47,70 @@ The tool is expecting a folder in its root with images ( jpg, jpeg, png, bmp )
 ##### <p align="right">[^ Top](#index)</p>
 ##
 ## **Character Builder Tab**
-TextBase Image Viewer
-	Set Project Folder
-	Reset Character Data
-	Hide/Show TextBase List
-	Searching Threshold
-	Sample Threshold by Color
-	Modes-
-	_Select Area
-	_Add Brush
-	_Remove Brush
-	Add/Remove Brush Size
-	Edge Grow/Shrink
-Character Settings
-	Top/Bottom
-	Left Align
-	Right Align
-	Base Line
-	PreMultiply Scale
-	Alpha Fade Reach
-	Alpha Contrast
-	Degree Rotation
-	Finish Character
-Side Bar
-	Current TextBase
-	Filter
-	Character Entry List
-TextBed
-	Load Text Image
-	Reload Text
-	Auto Update
-	Text Field
-	Random Seed
-	Pull Capital Letters
-	Pull Lower Letters
-	Pull Numbers
-	Pull Non-Alphanumeric
-	Vertical Sliders 
-	Charicter Test Display
+#### TextBase Image Viewer
+    Set Project Folder
+    Reset Character Data
+    Hide/Show TextBase List
+    Searching Threshold
+    Sample Threshold by Color
+    Modes-
+    _Select Area
+    _Add Brush
+    _Remove Brush
+    Add/Remove Brush Size
+    Edge Grow/Shrink
+#### Character Settings
+    Top/Bottoma
+    Left Align
+    Right Align
+    Base Line
+    PreMultiply Scale
+    Alpha Fade Reach
+    Alpha Contrast
+    Degree Rotation
+    Finish Character
+#### Side Bar
+    Current TextBase
+    Filter
+    Character Entry List
+#### TextBed
+    Load Text Image
+    Reload Text
+    Auto Update
+    Text Field
+    Random Seed
+    Pull Capital Letters
+    Pull Lower Letters
+    Pull Numbers
+    Pull Non-Alphanumeric
+    Vertical Sliders 
+    Charicter Test Display
 ##### <p align="right">[^ Top](#index)</p>
 ##
 ## **Page Output Tab**
-Sidebar Options
-	Load Page BG Image
-	Font Scale
-	Space Size
-	Line Height
-	Line Indent
-	Random Seed
-	Page Indentation; Left, Top, Right, Bottom
-	Auto Update
-	Update Output Text to Writing
-	Set to New Page Entry
-	Load Page Data File
-	Output Directory
-	Write Page Data File
-	Export All Page Data & Images
-Bottom Bar (After loading a Page BG Image)
-	Page Group List
-	Per Group
-		Name of Group
-		Edit Pages
-		Delete Pages
-		Thumbnail
-	
+#### Sidebar Options
+    Load Page BG Image
+    Font Scale
+    Space Size
+    Line Height
+    Line Indent
+    Random Seed
+    Page Indentation; Left, Top, Right, Bottom
+    Auto Update
+    Update Output Text to Writing
+    Set to New Page Entry
+    Load Page Data File
+    Output Directory
+    Write Page Data File
+    Export All Page Data & Images
+#### Bottom Bar (After loading a Page BG Image)
+    Page Group List
+    Per Group
+        Name of Group
+        Edit Pages
+        Delete Pages
+        Thumbnail
+    
 ##### <p align="right">[^ Top](#index)</p>
 ______________________________
 
