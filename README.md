@@ -36,13 +36,13 @@ This tool is designed to allow users to **gather hand written characters**,
 The tool is expecting a folder in its root with images ( jpg, jpeg, png, bmp )
 <br/>These photos should be scans/photos you took of your handwriting/letters/characters
 <br/>
-<br/>With the tool open, click 'Set Project Folder', and select your folder.
+<br/>With the tool open, click *`Set Project Folder`*, and select your folder.
 <br/>The tool will then create three folders,
-<br/>   pxl_textBases_origImages - Your scans/photos will be moved to this directory
-<br/>   pxl_textCharacterOutput - Your exported Characters will be stored here as PNG files
-<br/>   pxl_pageBuilderOutput - Your exported Pages will be stored here as PNG files
-<br/>
-<br/>If all went well, the tool should load up the first image it finds from `pxl_textBases_origImages`,
+*    `pxl_textBases_origImages` - Your scans/photos will be moved to this directory
+*    `pxl_textCharacterOutput` - Your exported Characters will be stored here as PNG files
+*    `pxl_pageBuilderOutput` - Your exported Pages will be stored here as PNG files
+
+If all went well, the tool should load up the first image it finds from `pxl_textBases_origImages,`
 <br/>With a list of all your files on the top of the window
 ##### <p align="right">[^ Top](#index)</p>
 ##
