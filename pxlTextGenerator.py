@@ -1,5 +1,5 @@
 ############################################
-## pxlTextGenerator v0.0.1                ##
+## pxlTextGenerator v0.1.0                ##
 ## Text to Handwriting Generator          ##
 ##  Written by Kevin Edzenga; ~2018       ##
 ##   http://metal-asylum.net              ##
@@ -30,6 +30,22 @@
  Get this working for the less knowledgeable  out there!!
  
  Stay awesome and open source for life!
+
+######
+
+- - Prior Changes to v0.1.0 - -
+ When does alpha modes hit beta mode for a tool?
+ Character Builder appears to be 100%
+ The Page Output system is NOT 100%
+   See Issue List for more details -
+   https://github.com/ProcStack/pxlTextGenerator/issues
+ ReadMe.md written up
+ New --
+ Add / Remove brushes with visual representations of the brush before usage
+ Easy file list to load existing textBase images/photos/scans found in the project
+ Beginings of support for special characters
+   This will have to expand into project based special characters
+   Currently hardcoding special characters
  
 """
 
@@ -78,7 +94,7 @@ class ImageProcessor(QtGui.QMainWindow):
 		global woVersion
 		
 		self.scriptNameText="pxlTextGenerator"
-		self.versionText="v0.0.8"
+		self.versionText="v0.1.0"
 		self.setTitleBar()
 		
 		self.winSize=[2200,1200]
@@ -253,7 +269,8 @@ class ImageProcessor(QtGui.QMainWindow):
 		disp=[]
 		disp.extend(custDisp)
 		disp.extend([self.scriptNameText])
-		disp.extend([self.versionText])
+		if self.versionText != '':
+			disp.extend([self.versionText])
 		disp=" - ".join(disp)
 		self.windowText=disp
 		self.setWindowTitle(self.windowText)
@@ -450,6 +467,7 @@ class ImageProcessor(QtGui.QMainWindow):
 				
 				thresholdColorBlock=QtGui.QHBoxLayout()
 				###
+				"""
 				self.thresholdColorNameText=QtGui.QLabel()
 				self.thresholdColorNameText.setText("Searching Threshold")
 				self.thresholdColorNameText.setMinimumWidth(90)
@@ -475,6 +493,11 @@ class ImageProcessor(QtGui.QMainWindow):
 				##
 				thresholdColorBlock.addLayout(thresholdColorMagTextBlock)
 				self.thresholdColorSlider.valueChanged.connect(self.thresholdColorMagTextUpdate)
+				###
+				"""
+				
+				self.thresholdColorSlider=SliderGroup(self,"Searching Threshold", [0,765,230],7,"int"," #", "thresholdColorMagTextUpdate()")
+				thresholdColorBlock.addWidget(self.thresholdColorSlider)
 				###
 				self.thresholdColor=QtGui.QLabel()
 				baseImg=QtGui.QPixmap(thresholdColorRes[0],thresholdColorRes[1])
@@ -753,7 +776,7 @@ class ImageProcessor(QtGui.QMainWindow):
 					self.setOutDir=QtGui.QPushButton('Output Dir', self)
 					self.setOutDir.setStyleSheet(self.buttonStyle)
 					self.setOutDir.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-					self.setOutDir.clicked.connect(self.setOutputDir)
+					self.setOutDir.clicked.connect(lambda: self.setOutputDir())
 					self.outDirBlock.addWidget(self.setOutDir)
 					#tab0.addLayout(self.dirBlock)
 					self.processLayout.addLayout(self.outDirBlock)
@@ -971,7 +994,7 @@ class ImageProcessor(QtGui.QMainWindow):
 		
 		curImageThumbSettings=QtGui.QHBoxLayout()
 		thumbSizeText=QtGui.QLabel()
-		thumbSizeText.setText("PreMultiply Scale-\n(When added to page)")
+		thumbSizeText.setText("PreMultiply Scale-")
 		thumbSizeText.setMinimumWidth(150)
 		curImageThumbSettings.addWidget(thumbSizeText)
 		###
@@ -1311,8 +1334,7 @@ class ImageProcessor(QtGui.QMainWindow):
 			self.thresholdColorSlider.setValue(setMag)
 		self.thresholdColor.setPixmap(baseImg)
 	def thresholdColorMagTextUpdate(self):
-		setMag=self.thresholdColorSlider.value()
-		self.thresholdColorMagText.setText(str(setMag)+" #\n-20")
+		setMag=self.thresholdColorSlider.value
 		setColor=[int(setMag/3),int(setMag/3),int(setMag/3)]
 		fill=QtGui.QColor(setColor[0],setColor[1],setColor[2])
 		baseImg=self.thresholdColor.pixmap()

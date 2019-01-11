@@ -165,7 +165,7 @@ class TextBaseViewer(QtGui.QWidget):
 					caps.append( max(1, tempScanRange[1]-2) )
 					caps.append( min(self.cW-1, tempScanRange[2]+2) )
 					caps.append( min(self.cW-1, tempScanRange[3]+2) )
-					thresh=max(0, self.win.thresholdColorSlider.value()-20)
+					thresh=max(0, self.win.thresholdColorSlider.value)
 					runner=0
 					killCheck=1000
 					growArr=[[1,1],[1,0],[1,-1], [0,1],[0,-1], [-1,1],[-1,0],[-1,-1]]

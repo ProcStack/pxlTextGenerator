@@ -192,8 +192,6 @@ class IndexImageEntry(QtGui.QWidget): #Individual indexList image entries
 				'b"':"cdb",
 				",":"com",
 				".":"per",
-				"...":"ell", # Ellipsis
-				"-.":"dot", # Center Dot
 				"-":"sub",
 				"=":"equ",
 				"_":"und",
@@ -217,6 +215,8 @@ class IndexImageEntry(QtGui.QWidget): #Individual indexList image entries
 				"8":"eight",
 				"9":"nine",
 				
+				"...":"ell", # Ellipsis
+				"-.":"dot", # Center Dot
 				"ocl":"oeCurious_L", #Curious eyes
 				"ocr":"oeCurious_R",
 				"oll":"oeLooking_L",

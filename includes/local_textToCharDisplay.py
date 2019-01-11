@@ -33,17 +33,42 @@ class TextToCharDisplay(QtGui.QWidget):
 		self.charTestBlock.setSpacing(0)
 		self.charTestBlock.setMargin(0) 
 		
+		
+		charTestButtonBlock=QtGui.QVBoxLayout()
+		charTestButtonBlock.setSpacing(0)
+		charTestButtonBlock.setMargin(3) 
+		###
+		charTestButton=QtGui.QPushButton('Load Text Image', self)
+		charTestButton.setStyleSheet(self.win.buttonStyle)
+		charTestButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+		charTestButton.clicked.connect(self.loadTextBackground)
+		charTestButtonBlock.addWidget(charTestButton)
+		###
+		charTestReloadButton=QtGui.QPushButton('Reload Text', self)
+		charTestReloadButton.setStyleSheet(self.win.buttonStyle)
+		charTestReloadButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+		charTestReloadButton.clicked.connect(self.reloadText)
+		charTestButtonBlock.addWidget(charTestReloadButton)
+		###
+		self.charTestAutoReload=QtGui.QCheckBox()
+		self.charTestAutoReload.setText("Auto Update")
+		self.charTestAutoReload.setCheckState(QtCore.Qt.Checked)
+		self.charTestAutoReload.stateChanged.connect(self.setAutoReload)
+		charTestButtonBlock.addWidget(self.charTestAutoReload)
+		###
+		self.charTestBlock.addLayout(charTestButtonBlock)
+		
 		charTextSeedBlockWidget=QtGui.QWidget()
 		charTextSeedBlockWidget.setFixedHeight(100)
-		
+		###
 		self.charTestOptionBlock=QtGui.QVBoxLayout()
 		self.charTestOptionBlock.setSpacing(0)
 		self.charTestOptionBlock.setMargin(0) 
-				
+		#
 		self.charTestText=QtGui.QLineEdit()
 		self.charTestText.editingFinished.connect(self.buildTextDisplay)
 		self.charTestOptionBlock.addWidget(self.charTestText)
-		
+		#
 		charTestSeedBlock=QtGui.QHBoxLayout()
 		charTestSeedBlock.setSpacing(0)
 		charTestSeedBlock.setMargin(0) 
@@ -99,29 +124,6 @@ class TextToCharDisplay(QtGui.QWidget):
 		self.charTestBlock.addWidget(charTextSeedBlockWidget)
 		charTextSeedBlockWidget.setLayout(self.charTestOptionBlock)
 
-		charTestButtonBlock=QtGui.QVBoxLayout()
-		charTestButtonBlock.setSpacing(0)
-		charTestButtonBlock.setMargin(0) 
-		###
-		charTestButton=QtGui.QPushButton('Load Text Image', self)
-		charTestButton.setStyleSheet(self.win.buttonStyle)
-		charTestButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-		charTestButton.clicked.connect(self.loadTextBackground)
-		charTestButtonBlock.addWidget(charTestButton)
-		###
-		charTestReloadButton=QtGui.QPushButton('Reload Text', self)
-		charTestReloadButton.setStyleSheet(self.win.buttonStyle)
-		charTestReloadButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-		charTestReloadButton.clicked.connect(self.reloadText)
-		charTestButtonBlock.addWidget(charTestReloadButton)
-		###
-		self.charTestAutoReload=QtGui.QCheckBox()
-		self.charTestAutoReload.setText("Auto Update")
-		self.charTestAutoReload.setCheckState(QtCore.Qt.Checked)
-		self.charTestAutoReload.stateChanged.connect(self.setAutoReload)
-		charTestButtonBlock.addWidget(self.charTestAutoReload)
-		###
-		self.charTestBlock.addLayout(charTestButtonBlock)
 
 		capPadLinesBlock=QtGui.QVBoxLayout()
 		capPadLinesBlock.setSpacing(4)
@@ -166,7 +168,7 @@ class TextToCharDisplay(QtGui.QWidget):
 		self.sliderLowLineSlider.valueChanged.connect(self.updateCapLowLines)
 		
 		self.charTestDisplay=QtGui.QLabel()
-		self.charTestDisplay.setText("[ Character Test Display ]")
+		self.charTestDisplay.setText("[ Character TextBed Display ]")
 		self.charTestDisplay.setMinimumWidth(self.cW)
 		self.charTestDisplay.setMinimumHeight(self.cH)
 		self.charTestDisplay.setAlignment(QtCore.Qt.AlignCenter)
@@ -510,6 +512,17 @@ class PageBuilder(QtGui.QWidget):
 		self.charTestOptionBlock.setSpacing(0)
 		self.charTestOptionBlock.setMargin(0) 
 		###
+		loadPageDataFile=QtGui.QPushButton('Load Page Data File', self)
+		loadPageDataFile.setFixedHeight(50)
+		loadPageDataFile.setStyleSheet(self.win.buttonStyle)
+		loadPageDataFile.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+		loadPageDataFile.setStyleSheet("QPushButton {margin-top:5px;}")
+		loadPageDataFile.clicked.connect(self.loadPageDataFile)
+		self.charTestOptionBlock.addWidget(loadPageDataFile)
+		###
+		spacer=QtGui.QSpacerItem(10,10, QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Maximum)
+		self.charTestOptionBlock.addItem(spacer)
+		###
 		self.pageFileLocationBlock=QtGui.QHBoxLayout()
 		self.pageFileLocationBlock.setSpacing(0)
 		self.pageFileLocationBlock.setMargin(0) 
@@ -524,17 +537,36 @@ class PageBuilder(QtGui.QWidget):
 		###
 		self.charTestOptionBlock.addLayout(self.pageFileLocationBlock)
 		
-		### Page Options ###
-		self.fontScale=SliderGroup(self,"Font Scale",[0,2,.75],7,"float",' %', "buildTextOutput(0)")
-		self.charTestOptionBlock.addWidget(self.fontScale)
-		self.spaceSize=SliderGroup(self,"Space Size",[0,200,50],7,"int",' px', "buildTextOutput(0)")
-		self.charTestOptionBlock.addWidget(self.spaceSize)
-		self.lineHeight=SliderGroup(self,"Line Height",[0,200,75],7,"int",' px', "buildTextOutput(0)")
-		self.charTestOptionBlock.addWidget(self.lineHeight)
-		self.lineIndent=SliderGroup(self,"Line Indent",[0,200,50],7,"int",' px', "buildTextOutput(0)")
-		self.charTestOptionBlock.addWidget(self.lineIndent)
-		self.charSeed=SliderGroup(self,"Random Seed",[0,200,0],7,"float",'', "buildTextOutput(0)")
-		self.charTestOptionBlock.addWidget(self.charSeed)
+		hBar=HorizontalBar()#[0,30],2) ## For custome bar
+		self.charTestOptionBlock.addWidget(hBar)
+		
+		pageIndentBlock=QtGui.QHBoxLayout()
+		pageSpacer=QtGui.QLabel()
+		pageSpacer.setAlignment(QtCore.Qt.AlignCenter)
+		pageSpacer.setText("- -")
+		pageIndentBlock.addWidget(pageSpacer)
+		###
+		pageSpacer=QtGui.QLabel()
+		pageSpacer.setAlignment(QtCore.Qt.AlignCenter)
+		pageSpacer.setText("Input Page Text")
+		pageIndentBlock.addWidget(pageSpacer)
+		###
+		pageSpacer=QtGui.QLabel()
+		pageSpacer.setAlignment(QtCore.Qt.AlignCenter)
+		pageSpacer.setText("- -")
+		pageIndentBlock.addWidget(pageSpacer)
+		###
+		self.charTestOptionBlock.addLayout(pageIndentBlock)
+		
+		self.inputTextBlock=QtGui.QVBoxLayout()
+		self.inputTextBlock.setSpacing(0)
+		self.inputTextBlock.setMargin(0) 
+		self.inputTextBlock.setAlignment(QtCore.Qt.AlignCenter)
+		self.inputText=QtGui.QPlainTextEdit()
+		self.inputText.setStyleSheet("QPlainTextEdit {margin:5px;selection-color:#ffffff;selection-background-color:#454545;background-color:#909090;}")
+		self.inputText.resize(700,400)
+		self.inputTextBlock.addWidget(self.inputText)
+		self.charTestOptionBlock.addLayout(self.inputTextBlock)
 		
 		hBar=HorizontalBar()#[0,30],2) ## For custome bar
 		self.charTestOptionBlock.addWidget(hBar)
@@ -569,42 +601,70 @@ class PageBuilder(QtGui.QWidget):
 		hBar=HorizontalBar()#[0,30],2) ## For custome bar
 		self.charTestOptionBlock.addWidget(hBar)
 		
+		pageIndentBlock=QtGui.QHBoxLayout()
+		pageSpacer=QtGui.QLabel()
+		pageSpacer.setAlignment(QtCore.Qt.AlignCenter)
+		pageSpacer.setText("- -")
+		pageIndentBlock.addWidget(pageSpacer)
+		###
+		pageSpacer=QtGui.QLabel()
+		pageSpacer.setAlignment(QtCore.Qt.AlignCenter)
+		pageSpacer.setText("Text Options")
+		pageIndentBlock.addWidget(pageSpacer)
+		###
+		pageSpacer=QtGui.QLabel()
+		pageSpacer.setAlignment(QtCore.Qt.AlignCenter)
+		pageSpacer.setText("- -")
+		pageIndentBlock.addWidget(pageSpacer)
+		###
+		self.charTestOptionBlock.addLayout(pageIndentBlock)
+		### Page Options ###
+		self.fontScale=SliderGroup(self,"Font Scale",[0,2,.75],7,"float",' %', "buildTextOutput(0)")
+		self.charTestOptionBlock.addWidget(self.fontScale)
+		self.spaceSize=SliderGroup(self,"Space Size",[0,200,50],7,"int",' px', "buildTextOutput(0)")
+		self.charTestOptionBlock.addWidget(self.spaceSize)
+		self.lineHeight=SliderGroup(self,"Line Height",[0,200,75],7,"int",' px', "buildTextOutput(0)")
+		self.charTestOptionBlock.addWidget(self.lineHeight)
+		self.lineIndent=SliderGroup(self,"Line Indent",[0,200,50],7,"int",' px', "buildTextOutput(0)")
+		self.charTestOptionBlock.addWidget(self.lineIndent)
+		self.charSeed=SliderGroup(self,"Random Seed",[0,200,0],7,"float",'', "buildTextOutput(0)")
+		self.charTestOptionBlock.addWidget(self.charSeed)
+		
 		self.charTestBlock.addWidget(charTextSeedBlockWidget)
 		charTextSeedBlockWidget.setLayout(self.charTestOptionBlock)
-
-		spacer=QtGui.QSpacerItem(10,20, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Maximum)
-		self.charTestOptionBlock.addItem(spacer)
 		
-		self.inputTextBlock=QtGui.QVBoxLayout()
-		self.inputTextBlock.setSpacing(0)
-		self.inputTextBlock.setMargin(0) 
-		self.inputTextBlock.setAlignment(QtCore.Qt.AlignCenter)
-		self.inputText=QtGui.QPlainTextEdit()
-		self.inputText.setStyleSheet("QPlainTextEdit {margin:5px;selection-color:#ffffff;selection-background-color:#454545;background-color:#909090;}")
-		self.inputText.resize(700,400)
-		self.inputTextBlock.addWidget(self.inputText)
-		###
+		hBar=HorizontalBar()#[0,30],2) ## For custome bar
+		self.charTestOptionBlock.addWidget(hBar)
+		
 		self.pageAutoUpdate=QtGui.QCheckBox()
-		self.pageAutoUpdate.setText("Auto Update")
+		self.pageAutoUpdate.setText("Auto Update Page")
 		self.pageAutoUpdate.setCheckState(QtCore.Qt.Checked)
 		self.pageAutoUpdate.stateChanged.connect(self.setAutoReload)
-		self.inputTextBlock.addWidget(self.pageAutoUpdate)
+		self.charTestOptionBlock.addWidget(self.pageAutoUpdate)
+
+		spacer=QtGui.QSpacerItem(10,50, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Maximum)
+		self.charTestOptionBlock.addItem(spacer)
+		
 		###
 		convertInputText=QtGui.QPushButton('Update Output Text to Writing', self)
+		convertInputText.setFixedHeight(50)
 		convertInputText.setStyleSheet(self.win.buttonStyle)
 		convertInputText.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 		convertInputText.setStyleSheet("QPushButton {margin-top:5px;}")
 		convertInputText.clicked.connect(self.buildTextOutput)
-		self.inputTextBlock.addWidget(convertInputText)
+		self.charTestOptionBlock.addWidget(convertInputText)
 		###
+		
+		spacer=QtGui.QSpacerItem(10,50, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Maximum)
+		self.charTestOptionBlock.addItem(spacer)
+		
 		buildToNewPage=QtGui.QPushButton('Set to New Page Entry', self)
+		buildToNewPage.setFixedHeight(50)
 		buildToNewPage.setStyleSheet(self.win.buttonStyle)
 		buildToNewPage.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 		buildToNewPage.setStyleSheet("QPushButton {margin-top:5px;}")
 		buildToNewPage.clicked.connect(self.addPageIndex)
-		self.inputTextBlock.addWidget(buildToNewPage)
-		###
-		self.charTestOptionBlock.addLayout(self.inputTextBlock)
+		self.charTestOptionBlock.addWidget(buildToNewPage)
 		
 		spacer=QtGui.QSpacerItem(10,10, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
 		self.charTestOptionBlock.addItem(spacer)
@@ -613,16 +673,6 @@ class PageBuilder(QtGui.QWidget):
 		self.pageOutputDirBlock=QtGui.QVBoxLayout()
 		self.pageOutputDirBlock.setSpacing(0)
 		self.pageOutputDirBlock.setMargin(0) 
-		###
-		loadPageDataFile=QtGui.QPushButton('Load Page Data File', self)
-		loadPageDataFile.setStyleSheet(self.win.buttonStyle)
-		loadPageDataFile.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-		loadPageDataFile.setStyleSheet("QPushButton {margin-top:5px;}")
-		loadPageDataFile.clicked.connect(self.loadPageDataFile)
-		self.pageOutputDirBlock.addWidget(loadPageDataFile)
-		###
-		spacer=QtGui.QSpacerItem(10,10, QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Maximum)
-		self.pageOutputDirBlock.addItem(spacer)
 		###
 		self.pageOutputDirTextBlock=QtGui.QHBoxLayout()
 		self.pageOutputDirTextBlock.setSpacing(0)
@@ -647,14 +697,14 @@ class PageBuilder(QtGui.QWidget):
 		exportPageDataFile.setStyleSheet(self.win.buttonStyle)
 		exportPageDataFile.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 		exportPageDataFile.setStyleSheet("QPushButton {margin-top:5px;}")
-		exportPageDataFile.clicked.connect(self.writePageDataFile)
+		exportPageDataFile.clicked.connect(lambda: self.writePageDataFile(1,0))
 		outputButtonBlock.addWidget(exportPageDataFile)
 		###
 		exportAllPages=QtGui.QPushButton('Export All Page Data && Images', self)
 		exportAllPages.setStyleSheet(self.win.buttonStyle)
 		exportAllPages.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 		exportAllPages.setStyleSheet("QPushButton {margin-top:5px;}")
-		exportAllPages.clicked.connect(self.exportAllPageData)
+		exportAllPages.clicked.connect(lambda: self.writePageDataFile(1,1))
 		outputButtonBlock.addWidget(exportAllPages)
 		###
 		self.charTestOptionBlock.addLayout(outputButtonBlock)
@@ -815,55 +865,78 @@ class PageBuilder(QtGui.QWidget):
 					eval("self."+k+".setValue(str("+str(pageDataArray[k])+"))")
 		self.editPrep=False
 		self.pageOutput.buildTextDisplay()
-	def writePageDataFile(self):
+	def writePageDataFile(self, exportFile=1, exportImages=0):
 		### When I get multi pages going, this might become an issue here ###
 		### The line data will be set within a Page dictionary ###
 		if self.curPageListBlock.count() > 0:
-			exportData=[]
-			for e in range(self.curPageListBlock.count()):
-				curEntry=self.curPageListBlock.itemAt(e).widget()
-				exportData.append( curEntry.pageData )
-			for group in exportData:
-				for line in group['lineData']:
-					for wordData in line['wordData']:
-						for char in wordData['chars']:
-							char['data']=None
-			export=formatArrayToString(0, exportData)
-			export="pageList="+export
-			
-			path=self.win.dirField.text()
-			if path[-1] != "/":
-				path+="/"
-			path="\\".join(str(path).split("/"))
-			path+="pageListKey.py"
-			with open(path, "w") as f:
-				f.write(export)
+			path=str(self.win.dirField.text()).strip()
+			if path == "":
+				self.win.statusBarUpdate(" -- No Page Output directory set; make sure your project is loaded or set an output directory -- ", 5000,2)
+				return
+			self.win.statusBarUpdate(" -- Prepping Page Data and Images --", 0,0)
+			if exportFile==1:
+				exportData=[]
+				for e in range(self.curPageListBlock.count()):
+					curEntry=self.curPageListBlock.itemAt(e).widget()
+					exportData.append( curEntry.pageData )
+				for group in exportData:
+					for line in group['lineData']:
+						for wordData in line['wordData']:
+							for char in wordData['chars']:
+								char['data']=None
+				export=formatArrayToString(0, exportData)
+				export="pageList="+export
 				
-			self.win.statusBarUpdate(" -- Wrote out to - "+path+" --", 10000,1)
-			curTime=dt.datetime.now().strftime("%H:%M - %m/%d/%Y")
+				filePath=path
+				if filePath[-1] != "/":
+					filePath+="/"
+				filePath="\\".join(str(filePath).split("/"))
+				filePath+="pageListKey.py"
+				with open(filePath, "w") as f:
+					f.write(export)
+				
+				if exportImages==0:
+					self.win.statusBarUpdate(" -- Wrote out data to - '"+delimit+self.win.projectName+delimit+"pageListKey.py' --", 10000,1)
+				curTime=dt.datetime.now().strftime("%H:%M - %m/%d/%Y")
+			if exportImages==1:
+				imgPath=str(self.pageOutputDirText.text()).strip()
+				
+				lim="/"
+				if delimit in imgPath:
+					lim=delimit
+				if imgPath[-1]  != lim:
+					imgPath+=lim
+					
+				imgPath=delimit+delimit.join(imgPath.split(lim)[-3:])
+				self.win.statusBarUpdate(" -- Starting export of Page Images --", 0,0)
+				self.pageOutput.saveImage()
+				self.win.statusBarUpdate(" -- Wrote out data to - '"+delimit+self.win.projectName+delimit+"pageListKey.py'; Pages exported to - '"+imgPath+"' --", 10000,1)
 			self.win.unsavedChanges=0
 		else:
 			self.win.statusBarUpdate(" -- No characters found, please 'Load Text Image' to load existing character data -- ", 5000,2)
 	def loadPageDataFile(self):
 		path=self.win.dirField.text()
-		if path[-1] != "/":
-			path+="/"
-		path="\\".join(str(path).split("/"))
-		path+="pageListKey.py"
-		if os.path.exists(path):
-			self.win.statusBarUpdate(" -- Reading and building pages from local PageListKey file --", 0,0)
-			
-			sys.path.append(self.projectName)
-			import pageListKey
-			reload(pageListKey)
-			
-			for pageGroup in pageListKey.pageList:
-				self.pageOutput.buildTextDisplay(1)
-				self.editGroup(1,pageGroup)
+		if path == "":
+			self.win.statusBarUpdate(" -- No Page Output directory set; make sure your project is loaded or set an output directory -- ", 5000,2)
+		else:
+			if path[-1] != "/":
+				path+="/"
+			path="\\".join(str(path).split("/"))
+			path+="pageListKey.py"
+			if os.path.exists(path):
+				self.win.statusBarUpdate(" -- Reading and building pages from local PageListKey file --", 0,0)
+				
+				sys.path.append(self.win.projectName)
+				import pageListKey
+				reload(pageListKey)
+				
+				for pageGroup in pageListKey.pageList:
+					self.pageOutput.buildTextDisplay(1)
+					self.editGroup(1,pageGroup)
+			else:
+				self.win.statusBarUpdate(" -- No exported data found '"+self.win.projectName+delimit+"pageListKey.py'; please export a page first. -- ", 5000,2)
 	def buildTextDisplay(self, newPage=0):
 		self.win.statusBarUpdate(" -- All pages from local PageListKey file built --", 5000,1)
-	def exportAllPageData(self):
-		self.pageOutput.saveImage()
 class PageBuilderViewer(QtGui.QWidget):	
 	def __init__(self, win):
 		QtGui.QWidget.__init__(self)
