@@ -69,6 +69,7 @@ class TextToCharDisplay(QtGui.QWidget):
 		self.charTestText.editingFinished.connect(self.buildTextDisplay)
 		self.charTestOptionBlock.addWidget(self.charTestText)
 		#
+		"""
 		charTestSeedBlock=QtGui.QHBoxLayout()
 		charTestSeedBlock.setSpacing(0)
 		charTestSeedBlock.setMargin(0) 
@@ -90,6 +91,7 @@ class TextToCharDisplay(QtGui.QWidget):
 		self.seedSliderVal.setAlignment(QtCore.Qt.AlignCenter)
 		charTestSeedBlock.addWidget(self.seedSliderVal)
 		self.charTestOptionBlock.addLayout(charTestSeedBlock)
+		"""
 		
 		charTestBuildCharListBlock=QtGui.QHBoxLayout()
 		charTestBuildCharListBlock.setSpacing(5)
