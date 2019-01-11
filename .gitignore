@@ -1397,3 +1397,5 @@ readMeDev/psds/setProjectFolder.psd
 readMeDev/psds/setProjectFolder_afterExport.psd
 readMeDev/psds/textBase_thresholdAddRemoveEdge.psd
 readMeDev/psds/textBed.psd
+backup/*
+dieceAlphabet/*
