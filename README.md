@@ -9,6 +9,11 @@
 * [Character Builder Tab](#character-builder-tab)
 * [Page Output Tab](#page-output-tab)
 
+--------------------------------------------------------------------------------------------
+<p align='center'><img src='http://metal-asylum.net/python/pxlTextGenerator/show/intro.png' alt="pxlTextGenerator Overview" /></p>
+
+--------------------------------------------------------------------------------------------
+
 ## <br/>**Tool Information**
 This tool is designed to allow users to **gather hand written characters**,
 <br/>**(*Or I guess, any connected mass*)**
