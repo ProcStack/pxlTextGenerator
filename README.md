@@ -48,7 +48,7 @@ If all went well, the tool should load up the first image it finds from `pxl_tex
 <br/>With a list of all your files on the top of the window
 
 #### Things to note-
-  * For the sliders in tool, you can click on the text next to the slider to enter in a value manually
+  * For all sliders, you can click on the text next to the slider to manually enter in a value.
 ##### <p align="right">[^ Top](#index)</p>
 ##
 ## **Character Builder Tab**
