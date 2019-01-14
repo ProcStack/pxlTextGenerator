@@ -639,7 +639,6 @@ class ImageProcessor(QtGui.QMainWindow):
 				
 				######
 				self.curImageDisplayWidget=QtGui.QWidget()
-				self.curImageDisplayWidget.setFixedHeight(512)
 				self.curImageDisplayBlock=QtGui.QHBoxLayout()
 				###
 				curImageTopPaddingBlock=QtGui.QVBoxLayout()
@@ -1436,8 +1435,8 @@ class ImageProcessor(QtGui.QMainWindow):
 		self.closePrompt.setIcon(QtGui.QMessageBox.Question)
 		self.closePrompt.setWindowTitle("Quit?")
 		if self.unsavedChanges==1:
-			self.closePrompt.addButton("Save & Quit", QtGui.QMessageBox.YesRole)
-			self.closePrompt.addButton("Discard Changes & Quit", QtGui.QMessageBox.YesRole)
+			self.closePrompt.addButton("Save and Quit", QtGui.QMessageBox.YesRole)
+			self.closePrompt.addButton("Discard Changes and Quit", QtGui.QMessageBox.YesRole)
 			msg="Are you sure you want to quit?"
 		else:
 			self.closePrompt.addButton("Quit", QtGui.QMessageBox.YesRole)
@@ -1466,7 +1465,7 @@ class ImageProcessor(QtGui.QMainWindow):
 			if button.text() == "Save & Quit":
 				self.exportCharList()
 				self.quitApp()
-			if button.text() in ["Quit", "Discard Changes & Quit"]:
+			if button.text() in ["Quit", "Discard Changes and Quit"]:
 				self.quitApp()
 		except:
 			pass;

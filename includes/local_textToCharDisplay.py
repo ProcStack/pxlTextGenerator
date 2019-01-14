@@ -394,7 +394,7 @@ class TextToCharDisplay(QtGui.QWidget):
 					backChars=["'",'"',"`"]
 					skip=0
 					inTag=0
-					maxTagLength=4
+					maxTagLength=10
 					tags=["ocl","ocr","oll","olr","osl","osr","oal","oar"]
 					curTag=''
 					missingChars=[]
