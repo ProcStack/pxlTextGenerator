@@ -80,6 +80,10 @@ If all went well, the tool should load up the first image it finds from `pxl_tex
   * **`Show Outline Only`** - Sometimes the character found might have grabbed some junk, this will outline the found character
   * **`Show Normal Display`** - When viewing the outline, this button will redraw the found area as it normally looks
 #### Character Settings
+  * **`Read Found Character Data`** - Load your character data.
+    * Once you search for a character in the TextBase Viewer,
+    * This button will gather all the data and build transparency information for you
+    * You can then edit the character with the below options.
   * **`Crop, Found Area, Alpha Thumbnails`** - These thumbnails are for reference only, showing the found character data.
     * '`Alpha`' refers to the transparency of the final image.<br/>Like how you can see the checkerboard pattern behind the main Character image.
   * **`Top/Bottom`** - These side sliders add or remove bounding box's top or bottom
