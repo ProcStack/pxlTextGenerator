@@ -1,4 +1,4 @@
-# **pxlTextGenerator**  *v0.1.0 - Alpha*
+# **pxlTextGenerator**  *v0.1.1 - Alpha*
 ## **Text to Handwriting Generator**
 #### *Turn your written characters into an image based font*
 #### *Export with custom page backgrounds to PNG*
@@ -46,6 +46,9 @@ The tool is expecting a folder in its root with images ( jpg, jpeg, png, bmp )
 
 If all went well, the tool should load up the first image it finds from `pxl_textBases_origImages,`
 <br/>With a list of all your files on the top of the window
+
+#### Things to note-
+  * For the sliders in tool, you can click on the text next to the slider to enter in a value manually
 ##### <p align="right">[^ Top](#index)</p>
 ##
 ## **Character Builder Tab**
@@ -72,7 +75,13 @@ If all went well, the tool should load up the first image it finds from `pxl_tex
   * **`Edge Grow/Shrink`** - Contract or Expand your character's edge per pixel
     * *Negative (-1) to Contract*
     * *Positive (1) to Expand*
+  * **`Set Working Area`** - To help speed up character searching, setting a Working Area will crop the image down
+    * *Click it, then click and drag in the TextBase area to draw a blue working area outline*
+  * **`Show Outline Only`** - Sometimes the character found might have grabbed some junk, this will outline the found character
+  * **`Show Normal Display`** - When viewing the outline, this button will redraw the found area as it normally looks
 #### Character Settings
+  * **`Crop, Found Area, Alpha Thumbnails`** - These thumbnails are for reference only, showing the found character data.
+    * '`Alpha`' refers to the transparency of the final image.<br/>Like how you can see the checkerboard pattern behind the main Character image.
   * **`Top/Bottom`** - These side sliders add or remove bounding box's top or bottom
   * **`Left/Right Align`** - The left/right most edge of the character, for spacing characters correctly
   * **`Base Line`** - Where the character aligns vertically on the line, for TextBed and Page
