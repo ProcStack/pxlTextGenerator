@@ -9,6 +9,12 @@
 * [Character Builder Tab](#character-builder-tab)
 * [Page Output Tab](#page-output-tab)
 
+--------------------------------------------------------------------------------------------
+<p align='center'><img src='http://metal-asylum.net/python/pxlTextGenerator/show/intro.png' alt="pxlTextGenerator Overview" /></p>
+<p align='center'><img src='http://metal-asylum.net/python/pxlTextGenerator/show/intro_pageOutput.png' alt="pxlTextGenerator Page Output" /></p>
+
+--------------------------------------------------------------------------------------------
+
 ## <br/>**Tool Information**
 This tool is designed to allow users to **gather hand written characters**,
 <br/>**(*Or I guess, any connected mass*)**
@@ -48,7 +54,7 @@ If all went well, the tool should load up the first image it finds from `pxl_tex
 <br/>With a list of all your files on the top of the window
 
 #### Things to note-
-  * For the sliders in tool, you can click on the text next to the slider to enter in a value manually
+  * For all sliders, you can click on the text next to the slider to manually enter in a value.
 ##### <p align="right">[^ Top](#index)</p>
 ##
 ## **Character Builder Tab**
@@ -80,6 +86,10 @@ If all went well, the tool should load up the first image it finds from `pxl_tex
   * **`Show Outline Only`** - Sometimes the character found might have grabbed some junk, this will outline the found character
   * **`Show Normal Display`** - When viewing the outline, this button will redraw the found area as it normally looks
 #### Character Settings
+  * **`Read Found Character Data`** - Load your character data.
+    * Once you search for a character in the TextBase Viewer,
+    * This button will gather all the data and build transparency information for you
+    * You can then edit the character with the below options.
   * **`Crop, Found Area, Alpha Thumbnails`** - These thumbnails are for reference only, showing the found character data.
     * '`Alpha`' refers to the transparency of the final image.<br/>Like how you can see the checkerboard pattern behind the main Character image.
   * **`Top/Bottom`** - These side sliders add or remove bounding box's top or bottom
@@ -102,12 +112,13 @@ If all went well, the tool should load up the first image it finds from `pxl_tex
   * **`Load Text Image`** - Load a background image into the TextBed
     * *One is provided in the root of pxlTextGenerator*
   * **`Reload Text`** - Reload any changes made to characters or Text Field
-  * **`Auto Update`** - Any changes in Character Settings or Text Field will automatically show up when `On`.
-  * **`Text Field`** - Characters to display in the TextBed Viewer
+  * **`Input Test Text`** - Characters to display in the TextBed Viewer
   * **`Pull Capital Letters`** - Loads all Capital letters into the Text Field
   * **`Pull Lower Letters`** - Loads all Lower Case letters into the Text Field
   * **`Pull Numbers`** - Loads all Numbers into the Text Field
   * **`Pull Non-Alphanumeric`** - Loads all non-letters and non-numbers into the Text Field
+  * **`Missing Characters`** - Any non-existent characters will show up here from your `Input Text Text`
+  * **`Auto Update`** - Any changes in Character Settings or Text Field will automatically show up when `On`.
   * **`Vertical Sliders`**  -
     * *First, Top of character reference bar*
     * *Second, Mid of character reference bar*
