@@ -163,4 +163,3 @@ If all went well, the tool should load up the first image it finds from `pxl_tex
 ______________________________
 
 ## Thanks for checking out pxlTextGenerator!
-
