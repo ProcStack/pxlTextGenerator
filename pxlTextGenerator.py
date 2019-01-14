@@ -1,7 +1,7 @@
 ############################################
-## pxlTextGenerator v0.1.0                ##
+## pxlTextGenerator v0.1.1                ##
 ## Text to Handwriting Generator          ##
-##  Written by Kevin Edzenga; ~2018       ##
+##  Written by Kevin Edzenga; ~2018-2019  ##
 ##   http://metal-asylum.net              ##
 ##                                        ##
 ## For aditional work, see my github-     ##
@@ -32,7 +32,22 @@
  Stay awesome and open source for life!
 
 ######
-
+- - v0.1.1 - -
+ Support for windows smaller than 2200x1200 like it was restricted to in the past!!
+ Allowing me to do that resorted to-
+   -Reorganized the Character Entry Editor layout to allow scrolling
+   -Dynamic scale of the TextBed
+   With this, the window can now be shrunk without an issue with the layout
+ Upgraded all sliders to SliderGroup's
+   This allows users to click the corresponding text to input values manually.
+ New buttons on the TextBase viewer-
+   Set Work Area - You can select an area that will be cropped down during character searching
+   Show Outline Only - Only renders the outline of the found characters ONCE, clears on redraw
+   Show Normal Display - Render the found character data like normal; filled in green
+ Auto-load the TextBed background image if exists
+   This way, you don't need to manually load up the background.
+ Finally got 'Help...' pointing to the pxlTextGenerator GitHub repo ReadMe.md
+ 
 - - Prior Changes to v0.1.0 - -
  When does alpha modes hit beta mode for a tool?
  Character Builder appears to be 100%
@@ -95,7 +110,7 @@ class ImageProcessor(QtGui.QMainWindow):
 		global woVersion
 		
 		self.scriptNameText="pxlTextGenerator"
-		self.versionText="v0.1.0"
+		self.versionText="v0.1.1"
 		self.setTitleBar()
 		
 		self.winSize=[1920,1080]
@@ -180,6 +195,7 @@ class ImageProcessor(QtGui.QMainWindow):
 		self.infoMenu.addAction(lineCountItem)
 		self.infoMenu.addSeparator()
 		helpItem=QtGui.QAction("Help...",self)
+		helpItem.triggered.connect(self.launchHelp)
 		self.infoMenu.addAction(helpItem)
 		# Status Bar
 		self.statusBar=self.statusBar()
@@ -1404,6 +1420,9 @@ class ImageProcessor(QtGui.QMainWindow):
 				self.statusBarUpdate(" -- No created characters, please select and 'Finish Character' first -- ", 5000,2)
 		else:
 			self.statusBarUpdate(" -- No characters found, please 'Load Text Image' to load existing character data -- ", 5000,2)
+	def launchHelp(self):
+		url=QtCore.QUrl('https://github.com/ProcStack/pxlTextGenerator')
+		QtGui.QDesktopServices.openUrl(url)
 	def resizeEvent(self,event):
 		if hasattr(self, "textCharDisplay"):
 			self.textCharDisplay.buildTextDisplay(1)
