@@ -61,7 +61,10 @@ If all went well, the tool should load up the first image it finds from `pxl_tex
 <br/>With a list of all your files on the top of the window
 
 #### Things to note-
-  * For all sliders, you can click on the text next to the slider to manually enter in a value.
+  * For sliders, you can click on the text next to the slider to manually enter in a value.
+    * Only vertical sliders and the Left/Right Align sliders on the `Character Entry Editor` *(Right side)* don't have this feature yet.
+  * After you select your character and run `Read Found Character Data` the `Final Output` thumbnail will have 3 red lines on it.  You can click near those red lines and drag to adjust the values without fudging around with the sliders.
+  * If you are working on editing a Character Entry, type the character out in the TextBed on the bottom to see your changes in real time. (Vertical/Left/Right Alignment and Scaling mostly)
 ##### <p align="right">[^ Top](#index)</p>
 ##
 ## **Character Builder Tab**
