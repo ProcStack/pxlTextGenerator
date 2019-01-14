@@ -4,7 +4,7 @@
 #### *Export with custom page backgrounds to PNG*
 
 ## <br/>**Index**
-* [Tool Information](#tool-information)
+* [Welcome & Tool Information](#welcome-message--tool-information)
 * [Starting Out](#starting-out)
 * [Character Builder Tab](#character-builder-tab)
 * [Page Output Tab](#page-output-tab)
@@ -15,28 +15,35 @@
 
 --------------------------------------------------------------------------------------------
 
-## <br/>**Tool Information**
+## <br/>**Welcome Message \& Tool Information**
 This tool is designed to allow users to **gather hand written characters**,
 <br/>**(*Or I guess, any connected mass*)**
-<br/>In photos and **export** them to an **image library** and **database**.
+<br/>In photos/scans/images and **export** them to an **image library** and **database**.
 <br/>***- Written with* `Python 2.7` *and* `PyQt 4`**
 <br/>
-<br/>A database is built so later iterations of this tool can take the exported
-<br/>characters and use them to convert typed text into an image that is seemingly hand written.
+<br/>A Character Database is built and can be used to convert typed text into seemingly hand written images.
+<br/>You can save those pages to a Page Database or export them as PNG files!
+<br/>*(The Character and Page Database Files let you jump back in where you left off, allowing you to edit all the settings.)*
 <br/>
-<br/>Currently, You can save out hand written characters into individual PNG files with options
-<br/>to modify the alpha fall off from the dynamically built mask of the ink.
+<br/>Since I have an intended purpose for this tool, it currently looks for darker objects.
+<br/>Like having ink that is darker than the paper it's on.
+<br/>This is done by looking out pixel by pixel to see if it's under a user-settable brightness threshold.
 <br/>
-<br/>Since I have an intended purpose for this tool, it is expecting lighter paper and dark ink.
-<br/>Being that, the color threshold will tell the script to select only neighboring pixels of color
-<br/>darker than the set color threshold of brightness.
+<br/>In the future, I'd like to add OCR (Optical Character Recognition) functionality.
+<br/>Since it supports having as many character variations as you'd like, they could be used as training material for the OCR.
+<br/>But that will be some time from now...  We all have lives to manage and things that distract us.
 <br/>
-<br/>There have been some logic written up on converting this system to an OCR reader
-<br/>But that is a long time from now.
-<br/>
-<br/>It is slow right now, but hoping to expand this out toward OpenGL or C++ in the future.
+<br/>It's slow right now, optimizations are being worked on,
+<br/>But I'm hoping to expand out toward OpenGL / C++ in the future.
+<br/>*(Especially for the OCR support)*
 <br/>Python and PyQt was just the easy route to start with.
 <br/>
+<br/> **\*\* Since this is still in Alpha, many aspects are in flux \*\***
+<br/> If you are looking to explore this tool and use it with an end goal in mind,
+<br/> Everything is working, but it's still deep in dev mode right now.
+<br/> I'd suggest emailing me to find out how mucky the current state of everything is.
+<br/> [Kevin@Metal-Asylum.Net](mailto:Kevin@Metal-Asylum.Net)
+<br/> 
 ### - **Kevin Edzenga** <br/>
 ##### <p align="right">[^ Top](#index)</p>
 ##
@@ -67,22 +74,28 @@ If all went well, the tool should load up the first image it finds from `pxl_tex
     * *(Searching finds darker colors than the threshold value.)*
   * **`Sample Threshold by Color`** - Lets you select pixels to set the Searching Threshold
     * *(Set the threshold lower once it's set, its the exact value it found, you want darker)*
-  * **`Modes`**-
-    * **`Select Area`**
+    
+![pxlTextGenerator Page Output](http://metal-asylum.net/python/pxlTextGenerator/show/TextBaseOptions_brushes_all.png)
+  * **`Modes`**- \[When *Active* image\]
+    * **`Select Area`** -<br/> ![Select Character Mode Option](http://metal-asylum.net/python/pxlTextGenerator/show/TextBaseOptions_brushes_sel.png)
       * *Search for a character*
       * *No Brush Indicator*
-    * **`Add Brush`**
+    * **`Add Brush`** -<br/> ![Add Brush Option](http://metal-asylum.net/python/pxlTextGenerator/show/TextBaseOptions_brushes_add.png)
       * *Add pixels to found area*
       * *Brush Indicator is a Green color*
-    * **`Remove Brush`**
+    * **`Remove Brush`** -<br/> ![Remove Brush Option](http://metal-asylum.net/python/pxlTextGenerator/show/TextBaseOptions_brushes_rem.png)
       * *Remove pixels to found area*
       * *Brush Indicator is a Purple color*
   * **`Add/Remove Brush Size`** - Size of Add/Remove Brushes
   * **`Edge Grow/Shrink`** - Contract or Expand your character's edge per pixel
     * *Negative (-1) to Contract*
     * *Positive (1) to Expand*
-  * **`Set Working Area`** - To help speed up character searching, setting a Working Area will crop the image down
-    * *Click it, then click and drag in the TextBase area to draw a blue working area outline*
+  * **`Set Working Area`** / **`Remove Work Area`** - To help speed up character searching, setting a Working Area will work on a smaller image when searching for Character Data
+    * *Click it, the button's text will switch to **`Remove Work Area`** and turn blue, then click and drag in the TextBase area to draw a blue working area outline.*
+    * *Clicking again will remove the current work area you have set.*
+  * **`Crop To Work Area`** / **`Exit Work Area Crop`** - To help speed up things further, you can view the Work Area by itself for faster feed back for `Select`/`Add`/`Remove` Brushes.
+    * *Click it to isolate your Work Area, the button's text will change to `Exit Work Area Crop` and turn blue.*
+    * *Clicking it again will bring back the whole image you are working on.*
   * **`Show Outline Only`** - Sometimes the character found might have grabbed some junk, this will outline the found character
   * **`Show Normal Display`** - When viewing the outline, this button will redraw the found area as it normally looks
 #### Character Settings
@@ -90,8 +103,16 @@ If all went well, the tool should load up the first image it finds from `pxl_tex
     * Once you search for a character in the TextBase Viewer,
     * This button will gather all the data and build transparency information for you
     * You can then edit the character with the below options.
-  * **`Crop, Found Area, Alpha Thumbnails`** - These thumbnails are for reference only, showing the found character data.
+  * **`Crop, Found Area, Alpha Thumbnails`** - After running `Read Found Character Data` thumbnails are generated to show aspects of the found character data.
     * '`Alpha`' refers to the transparency of the final image.<br/>Like how you can see the checkerboard pattern behind the main Character image.
+    * *Currently These thumbnails are for reference only.*
+  * **`Character Final Output Image`** - This is what your final character looks like.
+    * *The checkered background is just to help with seeing the transparency in the character. Its removed when you click `Finishe Character`
+    * There are 3 red lines; 2 vertical and 1 horizontal
+      * *The left vertical line is the desired spacing on the left side of the character to it's neighbor.*
+      * *The right vertical line is the same as the left, but spacing on the right side of the character from its neighbor.*
+      * *The horizontal line is the base of the character.  Where the character will line up vertically on a line of text.*
+    * **(*If you click near a red line and drag, it will move the line for you.  No need to use the sliders.*)**
   * **`Top/Bottom`** - These side sliders add or remove bounding box's top or bottom
   * **`Left/Right Align`** - The left/right most edge of the character, for spacing characters correctly
   * **`Base Line`** - Where the character aligns vertically on the line, for TextBed and Page
