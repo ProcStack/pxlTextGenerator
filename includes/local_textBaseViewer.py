@@ -17,6 +17,8 @@ class TextBaseViewer(QtGui.QWidget):
 		
 		self.curCanvasData=None
 		self.scanRange=[self.cW,self.cH,0,0]
+		self.workingRectArea=[self.cW,self.cH,0,0]
+		self.initWorkingRectArea=[self.cW,self.cH,0,0]
 		self.rect=[0,0,256,256]
 		self.reachPixelsBase=[]
 		self.reachPixels=[]
@@ -64,6 +66,7 @@ class TextBaseViewer(QtGui.QWidget):
 		self.img.setPixmap(pmap)
 		self.curCanvasData=pmap
 		self.scanRange=[self.cW,self.cH,0,0]
+		self.workingRectArea=[self.cW,self.cH,0,0]
 		self.reachPixelsBase=[]
 		self.reachPixels=[]
 		self.edgePixelsBase=[]
@@ -77,29 +80,43 @@ class TextBaseViewer(QtGui.QWidget):
 		self.mousePressStart=[pos.x(), pos.y()]
 		self.mouseDown=1
 		self.curButton=event.buttons()
+		if self.win.textBaseToolMode==4:
+			self.initWorkingRectArea=[-1,-1]
+			self.workingRectArea=[self.cW,self.cH,0,0]
 		scrollH=self.curImgBlock.parent().parent().parent().parent().horizontalScrollBar().value()
 		scrollV=self.curImgBlock.parent().parent().parent().parent().verticalScrollBar().value()
 		self.scrollStart=[scrollH, scrollV]
 	def mouseMoveEvent(self, event):
 		self.curButton=event.buttons()
 		if self.curButton == QtCore.Qt.NoButton:
-			if self.win.textBaseToolMode in [1,2]:
+			if self.win.textBaseToolMode in [1,2]: # Add / Remove Brushes
 				pos=event.pos()
 				posX=int(pos.x()*(1.0/self.zoom))
 				posY=int(pos.y()*(1.0/self.zoom))
 				self.drawBrushRadius(self.win.textBaseToolMode, [posX,posY])
 		elif self.curButton == QtCore.Qt.LeftButton:
-			if self.win.textBaseToolMode==1 or self.win.textBaseToolMode==2:
+			if self.win.textBaseToolMode in [1,2]: # Add / Remove Brushes
 				pos=event.pos()
 				posX=int(pos.x()*(1.0/self.zoom))
 				posY=int(pos.y()*(1.0/self.zoom))
 				self.setCustomPixels( self.win.textBaseToolMode, [posX,posY], self.win.brushSizeSlider.value )
-			elif self.win.selectColorMode==3 and self.win.selectColorMode>0:
+			elif self.win.textBaseToolMode==3 and self.win.selectColorMode>0: # Sample Color
 				pos=event.pos()
 				posX=int(pos.x()*(1.0/self.zoom))
 				posY=int(pos.y()*(1.0/self.zoom))
 				self.win.setNewThresholdColor([posX,posY])
 				self.win.selectColorMode+=1
+			elif self.win.textBaseToolMode==4: # Set Working Bounding Box
+				pos=event.pos()
+				posX=int(pos.x()*(1.0/self.zoom))
+				posY=int(pos.y()*(1.0/self.zoom))
+				if self.initWorkingRectArea[0] == -1:
+					self.initWorkingRectArea=[posX,posY]
+				self.workingRectArea[0]=max(1, min(self.initWorkingRectArea[0], posX) )
+				self.workingRectArea[1]=max(1, min(self.initWorkingRectArea[1], posY) )
+				self.workingRectArea[2]=min(self.cWOrig-1, max(self.initWorkingRectArea[0], posX) )
+				self.workingRectArea[3]=min(self.cHOrig-1, max(self.initWorkingRectArea[1], posY) )
+				self.drawWorkingRectArea()
 			else:
 				if self.mouseDown > 0:
 					self.mouseDown+=1
@@ -107,7 +124,6 @@ class TextBaseViewer(QtGui.QWidget):
 						self.mouseDrag=1
 		elif self.curButton == QtCore.Qt.RightButton:
 			self.mouseDrag=1
-			
 		if self.mouseDrag == 1:
 			pos=event.globalPos()
 			curXY=[ self.mousePressStart[0]-pos.x(), self.mousePressStart[1]-pos.y() ]
@@ -130,42 +146,71 @@ class TextBaseViewer(QtGui.QWidget):
 				self.win.selectColorMode=0
 				self.win.setNewThresholdColor([posX,posY])
 				self.win.textBaseToolMode=0
+			elif self.win.textBaseToolMode==4:
+				self.win.textBaseToolMode=0
+				self.workingRectArea[0]=max(1, min(self.initWorkingRectArea[0], posX) )
+				self.workingRectArea[1]=max(1, min(self.initWorkingRectArea[1], posY) )
+				self.workingRectArea[2]=min(self.cWOrig-1, max(self.initWorkingRectArea[0], posX) )
+				self.workingRectArea[3]=min(self.cHOrig-1, max(self.initWorkingRectArea[1], posY) )
+				self.drawReachMask()
 			else:
 				posArr=[posX,posY]
 				if posArr not in self.reachPixels:
+					offset=[0,0,[1,1,self.cW-1,self.cH-1]]
+					workAreaActive=0
 					self.win.charSamplePoints.append(posArr)
 					img=self.win.imgData[self.win.curImage]#self.img.pixmap()
 					#img=QtGui.QPixmap.fromImage(img.toImage())
+					if self.workingRectArea[0] < self.workingRectArea[2]:
+						workAreaActive=1
+						img=img.copy(self.workingRectArea[0],self.workingRectArea[1], (self.workingRectArea[2]-self.workingRectArea[0]),(self.workingRectArea[3]-self.workingRectArea[1]))
+						offset=[self.workingRectArea[0],self.workingRectArea[1],[1,1,self.workingRectArea[2]-self.workingRectArea[0],self.workingRectArea[3]-self.workingRectArea[1]]]
+
+					limits=[img.width()-1, img.height()-1]
 					img=img.toImage()
 					#img=img.scaled(self.cWOrig,self.cHOrig, QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
 					
 					#midRun=QtGui.QPixmap.fromImage(self.img.pixmap().toImage())
 					midRun=self.img.pixmap()
 					midRun=midRun.scaled(self.cWOrig,self.cHOrig, QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
+					if self.workingRectArea[0] < self.workingRectArea[2]:
+						midRun=midRun.copy(self.workingRectArea[0],self.workingRectArea[1], (self.workingRectArea[2]-self.workingRectArea[0]),(self.workingRectArea[3]-self.workingRectArea[1]))
 					midRun=midRun.toImage()
-					
-					#midRun=self.img.pixmap().toImage()
-					#img=img.toImage()
+					displaySize=[self.cW, self.cH]
+					if workAreaActive==1:
+						textBaseViewSize=[]
+						textBaseViewSize.append(float(self.parent().parent().width()-25))
+						textBaseViewSize.append(float(self.parent().parent().height()-25))
+						displaySize=[float(midRun.width()), float(midRun.height())]
+						
+						ratio=textBaseViewSize[0]/displaySize[0]
+						xScale=[displaySize[0]*ratio, displaySize[1]*ratio]
+						ratio=textBaseViewSize[1]/displaySize[1]
+						yScale=[displaySize[0]*ratio, displaySize[1]*ratio]
+						if xScale[0]>textBaseViewSize[0] or xScale[1]>textBaseViewSize[1]:
+							displaySize=yScale
+						else:
+							displaySize=xScale
+						displaySize=[int(displaySize[0]*(1.0/self.zoom)), int(displaySize[1]*(1.0/self.zoom))]
 					rangeDist=10
-					posRange=[]
-					posRange.append(max(posX-rangeDist,0))
-					posRange.append(max(posY-rangeDist,0))
-					posRange.append(min(posX+rangeDist, self.cWOrig))
-					posRange.append(min(posY+rangeDist, self.cHOrig))
 					# Make this better
 					# Add string of x,y and find in array
 					# If not in array, add to pixelQueue
 					pixelQueue=[]
 					pixelQueue.extend(self.win.charSamplePoints)
 					tempScanRange=[]
-					tempScanRange.extend(self.scanRange)
+					tempScanRange.append(self.scanRange[0]-offset[0])
+					tempScanRange.append(self.scanRange[1]-offset[1])
+					tempScanRange.append(self.scanRange[2]-offset[0])
+					tempScanRange.append(self.scanRange[3]-offset[1])
 					#tempScanRange.extend()
 					caps=[]
-					caps.append( max(1, tempScanRange[0]-2) )
-					caps.append( max(1, tempScanRange[1]-2) )
-					caps.append( min(self.cW-1, tempScanRange[2]+2) )
-					caps.append( min(self.cW-1, tempScanRange[3]+2) )
+					caps.append( max(offset[2][0], tempScanRange[0]-2) )
+					caps.append( max(offset[2][1], tempScanRange[1]-2) )
+					caps.append( min(offset[2][2], tempScanRange[2]+2) )
+					caps.append( min(offset[2][3], tempScanRange[3]+2) )
 					thresh=max(0, self.win.thresholdColorSlider.value)
+					
 					runner=0
 					killCheck=1000
 					growArr=[[1,1],[1,0],[1,-1], [0,1],[0,-1], [-1,1],[-1,0],[-1,-1]]
@@ -192,7 +237,7 @@ class TextBaseViewer(QtGui.QWidget):
 						if refreshRunner == refreshDraw:
 							refreshDraw+=refreshItter#+int(15*(refreshDraw/refreshItter))
 							
-							midRunFull=midRun.scaled(self.cW,self.cH, QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
+							midRunFull=midRun.scaled(displaySize[0],displaySize[1], QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
 							pxmap=QtGui.QPixmap.fromImage(midRunFull)
 							self.img.setPixmap(pxmap)
 						if runner >= killCheck:
@@ -201,8 +246,8 @@ class TextBaseViewer(QtGui.QWidget):
 							latch=0
 						else:
 							xyPos=pixelQueue.pop(0)
-							x=xyPos[0]
-							y=xyPos[1]
+							x=xyPos[0]-offset[0]
+							y=xyPos[1]-offset[1]
 							#curStr=str(x)+","+str(y)
 							
 							#############################################
@@ -218,7 +263,7 @@ class TextBaseViewer(QtGui.QWidget):
 							if edgeHit==0:
 								self.reachPixelsBase.append(xyPos)
 							else:
-								edgePos=[x,y]
+								edgePos=[x+offset[0],y+offset[1]]
 								if edgePos not in self.edgePixelsBase:
 									self.edgePixelsBase.append(edgePos)
 								
@@ -227,34 +272,42 @@ class TextBaseViewer(QtGui.QWidget):
 							tempScanRange[2]=max(tempScanRange[2], x)
 							tempScanRange[3]=max(tempScanRange[3], y)
 							caps=[]
-							caps.append( max(1, tempScanRange[0]-2) )
-							caps.append( max(1, tempScanRange[1]-2) )
-							caps.append( min(self.cW-1, tempScanRange[2]+2) )
-							caps.append( min(self.cW-1, tempScanRange[3]+2) )
+							caps.append( max(offset[2][0], tempScanRange[0]-2) )
+							caps.append( max(offset[2][1], tempScanRange[1]-2) )
+							caps.append( min(offset[2][2], tempScanRange[2]+2) )
+							caps.append( min(offset[2][3], tempScanRange[3]+2) )
 								
 							#############################################
-							if latch==1 and (x<caps[0] or y<caps[1] or x>caps[2] or y>caps[3]):
+							### Check if finding on edges is still an issue
+							### Cause this shouldn't cap out, ever
+							"""if latch==1 and (x<caps[0] or y<caps[1] or x>caps[2] or y>caps[3]):
 								latch=0
 							else:
-								if ((latch == 1 and val<thresh) or latch==0) and edgeHit==0:
-									midRun.setPixel(x,y,QtGui.QColor(0,255,0,255).rgb())
-									runner=0
-									hit=0
-									for xy in growArr:
-										nextX=max(0, min(x+xy[0], self.cWOrig))
-										nextY=max(0, min(y+xy[1], self.cHOrig))
-										nextArr=[nextX,nextY]#str(nextX)+","+str(nextY)
-										if nextArr not in self.reachPixelsBase:
-											hit+=1
-											self.reachPixelsBase.append(nextArr)
-											pixelQueue.append(nextArr)
+							"""
+							if ((latch == 1 and val<thresh) or latch==0) and edgeHit==0:
+								midRun.setPixel(x,y,QtGui.QColor(0,255,0,255).rgb())
+								runner=0
+								hit=0
+								for xy in growArr:
+									#nextX=max(0, min(x+xy[0], self.cWOrig))
+									#nextY=max(0, min(y+xy[1], self.cHOrig))
+									nextX=max(0, min(x+xy[0], limits[0]))
+									nextY=max(0, min(y+xy[1], limits[1]))
+									nextX+=offset[0]
+									nextY+=offset[1]
+									nextArr=[nextX,nextY]#str(nextX)+","+str(nextY)
+									if nextArr not in self.reachPixelsBase:
+										hit+=1
+										self.reachPixelsBase.append(nextArr)
+										pixelQueue.append(nextArr)
 							if len(pixelQueue) == 0:
 								latch=0
-					for xy in self.reachPixelsBase:
-						x=xy[0]
-						y=xy[1]
-						#img.setPixel(x,y,QtGui.QColor(0,255,0,255).rgb())
-						
+
+					midRunFull=midRun.scaled(displaySize[0],displaySize[1], QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
+					pxmap=QtGui.QPixmap.fromImage(midRunFull)
+					self.img.setPixmap(pxmap)
+					self.win.statusBarUpdate("-- Running Cleanup Pass - Fixing small holes --", 0, 0)
+							
 					self.reachPixels.extend(self.reachPixelsBase)
 					
 					newEdgeBuild=[]
@@ -271,6 +324,10 @@ class TextBaseViewer(QtGui.QWidget):
 					
 					QtGui.QApplication.processEvents()
 					
+					tempScanRange[0]+=offset[0]
+					tempScanRange[1]+=offset[1]
+					tempScanRange[2]+=offset[0]
+					tempScanRange[3]+=offset[1]
 					img,tempScanRange=self.extendReachEdges(img,tempScanRange)
 					
 					if self.win.loopLatch==1:
@@ -281,7 +338,8 @@ class TextBaseViewer(QtGui.QWidget):
 					self.scanRange[1]=max(tempScanRange[1]-alphaPadding, 0) if tempScanRange[1] != self.scanRange[1] else self.scanRange[1]
 					self.scanRange[2]=min(tempScanRange[2]+alphaPadding, self.cWOrig-1) if tempScanRange[2] != self.scanRange[2] else self.scanRange[2]
 					self.scanRange[3]=min(tempScanRange[3]+alphaPadding, self.cHOrig-1) if tempScanRange[3] != self.scanRange[3] else self.scanRange[3]
-										
+					
+					self.workingRectArea=[self.cW,self.cH,0,0]
 					self.drawReachMask()
 					self.win.statusBarUpdate(" -- Character Search Complete! --", 5000, 1)
 
@@ -368,17 +426,24 @@ class TextBaseViewer(QtGui.QWidget):
 						break;
 			self.brushEdgePixelData=curBrushEdge
 			self.brushSize=self.win.brushSizeSlider.value
-	def drawReachMask(self,bbox=1,ret=0):
+	def drawReachMask(self,bbox=1,ret=0,outlineOnly=0):
 		img=self.win.imgData[self.win.curImage]
 		img=img.toImage()
-		for xy in self.reachPixels:
-			img.setPixel(xy[0],xy[1],QtGui.QColor(0,255,0,255).rgb())
-		if self.extendShrinkEdge==1:
+		if outlineOnly == 0:
+			for xy in self.reachPixels:
+				img.setPixel(xy[0],xy[1],QtGui.QColor(0,255,0,255).rgb())
+			if self.extendShrinkEdge==1:
+				for xy in self.edgePixelsBase:
+					x=xy[0]
+					y=xy[1]
+					img.setPixel(x,y,QtGui.QColor(0,255,150,255).rgb())
+		else:
 			for xy in self.edgePixelsBase:
 				x=xy[0]
 				y=xy[1]
 				img.setPixel(x,y,QtGui.QColor(0,255,150,255).rgb())
 		if bbox==1:
+			img=self.drawWorkingRectArea(img)
 			img=self.drawBoundingBox(img)
 		pmap=QtGui.QPixmap.fromImage(img)
 		self.curCanvasData=pmap
@@ -403,6 +468,36 @@ class TextBaseViewer(QtGui.QWidget):
 				for y in range(xy[1][0],xy[1][1]):
 					img.setPixel(x,y,QtGui.QColor(255,0,0,255).rgb())
 		return img
+	def drawWorkingRectArea(self, img=None):
+		if self.workingRectArea[0] < self.workingRectArea[2]:
+			bboxRun=[]
+			bboxRun.append( [[max(0, self.workingRectArea[0]-1), self.workingRectArea[0]], [ self.workingRectArea[1], self.workingRectArea[3]] ] )
+			bboxRun.append( [[self.workingRectArea[2], min(self.cWOrig-1, self.workingRectArea[2]+1)], [ self.workingRectArea[1], self.workingRectArea[3]] ] )
+			bboxRun.append( [[self.workingRectArea[0], self.workingRectArea[2]], [ max(0, self.workingRectArea[1]-1), self.workingRectArea[1]] ] )
+			bboxRun.append( [[self.workingRectArea[0], self.workingRectArea[2]], [ self.workingRectArea[3], min(self.cHOrig-1, self.workingRectArea[3]+1)] ] )
+			
+			inputImg=1
+			if img == None:
+				inputImg=0
+				img=self.curCanvasData
+				img=img.toImage()
+				"""for x in range(len(bboxRun)):
+					for c in range(len(bboxRun[x])):
+						for v in range(len(bboxRun[x][c])):
+							bboxRun[x][c][v]=int(float(bboxRun[x][c][v])*self.zoom)
+				"""
+			for xy in bboxRun:
+				for x in range(xy[0][0],xy[0][1]):
+					for y in range(xy[1][0],xy[1][1]):
+						img.setPixel(x,y,QtGui.QColor(0,100,255,255).rgb())
+			if inputImg == 0:
+				pmap=QtGui.QPixmap.fromImage(img)
+				pmap=pmap.scaled(self.cW,self.cH, QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
+				self.img.setPixmap(pmap)
+			return img
+		else:
+			return img
+		return None
 	def setZoom(self, targetZoom):
 		targetW=int(float(self.cWOrig)*targetZoom)
 		targetH=int(float(self.cHOrig)*targetZoom)

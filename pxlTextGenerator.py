@@ -467,35 +467,6 @@ class ImageProcessor(QtGui.QMainWindow):
 				
 				thresholdColorBlock=QtGui.QHBoxLayout()
 				###
-				"""
-				self.thresholdColorNameText=QtGui.QLabel()
-				self.thresholdColorNameText.setText("Searching Threshold")
-				self.thresholdColorNameText.setMinimumWidth(90)
-				self.thresholdColorNameText.setAlignment(QtCore.Qt.AlignRight)
-				thresholdColorBlock.addWidget(self.thresholdColorNameText)
-				###
-				self.thresholdColorSlider=QtGui.QSlider()
-				self.thresholdColorSlider.setOrientation(QtCore.Qt.Horizontal)
-				self.thresholdColorSlider.setMinimum(0)
-				self.thresholdColorSlider.setMaximum(765)
-				self.thresholdColorSlider.setValue(230)
-				thresholdColorBlock.addWidget(self.thresholdColorSlider)
-				###
-				thresholdColorMagTextBlock=QtGui.QVBoxLayout()
-				##
-				self.thresholdColorMagText=QtGui.QLabel()
-				self.thresholdColorMagText.setText("230 #")
-				self.thresholdColorMagText.setStyleSheet("QLabel {font-size:10pt; line-height:50%}")
-				self.thresholdColorMagText.setMinimumWidth(90)
-				self.thresholdColorMagText.setAlignment(QtCore.Qt.AlignRight)
-				self.thresholdColorMagText.setMaximumHeight(thresholdColorRes[1])
-				thresholdColorMagTextBlock.addWidget(self.thresholdColorMagText)
-				##
-				thresholdColorBlock.addLayout(thresholdColorMagTextBlock)
-				self.thresholdColorSlider.valueChanged.connect(self.thresholdColorMagTextUpdate)
-				###
-				"""
-				
 				self.thresholdColorSlider=SliderGroup(self,"Searching Threshold", [0,765,230],7,"int"," #", "thresholdColorMagTextUpdate()")
 				thresholdColorBlock.addWidget(self.thresholdColorSlider)
 				###
@@ -510,11 +481,8 @@ class ImageProcessor(QtGui.QMainWindow):
 				thresholdColorSample.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 				thresholdColorSample.clicked.connect(self.sampleNewThresholdColor)
 				thresholdColorBlock.addWidget(thresholdColorSample)
-				###
 				resetCharBlock.addLayout(thresholdColorBlock)
 				######
-				
-				
 				textBaseModeBlock=QtGui.QHBoxLayout()
 				self.textBaseMode_select=QtGui.QRadioButton("Select Area")
 				self.textBaseMode_select.setChecked(True)
@@ -544,10 +512,29 @@ class ImageProcessor(QtGui.QMainWindow):
 				self.brushSizeSlider=SliderGroup(self,"Add/Rem Brush Size", [1,10,6],2,"int","px")
 				textBaseModeBlock.addWidget(self.brushSizeSlider)
 				resetCharBlock.addLayout(textBaseModeBlock)
-				######
+				###
 				self.edgeGrowthSlider=SliderGroup(self,"Edge Grow/Shrink", [-10,10,0],7,"int","px", "extendEdges()")
 				resetCharBlock.addWidget(self.edgeGrowthSlider)
 				#entryEditBlock.addWidget(self.edgeGrowthSlider)
+				
+				######
+				displayOptionBlock=QtGui.QHBoxLayout()
+				displayOptionBlock.setSpacing(3)
+				displayOptionBlock.setMargin(0)
+				###
+				setWorkingArea=QtGui.QPushButton("Set Working Area",self)
+				setWorkingArea.setStyleSheet(self.buttonStyle)
+				setWorkingArea.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+				setWorkingArea.clicked.connect(self.setWorkingArea)
+				displayOptionBlock.addWidget(setWorkingArea)
+				###
+				showOutlineOnly=QtGui.QPushButton("Show Outline Only",self)
+				showOutlineOnly.setStyleSheet(self.buttonStyle)
+				showOutlineOnly.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+				showOutlineOnly.clicked.connect(self.displayOutlineOnly)
+				displayOptionBlock.addWidget(showOutlineOnly)
+				resetCharBlock.addLayout(displayOptionBlock)
+				######
 				
 				######
 				
@@ -1298,6 +1285,12 @@ class ImageProcessor(QtGui.QMainWindow):
 		self.selectColorSamples=[[0,0,0]]
 		self.textBaseViewWindow.setCursor(QtGui.QCursor(QtCore.Qt.CrossCursor))
 		self.statusBarUpdate(" -- Select a new threshold color ... Clicking and draging will blend colors together -- ", 0,1)
+	def setWorkingArea(self):
+		self.textBaseToolMode=4
+		self.textBaseViewWindow.setCursor(QtGui.QCursor(QtCore.Qt.CrossCursor))
+		self.statusBarUpdate(" -- Select a larger area than your character ... Clicking and draging to make bounds -- ", 0,1)
+	def displayOutlineOnly(self):
+		self.textBaseViewWindow.drawReachMask(1,0,1)
 	def setNewThresholdColor(self, posXY):
 		img=self.imgData[self.curImage]#self.img.pixmap()
 		#img=QtGui.QPixmap.fromImage(img.toImage())

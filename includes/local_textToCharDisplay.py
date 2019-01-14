@@ -65,9 +65,20 @@ class TextToCharDisplay(QtGui.QWidget):
 		self.charTestOptionBlock.setSpacing(0)
 		self.charTestOptionBlock.setMargin(0) 
 		#
+		
+		
+		charInputTextBlock=QtGui.QHBoxLayout()
+		charInputTextBlock.setSpacing(5)
+		charInputTextBlock.setMargin(0)
+		charInputText=QtGui.QLabel()
+		charInputText.setText('Input Test Text - ')
+		charInputText.setStyleSheet("QLabel {margin:5px;}")
+		charInputTextBlock.addWidget(charInputText)
 		self.charTestText=QtGui.QLineEdit()
 		self.charTestText.editingFinished.connect(self.buildTextDisplay)
-		self.charTestOptionBlock.addWidget(self.charTestText)
+		charInputTextBlock.addWidget(self.charTestText)
+		self.charTestOptionBlock.addLayout(charInputTextBlock)
+		
 		#
 		"""
 		charTestSeedBlock=QtGui.QHBoxLayout()
@@ -122,6 +133,19 @@ class TextToCharDisplay(QtGui.QWidget):
 		charTestBuildCharListBlock.addWidget(charTestNonAlphaButton)
 		###
 		self.charTestOptionBlock.addLayout(charTestBuildCharListBlock)
+		
+		charMissingListBlock=QtGui.QHBoxLayout()
+		charMissingListBlock.setSpacing(5)
+		charMissingListBlock.setMargin(0)
+		charMissingText=QtGui.QLabel()
+		charMissingText.setText('Missing Characters - ')
+		charMissingText.setStyleSheet("QLabel {margin:5px;}")
+		charMissingListBlock.addWidget(charMissingText)
+		self.charMissingList=QtGui.QLineEdit()
+		self.charMissingList.setStyleSheet("QLineEdit {background-color:#454545; color:#aaaaaa}")
+		self.charMissingList.setDisabled(True)
+		charMissingListBlock.addWidget(self.charMissingList)
+		self.charTestOptionBlock.addLayout(charMissingListBlock)
 		
 		self.charTestBlock.addWidget(charTextSeedBlockWidget)
 		charTextSeedBlockWidget.setLayout(self.charTestOptionBlock)
@@ -381,6 +405,7 @@ class TextToCharDisplay(QtGui.QWidget):
 					maxTagLength=4
 					tags=["ocl","ocr","oll","olr","osl","osr","oal","oar"]
 					curTag=''
+					missingChars=[]
 					for x,c in enumerate(val):
 						self.runner+=1.0
 						if c == "b":
@@ -394,13 +419,16 @@ class TextToCharDisplay(QtGui.QWidget):
 								skip=0
 							else:
 								for v in range(1,maxTagLength):
-									curTag+=val[x+v]
-									if curTag in tags:
-										inTag=1
-										break;
-									if val[x+v] == "%":
-										inTag=0
-										cc=c
+									if x+v<maxTagLength:
+										curTag+=val[x+v]
+										if curTag in tags:
+											inTag=1
+											break;
+										if val[x+v] == "%":
+											inTag=0
+											cc=c
+											break;
+									else:
 										break;
 						if inTag==1:
 							skip=1
@@ -421,6 +449,9 @@ class TextToCharDisplay(QtGui.QWidget):
 							else:
 								count=counter.count(cc)
 								charData=self.pullCharData(cc,count)
+								if charData == None:
+									missingChars.append(cc)
+									continue;
 								offset=[ leftStart-charData['spacingLeft'],-charData['baseline']+self.baseLine ]
 								leftStart=leftStart-charData['spacingLeft']+charData['spacingRight']
 								painter.drawPixmap(offset[0],offset[1],charData['data'])
@@ -431,6 +462,11 @@ class TextToCharDisplay(QtGui.QWidget):
 					painter.end()
 					self.textBuildData=baseImg
 					printText=", ".join(printText)
+					missingCharStr=" ".join(missingChars)
+					
+					self.charMissingList.setDisabled(False) #I dunno, testing
+					self.charMissingList.setText(missingCharStr)
+					self.charMissingList.setDisabled(True)
 				else:
 					self.textBuildData=None
 				self.updateTextBackground()

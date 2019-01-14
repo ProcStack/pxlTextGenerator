@@ -32,6 +32,7 @@ class IndexImageEntry(QtGui.QWidget): #Individual indexList image entries
 		self.index=-1
 		self.data=None
 		self.dataAlpha=None
+		self.specialChar=0
 		self.img=QtGui.QLabel()
 		self.charField=None
 		self.charBase=None
@@ -184,6 +185,7 @@ class IndexImageEntry(QtGui.QWidget): #Individual indexList image entries
 				"]":"cbr",
 				"{":"ocr",
 				"}":"ccr",
+				"|":"pip",
 				";":"sem",
 				"'":"osg",
 				"b'":"csg",
@@ -196,11 +198,11 @@ class IndexImageEntry(QtGui.QWidget): #Individual indexList image entries
 				"=":"equ",
 				"_":"und",
 				"+":"pls",
-				"/":"bsl",
+				"/":"fsl",
 				"<":"lth",
 				">":"gth",
 				"?":"qus",
-				"\\":"fsl",
+				"\\":"bsl",
 				"`":"ftk",
 				"b`":"btk",
 				"~":"tld",
@@ -225,9 +227,11 @@ class IndexImageEntry(QtGui.QWidget): #Individual indexList image entries
 				"osr":"oeStern_R",
 				"oal":"oeAngry_L",
 				"oar":"oeAngry_R",
+				"str":"star",
 				}
 			if val in special.keys():
 				val="char_"+special[val]
+				self.specialChar=1
 			else:
 				if len(val) == 0:
 					val="_"
