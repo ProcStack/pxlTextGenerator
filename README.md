@@ -11,6 +11,7 @@
 
 --------------------------------------------------------------------------------------------
 <p align='center'><img src='http://metal-asylum.net/python/pxlTextGenerator/show/intro.png' alt="pxlTextGenerator Overview" /></p>
+<p align='center'><img src='http://metal-asylum.net/python/pxlTextGenerator/show/intro_pageOutput.png' alt="pxlTextGenerator Page Output" /></p>
 
 --------------------------------------------------------------------------------------------
 
@@ -111,12 +112,13 @@ If all went well, the tool should load up the first image it finds from `pxl_tex
   * **`Load Text Image`** - Load a background image into the TextBed
     * *One is provided in the root of pxlTextGenerator*
   * **`Reload Text`** - Reload any changes made to characters or Text Field
-  * **`Auto Update`** - Any changes in Character Settings or Text Field will automatically show up when `On`.
-  * **`Text Field`** - Characters to display in the TextBed Viewer
+  * **`Input Test Text`** - Characters to display in the TextBed Viewer
   * **`Pull Capital Letters`** - Loads all Capital letters into the Text Field
   * **`Pull Lower Letters`** - Loads all Lower Case letters into the Text Field
   * **`Pull Numbers`** - Loads all Numbers into the Text Field
   * **`Pull Non-Alphanumeric`** - Loads all non-letters and non-numbers into the Text Field
+  * **`Missing Characters`** - Any non-existent characters will show up here from your `Input Text Text`
+  * **`Auto Update`** - Any changes in Character Settings or Text Field will automatically show up when `On`.
   * **`Vertical Sliders`**  -
     * *First, Top of character reference bar*
     * *Second, Mid of character reference bar*
