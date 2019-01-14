@@ -44,7 +44,7 @@ class IndexImageEntry(QtGui.QWidget): #Individual indexList image entries
 		self.spacingRight=None
 		self.baseline=-1
 		self.degRotation=0
-		self.premultiply=1
+		self.premultiply=100.0
 		self.contrast=100
 		self.alphaReach=-1
 		self.textBaseFile=None
@@ -83,7 +83,7 @@ class IndexImageEntry(QtGui.QWidget): #Individual indexList image entries
 			self.img.setAlignment(QtCore.Qt.AlignCenter)
 			self.img.setGeometry(0,0,self.imgSizeIndexList[0],self.imgSizeIndexList[1]) # Placeholder
 			if type(qtImg) == list:
-				rotationVal=float(self.win.sliderRotate.value())/100.0
+				rotationVal=self.win.sliderRotate.value
 				offset=[ int(float(self.outputSize[0]-qtImg[0].data.width())/2.0), int(float(self.outputSize[1]-qtImg[0].data.height())/2.0) ]
 				
 				pmap=QtGui.QPixmap(self.outputSize[0],self.outputSize[1])
@@ -129,15 +129,15 @@ class IndexImageEntry(QtGui.QWidget): #Individual indexList image entries
 			self.textBaseFile=curImgPath
 			
 			self.charSamplePoints=self.win.charSamplePoints
-			self.baseline=self.win.sliderBaseLine.value()
-			self.premultiply=self.win.sliderPreMult.value()
+			self.baseline=self.win.sliderBaseLine.value
+			self.premultiply=self.win.sliderPreMult.value
 			self.paddingTop=self.win.sliderTopPadding.value()
 			self.paddingBottom=self.win.sliderBottomPadding.value()
 			self.spacingLeft=self.win.leftAlignSlider.value()
 			self.spacingRight=self.win.rightAlignSlider.value()+128
-			self.degRotation=self.win.sliderRotate.value()
-			self.contrast=self.win.sliderContrast.value()
-			self.alphaReach=self.win.sliderAlphaReach.value()
+			self.degRotation=self.win.sliderRotate.value
+			self.contrast=self.win.sliderContrast.value
+			self.alphaReach=self.win.sliderAlphaReach.value
 		
 			self.entryStyleSheet()
 		# Child QWidgets don't set parent size, must set parent size for correct scroll bar
@@ -164,6 +164,41 @@ class IndexImageEntry(QtGui.QWidget): #Individual indexList image entries
 		pmap=pmap.scaled(self.imgSizeIndexList[0],self.imgSizeIndexList[1], QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
 		self.img.setPixmap(pmap)
 		self.loaded=1
+	def loadFromTextBase(self):
+		### Load TextBase Select RangePixels, load crop,maske,alpha, and final
+		curTextBasePath=self.textBaseFile
+		curTextBaseFile=curTextBasePath.split("/")[-1]
+		if curTextBaseFile not in self.imgData.keys():
+			print "Loading - "+curTextBaseFile
+			print "Not active yet, MAKE IT WORK"
+			print "Load image connected to entry, update textBase, scan image"
+			#pmap=QtGui.QPixmap()
+			#pmap.load(self.imgPath)
+			#self.imgData[self.curImage]=pmap
+		else:
+			print "Found textBase image"
+	def loadEntry(self):
+		"""if self.exported==0:
+			difData=curChar.data
+			difData.setAlphaChannel(curChar.dataAlpha)
+			charListData[char][title]['imgData']=difData
+		"""
+		#self.charSamplePoints=self.win.charSamplePoints
+		self.win.runValChangeEvent=0
+		self.win.sliderBaseLine.setValue(self.baseline)
+		self.win.sliderPreMult.setValue(self.premultiply)
+		self.win.sliderTopPadding.setValue(self.paddingTop)
+		self.win.sliderBottomPadding.setValue(self.paddingBottom)
+		self.win.leftAlignSlider.setValue(self.spacingLeft)
+		self.win.rightAlignSlider.setValue(self.spacingRight-128)
+		self.win.sliderRotate.setValue(self.degRotation)
+		self.win.sliderContrast.setValue(self.contrast)
+		self.win.sliderAlphaReach.setValue(self.alphaReach)
+		self.win.runValChangeEvent=1
+		
+		self.win.curImageFinalDisplay.thumbIndex=-1
+		self.win.charSampled=1
+		self.win.curImageFinalDisplay.pullCharacterRect(self)
 	def charCheck(self):
 		val=self.charField.text()
 		val=str(val)
@@ -285,41 +320,9 @@ class IndexImageEntry(QtGui.QWidget): #Individual indexList image entries
 				
 				difData.save(path+diffuse, "png")
 		return path+diffuse
-	def loadFromTextBase(self):
-		curTextBasePath=self.textBaseFile
-		curTextBaseFile=curTextBasePath.split("/")[-1]
-		if curTextBaseFile not in self.imgData.keys():
-			print "Loading - "+curTextBaseFile
-			print "Not active yet, MAKE IT WORK"
-			print "Load image connected to entry, update textBase, scan image"
-			#pmap=QtGui.QPixmap()
-			#pmap.load(self.imgPath)
-			#self.imgData[self.curImage]=pmap
-		else:
-			print "Found textBase image"
 	def mouseReleaseEvent(self, e):
 		if self.imgName == "thumb":
-			"""if self.exported==0:
-				difData=curChar.data
-				difData.setAlphaChannel(curChar.dataAlpha)
-				charListData[char][title]['imgData']=difData
-			"""
-			#self.charSamplePoints=self.win.charSamplePoints
-			self.win.runValChangeEvent=0
-			self.win.sliderBaseLine.setValue(self.baseline)
-			self.win.sliderPreMult.setValue(self.premultiply)
-			self.win.sliderTopPadding.setValue(self.paddingTop)
-			self.win.sliderBottomPadding.setValue(self.paddingBottom)
-			self.win.leftAlignSlider.setValue(self.spacingLeft)
-			self.win.rightAlignSlider.setValue(self.spacingRight-128)
-			self.win.sliderRotate.setValue(self.degRotation)
-			self.win.sliderContrast.setValue(self.contrast)
-			self.win.sliderAlphaReach.setValue(self.alphaReach)
-			self.win.runValChangeEvent=1
-			
-			self.win.curImageFinalDisplay.thumbIndex=-1
-			self.win.charSampled=1
-			self.win.curImageFinalDisplay.pullCharacterRect(self)
+			self.loadEntry()
 		else:
 			self.win.loadImageEntry(self)
 			

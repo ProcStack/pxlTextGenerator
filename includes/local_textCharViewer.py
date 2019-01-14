@@ -40,7 +40,7 @@ class TextCharacterViewer(QtGui.QWidget):
 	def pullCharacterRect(self, scaleMode):
 		if self.mode == 3:
 			init=0
-			rotationVal=float(self.win.sliderRotate.value())/100.0
+			rotationVal=self.win.sliderRotate.value
 			if type(scaleMode) is not int or self.thumbIndex>-1:
 				if self.thumbIndex>-1:
 					scaleMode=self.win.curImgListBlock.itemAt(self.thumbIndex).widget()
@@ -78,7 +78,7 @@ class TextCharacterViewer(QtGui.QWidget):
 					pmap=baseImg
 					###
 					fromScale=max(pmap.width(),max(1, pmap.height()+topPadVal+bottomPadVal))
-					premult=(float(fromScale)/256.0)*10000.0
+					premult=(float(fromScale)/256.0)*100.0
 					self.win.sliderPreMult.setValue(premult)
 			
 				pmapAlpha=self.win.curImageMaskDisplay.data
@@ -127,7 +127,7 @@ class TextCharacterViewer(QtGui.QWidget):
 			######
 			######
 		else:
-			blurLevels=self.win.sliderAlphaReach.value()
+			blurLevels=self.win.sliderAlphaReach.value
 			self.scanRange=[]
 			self.scanRange.extend(self.win.textBaseViewWindow.scanRange)
 			if scaleMode==0:
@@ -141,7 +141,7 @@ class TextCharacterViewer(QtGui.QWidget):
 			self.rect=rect
 			if self.mode == 0:
 				fromScale=max(rect[2],rect[3])
-				premult=(float(fromScale)/256.0)*10000.0
+				premult=(float(fromScale)/256.0)*100.0
 				self.win.sliderPreMult.setValue(premult)
 			elif self.mode == 1:
 				img=pmap.toImage()
@@ -187,7 +187,7 @@ class TextCharacterViewer(QtGui.QWidget):
 				reachPixels.extend(self.win.textBaseViewWindow.customPixels['add'])
 				reachPixels=map(lambda x: [ max(0, min(rect[2]-1,x[0]-rect[0])), max(0, min(rect[3]-1,x[1]-rect[1])) ], reachPixels)
 				#reachPixels=map(lambda x: [int(x.split(",")[0])-rect[0], int(x.split(",")[1])-rect[1]] , reachPixels)
-				contrast=float(self.win.sliderContrast.value())/100.0
+				contrast=self.win.sliderContrast.value
 				pmap.fill(QtCore.Qt.black)
 				mask=pmap.toImage()
 				for xy in reachPixels:
@@ -269,7 +269,7 @@ class TextCharacterViewer(QtGui.QWidget):
 			rect=[self.scanRange[0],self.scanRange[1], size[0],size[1]]
 			scaler=[ float(self.scanRange[2]-self.scanRange[0])/float(rect[2]), float(self.scanRange[3]-self.scanRange[1])/float(rect[3]) ]
 
-			baseLine=self.win.sliderBaseLine.value()*2
+			baseLine=self.win.sliderBaseLine.value*2
 			padL=self.win.leftAlignSlider.value()*2
 			padR=self.win.rightAlignSlider.value()*2+256
 			

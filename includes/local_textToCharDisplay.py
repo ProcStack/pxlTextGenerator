@@ -10,7 +10,7 @@ class TextToCharDisplay(QtGui.QWidget):
 		self.pastTest=''
 		self.bgW=0
 		self.bgH=0
-		self.cW=1000
+		self.cW=[500,1500]
 		self.cH=180
 		self.baseLine=120
 		self.runner=0.0
@@ -50,22 +50,14 @@ class TextToCharDisplay(QtGui.QWidget):
 		charTestReloadButton.clicked.connect(self.reloadText)
 		charTestButtonBlock.addWidget(charTestReloadButton)
 		###
-		self.charTestAutoReload=QtGui.QCheckBox()
-		self.charTestAutoReload.setText("Auto Update")
-		self.charTestAutoReload.setCheckState(QtCore.Qt.Checked)
-		self.charTestAutoReload.stateChanged.connect(self.setAutoReload)
-		charTestButtonBlock.addWidget(self.charTestAutoReload)
-		###
 		self.charTestBlock.addLayout(charTestButtonBlock)
 		
 		charTextSeedBlockWidget=QtGui.QWidget()
-		charTextSeedBlockWidget.setFixedHeight(100)
+		charTextSeedBlockWidget.setFixedHeight(140)
 		###
 		self.charTestOptionBlock=QtGui.QVBoxLayout()
 		self.charTestOptionBlock.setSpacing(0)
 		self.charTestOptionBlock.setMargin(0) 
-		#
-		
 		
 		charInputTextBlock=QtGui.QHBoxLayout()
 		charInputTextBlock.setSpacing(5)
@@ -78,31 +70,6 @@ class TextToCharDisplay(QtGui.QWidget):
 		self.charTestText.editingFinished.connect(self.buildTextDisplay)
 		charInputTextBlock.addWidget(self.charTestText)
 		self.charTestOptionBlock.addLayout(charInputTextBlock)
-		
-		#
-		"""
-		charTestSeedBlock=QtGui.QHBoxLayout()
-		charTestSeedBlock.setSpacing(0)
-		charTestSeedBlock.setMargin(0) 
-		medSizeText=QtGui.QLabel()
-		medSizeText.setText(" Random Seed  ")
-		charTestSeedBlock.addWidget(medSizeText)
-		###
-		self.seedSlider=QtGui.QSlider()
-		self.seedSlider.setOrientation(QtCore.Qt.Horizontal)
-		self.seedSlider.setMinimum(0)
-		self.seedSlider.setMaximum(20000)
-		self.seedSlider.setValue(0)
-		self.seedSlider.valueChanged.connect(self.updateRandomSeed)
-		charTestSeedBlock.addWidget(self.seedSlider)
-		###
-		self.seedSliderVal=QtGui.QLabel()
-		self.seedSliderVal.setText("0.00")
-		self.seedSliderVal.setMinimumWidth(90)
-		self.seedSliderVal.setAlignment(QtCore.Qt.AlignCenter)
-		charTestSeedBlock.addWidget(self.seedSliderVal)
-		self.charTestOptionBlock.addLayout(charTestSeedBlock)
-		"""
 		
 		charTestBuildCharListBlock=QtGui.QHBoxLayout()
 		charTestBuildCharListBlock.setSpacing(5)
@@ -133,7 +100,7 @@ class TextToCharDisplay(QtGui.QWidget):
 		charTestBuildCharListBlock.addWidget(charTestNonAlphaButton)
 		###
 		self.charTestOptionBlock.addLayout(charTestBuildCharListBlock)
-		
+		######
 		charMissingListBlock=QtGui.QHBoxLayout()
 		charMissingListBlock.setSpacing(5)
 		charMissingListBlock.setMargin(0)
@@ -146,10 +113,15 @@ class TextToCharDisplay(QtGui.QWidget):
 		self.charMissingList.setDisabled(True)
 		charMissingListBlock.addWidget(self.charMissingList)
 		self.charTestOptionBlock.addLayout(charMissingListBlock)
-		
+		###
+		self.charTestAutoReload=QtGui.QCheckBox()
+		self.charTestAutoReload.setText("Auto Update")
+		self.charTestAutoReload.setCheckState(QtCore.Qt.Checked)
+		self.charTestAutoReload.stateChanged.connect(self.setAutoReload)
+		self.charTestOptionBlock.addWidget(self.charTestAutoReload)
+		###
 		self.charTestBlock.addWidget(charTextSeedBlockWidget)
 		charTextSeedBlockWidget.setLayout(self.charTestOptionBlock)
-
 
 		capPadLinesBlock=QtGui.QVBoxLayout()
 		capPadLinesBlock.setSpacing(4)
@@ -193,12 +165,23 @@ class TextToCharDisplay(QtGui.QWidget):
 		self.charTestBlock.addLayout(lowPadLinesBlock)
 		self.sliderLowLineSlider.valueChanged.connect(self.updateCapLowLines)
 		
+		textBedDisplayLayout=QtGui.QVBoxLayout()
+		textBedDisplayLayout.setSpacing(0)
+		textBedDisplayLayout.setMargin(0) 
+		###
 		self.charTestDisplay=QtGui.QLabel()
 		self.charTestDisplay.setText("[ Character TextBed Display ]")
-		self.charTestDisplay.setMinimumWidth(self.cW)
+		self.charTestDisplay.setMinimumWidth(self.cW[0])
+		#self.charTestDisplay.setMaximumWidth(self.cW[1])
 		self.charTestDisplay.setMinimumHeight(self.cH)
 		self.charTestDisplay.setAlignment(QtCore.Qt.AlignCenter)
-		self.charTestBlock.addWidget(self.charTestDisplay)
+		textBedDisplayLayout.addWidget(self.charTestDisplay)
+		###
+		spacer=QtGui.QSpacerItem(self.cW[1],0, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+		textBedDisplayLayout.addItem(spacer)
+		self.charTestBlock.addLayout(textBedDisplayLayout)
+		
+		self.loadTextBackground(1) # Check for existing `bgPaperTest.jpg` BG image
 		
 		self.setLayout(self.charTestBlock) # Layout to display in parent window
 	def pullCharacters(self, pullType):
@@ -335,23 +318,32 @@ class TextToCharDisplay(QtGui.QWidget):
 			self.charTestDisplay.setCursor(QtGui.QCursor(QtCore.Qt.OpenHandCursor))
 			self.mouseDown=0
 			self.updateTextBackground()
-	def loadTextBackground(self):
-		ext=("jpg", "jpeg", "png", "bmp")
-		bgPicker=QtGui.QFileDialog.getOpenFileName(self,"Select Background Image",curDir, "Image files (*.jpg *.jpeg *.png *.bmp)")
+	def loadTextBackground(self,checkLocal=0):
+		bgPicker=''
+		if checkLocal == 1:
+			path=bundleDir+"/textBed_paperBackground.jpg"
+			if os.path.exists(path):
+				bgPicker=path
+		if bgPicker=='':
+			ext=("jpg", "jpeg", "png", "bmp")
+			bgPicker=QtGui.QFileDialog.getOpenFileName(self,"Select Background Image",curDir, "Image files (*.jpg *.jpeg *.png *.bmp)")
 		if bgPicker != "":
 			pmap=QtGui.QPixmap()
 			pmap.load(bgPicker)
 			self.backgroundData=pmap
 			self.bgW=pmap.width()
 			self.bgH=pmap.height()
-			self.updateTextBackground()
+			self.buildTextDisplay(1)
 	def updateTextBackground(self):
 		set=0
+		label=self.charTestDisplay
+		res=[label.width(), label.height()]
 		if self.backgroundData != None:
-			label=self.charTestDisplay
-			res=[label.width(), label.height()]
+			copyRes=[min(res[0], self.bgW), res[1]]
 			
-			pmap=QtGui.QPixmap.fromImage(self.backgroundData.toImage()).copy(self.offset[0],self.offset[1],res[0],res[1])
+			pmap=QtGui.QPixmap.fromImage(self.backgroundData.toImage()).copy(self.offset[0],self.offset[1],copyRes[0],copyRes[1])
+			if res[0] != copyRes[0]:
+				pmap=pmap.scaled(res[0],res[1], QtCore.Qt.IgnoreAspectRatio, QtCore.Qt.FastTransformation)
 			pmap=self.setPaddingLine(pmap)
 			palpha=QtGui.QPixmap(res[0],res[1])
 			palpha.fill(QtGui.QColor(255,255,255))
@@ -360,7 +352,7 @@ class TextToCharDisplay(QtGui.QWidget):
 			set=1
 		if self.textBuildData != None:
 			if set==0:
-				pmap=QtGui.QPixmap(self.cW, self.cH)
+				pmap=QtGui.QPixmap(res[0], res[1])
 				pmap.fill(QtGui.QColor(0,0,0,255))
 
 			painter=QtGui.QPainter(pmap)
@@ -376,8 +368,8 @@ class TextToCharDisplay(QtGui.QWidget):
 		if val != self.pastTest or force==1:
 			self.pastTest=val
 			self.charTestText.clearFocus()
-			label=self.charTestDisplay.pixmap()
-			res=[self.cW, self.cH]
+			label=self.charTestDisplay
+			res=[label.width(), label.height()]
 			
 			leftStart=20
 			
@@ -406,6 +398,7 @@ class TextToCharDisplay(QtGui.QWidget):
 					tags=["ocl","ocr","oll","olr","osl","osr","oal","oar"]
 					curTag=''
 					missingChars=[]
+					keepPrinting=1
 					for x,c in enumerate(val):
 						self.runner+=1.0
 						if c == "b":
@@ -452,10 +445,13 @@ class TextToCharDisplay(QtGui.QWidget):
 								if charData == None:
 									missingChars.append(cc)
 									continue;
-								offset=[ leftStart-charData['spacingLeft'],-charData['baseline']+self.baseLine ]
-								leftStart=leftStart-charData['spacingLeft']+charData['spacingRight']
-								painter.drawPixmap(offset[0],offset[1],charData['data'])
-								printText.append("_".join(charData['name'].split("_")[1::]))
+								if keepPrinting == 1:
+									offset=[ leftStart-charData['spacingLeft'],-charData['baseline']+self.baseLine ]
+									leftStart=leftStart-charData['spacingLeft']+charData['spacingRight']
+									painter.drawPixmap(offset[0],offset[1],charData['data'])
+									printText.append("_".join(charData['name'].split("_")[1::]))
+									if offset[0] > res[0]:
+										keepPrinting=0
 							counter.append(cc)
 						else:
 							skip+=1
@@ -469,7 +465,7 @@ class TextToCharDisplay(QtGui.QWidget):
 					self.charMissingList.setDisabled(True)
 				else:
 					self.textBuildData=None
-				self.updateTextBackground()
+		self.updateTextBackground()
 	def pullCharData(self,curChar,entry):
 		curChar=str(curChar)
 		charKeys=self.charListArray.keys()
@@ -487,7 +483,7 @@ class TextToCharDisplay(QtGui.QWidget):
 				pmap=charVar['imgData']
 			else:
 				pmap=self.win.curImgListBlock.itemAt(charVar['imgIndex']).widget().data
-			retDict['premultiply']=float(charVar['premultiply'])/10000.0
+			retDict['premultiply']=charVar['premultiply']/100.0
 			mm=int(float(max(pmap.width(), pmap.height()))*retDict['premultiply'])
 			retDict['resMax']=[mm,mm]
 			res=[ int(float(pmap.width())*retDict['premultiply']), int(float(pmap.height())*retDict['premultiply']) ]
@@ -1302,7 +1298,7 @@ class PageBuilderViewer(QtGui.QWidget):
 				pmap=charVar['imgData']
 			else:
 				pmap=self.win.curImgListBlock.itemAt(charVar['imgIndex']).widget().data
-			retDict['premultiply']=float(charVar['premultiply'])/10000.0*fontScale
+			retDict['premultiply']=charVar['premultiply']/100.0*fontScale
 			mm=int(float(max(pmap.width(), pmap.height()))*retDict['premultiply'])
 			retDict['resMax']=[mm,mm]
 			res=[ int(float(pmap.width())*retDict['premultiply']), int(float(pmap.height())*retDict['premultiply']) ]

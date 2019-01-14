@@ -68,6 +68,7 @@ execfile("includes/local_textToCharDisplay.py")
 
 frozen=0
 curDir='.'
+bundleDir='.'
 if getattr(sys, 'frozen', False):
 	frozen=1
 	bundleDir=sys._MEIPASS
@@ -97,8 +98,8 @@ class ImageProcessor(QtGui.QMainWindow):
 		self.versionText="v0.1.0"
 		self.setTitleBar()
 		
-		self.winSize=[2200,1200]
-		self.setMinimumSize(self.winSize[0],self.winSize[1])
+		self.winSize=[1920,1080]
+		#self.setMinimumSize(self.winSize[0],self.winSize[1])
 		self.resize(self.winSize[0],self.winSize[1])
 		# Create custom top bar styles and widgets
 		# Then set existing window as frame inside the main window
@@ -467,7 +468,7 @@ class ImageProcessor(QtGui.QMainWindow):
 				
 				thresholdColorBlock=QtGui.QHBoxLayout()
 				###
-				self.thresholdColorSlider=SliderGroup(self,"Searching Threshold", [0,765,230],7,"int"," #", "thresholdColorMagTextUpdate()")
+				self.thresholdColorSlider=SliderGroup(self,"Searching Threshold", [0,765,205],7,"int"," #", "thresholdColorMagTextUpdate()")
 				thresholdColorBlock.addWidget(self.thresholdColorSlider)
 				###
 				self.thresholdColor=QtGui.QLabel()
@@ -509,7 +510,7 @@ class ImageProcessor(QtGui.QMainWindow):
 				spacer=QtGui.QSpacerItem(20,8, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
 				textBaseModeBlock.addItem(spacer)
 				###
-				self.brushSizeSlider=SliderGroup(self,"Add/Rem Brush Size", [1,10,6],2,"int","px")
+				self.brushSizeSlider=SliderGroup(self,"Add/Rem Brush Size", [1,10,5],2,"int","px")
 				textBaseModeBlock.addWidget(self.brushSizeSlider)
 				resetCharBlock.addLayout(textBaseModeBlock)
 				###
@@ -517,7 +518,6 @@ class ImageProcessor(QtGui.QMainWindow):
 				resetCharBlock.addWidget(self.edgeGrowthSlider)
 				#entryEditBlock.addWidget(self.edgeGrowthSlider)
 				
-				######
 				displayOptionBlock=QtGui.QHBoxLayout()
 				displayOptionBlock.setSpacing(3)
 				displayOptionBlock.setMargin(0)
@@ -533,21 +533,26 @@ class ImageProcessor(QtGui.QMainWindow):
 				showOutlineOnly.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 				showOutlineOnly.clicked.connect(self.displayOutlineOnly)
 				displayOptionBlock.addWidget(showOutlineOnly)
+				###
+				showNormalDisplay=QtGui.QPushButton("Show Normal Display",self)
+				showNormalDisplay.setStyleSheet(self.buttonStyle)
+				showNormalDisplay.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+				showNormalDisplay.clicked.connect(self.displayNormalView)
+				displayOptionBlock.addWidget(showNormalDisplay)
+				###
 				resetCharBlock.addLayout(displayOptionBlock)
 				######
 				
-				######
-				
 				##### textBase Viewer Gui #####
-				curEntryEditScrollBlock=QtGui.QScrollArea() #QAbstractScrollArea()
-				curEntryEditScrollBlock.setWidgetResizable(True)
-				#curEntryEditScrollBlock.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-				curEntryEditScrollInner=QtGui.QWidget(curEntryEditScrollBlock)
-				curEntryEditScrollInner.setStyleSheet("QWidget {background-color:#2a2a2a;}")
+				curTextBaseEditScrollBlock=QtGui.QScrollArea() #QAbstractScrollArea()
+				curTextBaseEditScrollBlock.setWidgetResizable(True)
+				#curTextBaseEditScrollBlock.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+				curTextBaseEditScrollInner=QtGui.QWidget(curTextBaseEditScrollBlock)
+				curTextBaseEditScrollInner.setStyleSheet("QWidget {background-color:#2a2a2a;}")
 
 				self.curEntryBlock=QtGui.QVBoxLayout()
 				self.curEntryBlock.setAlignment(QtCore.Qt.AlignCenter)
-				curEntryEditScrollInner.setLayout(self.curEntryBlock)
+				curTextBaseEditScrollInner.setLayout(self.curEntryBlock)
 				self.curEntryBlock.setSpacing(pad)
 				self.curEntryBlock.setMargin(pad)
 				tmpEntry=QtGui.QLabel()
@@ -555,14 +560,17 @@ class ImageProcessor(QtGui.QMainWindow):
 				tmpEntry.setAlignment(QtCore.Qt.AlignCenter)
 				self.curEntryBlock.addWidget(tmpEntry)
 				
-				curEntryEditScrollBlock.setWidget(curEntryEditScrollInner)
-				#entryEditBlock.addWidget(curEntryEditScrollBlock)
-				resetCharBlock.addWidget(curEntryEditScrollBlock)
+				curTextBaseEditScrollBlock.setWidget(curTextBaseEditScrollInner)
+				#entryEditBlock.addWidget(curTextBaseEditScrollBlock)
+				resetCharBlock.addWidget(curTextBaseEditScrollBlock)
 				
-				##### ENTRY EDIT PARAMETERS #####
+				
+				################################
+				### Character Entry Settings ###
+				################################
 				#self.curImageDisplayEditParent=QtGui.QVBoxLayout()
 				self.curImageDisplayEditBlockWidget=QtGui.QWidget()
-				self.curImageDisplayEditBlockWidget.setMinimumWidth(650)
+				#self.curImageDisplayEditBlockWidget.setMinimumWidth(600)
 				self.curImageDisplayEditBlockWidget.setMaximumWidth(850)
 				entryEditBlock.addWidget(self.curImageDisplayEditBlockWidget)
 				self.curImageDisplayEditBlock=QtGui.QVBoxLayout()
@@ -571,7 +579,7 @@ class ImageProcessor(QtGui.QMainWindow):
 				self.curImageDisplayEditBlockWidget.setLayout(self.curImageDisplayEditBlock)
 				
 				self.curImageButtonBlock=QtGui.QVBoxLayout()
-				updateButton=QtGui.QPushButton("Read Fitted Scaling",self)
+				updateButton=QtGui.QPushButton("Read Found Character Data",self)
 				updateButton.setStyleSheet(self.buttonStyle)
 				updateButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 				updateButton.clicked.connect(self.pullFittedScale)
@@ -579,10 +587,43 @@ class ImageProcessor(QtGui.QMainWindow):
 				###
 				self.curImageDisplayEditBlock.addLayout(self.curImageButtonBlock)
 		
+		
+				scrollCharacterEntryBlock=QtGui.QScrollArea()
+				scrollCharacterEntryBlock.setWidgetResizable(True)
+				scrollCharacterEntryBlock.setStyleSheet("QWidget {background-color:#323232;}")
+				scrollCharacterEntryBlock.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+				self.curImageDisplayEditBlock.addWidget(scrollCharacterEntryBlock)
+				###
+				curEntryEditScrollInner=QtGui.QWidget(scrollCharacterEntryBlock)
+				#curEntryEditScrollInner.setStyleSheet("QWidget {background-color:#2a2a2a;}")
+		
+				scrollCharacterEntryLayout=QtGui.QVBoxLayout()
+				scrollCharacterEntryLayout.setSpacing(3)
+				scrollCharacterEntryLayout.setMargin(0)
+				curEntryEditScrollInner.setLayout(scrollCharacterEntryLayout)
+				scrollCharacterEntryBlock.setWidget(curEntryEditScrollInner)
+				
+				spacer=QtGui.QSpacerItem(10,10, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Maximum)
+				scrollCharacterEntryLayout.addItem(spacer)
+				
+				self.curImageHelperBlock=QtGui.QHBoxLayout()
+				self.curImageHelperBlock.setSpacing(3)
+				self.curImageHelperBlock.setMargin(3)
+				self.curImageDisplay=TextCharacterViewer(self,self.textBase,0,self.curImageHelpers)
+				self.curImageHelperBlock.addWidget(self.curImageDisplay)
+				self.curImageOverlayDisplay=TextCharacterViewer(self,self.textBase,1,self.curImageHelpers)
+				self.curImageHelperBlock.addWidget(self.curImageOverlayDisplay)
+				self.curImageMaskDisplay=TextCharacterViewer(self,self.textBase,2,self.curImageHelpers)
+				self.curImageHelperBlock.addWidget(self.curImageMaskDisplay)
+				self.curImageHelperBlock.setAlignment(QtCore.Qt.AlignCenter)
+				scrollCharacterEntryLayout.addLayout(self.curImageHelperBlock)
+				
 				spacer=QtGui.QSpacerItem(10,10, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-				self.curImageDisplayEditBlock.addItem(spacer)
+				scrollCharacterEntryLayout.addItem(spacer)
 				
 				######
+				self.curImageDisplayWidget=QtGui.QWidget()
+				self.curImageDisplayWidget.setFixedHeight(512)
 				self.curImageDisplayBlock=QtGui.QHBoxLayout()
 				###
 				curImageTopPaddingBlock=QtGui.QVBoxLayout()
@@ -610,7 +651,6 @@ class ImageProcessor(QtGui.QMainWindow):
 				self.curImageFinalDisplay=TextCharacterViewer(self,self.textBase,3,self.curImageFull)
 				self.curImageDisplayBlock.addWidget(self.curImageFinalDisplay)
 				self.curImageDisplayBlock.setAlignment(QtCore.Qt.AlignCenter)
-				self.curImageDisplayEditBlock.addLayout(self.curImageDisplayBlock)
 				###
 				###
 				curImageBottomPaddingBlock=QtGui.QVBoxLayout()
@@ -633,6 +673,8 @@ class ImageProcessor(QtGui.QMainWindow):
 				curImageBottomPaddingBlock.addWidget(self.paddingBottomVal)
 				self.curImageDisplayBlock.addLayout(curImageBottomPaddingBlock)
 				self.sliderBottomPadding.valueChanged.connect(self.paddingBottomSliderChange)
+				self.curImageDisplayWidget.setLayout(self.curImageDisplayBlock)
+				scrollCharacterEntryLayout.addWidget(self.curImageDisplayWidget)
 				######
 				### Left / Right Align ###
 				leftRightAlignBlockWidgetBlock=QtGui.QVBoxLayout()
@@ -690,23 +732,10 @@ class ImageProcessor(QtGui.QMainWindow):
 				leftRightAlignBlock.addLayout(leftRightAlignText)
 				leftRightAlignBlockWidget.setLayout(leftRightAlignBlock)
 				leftRightAlignBlockWidgetBlock.addWidget(leftRightAlignBlockWidget)
-				self.curImageDisplayEditBlock.addLayout(leftRightAlignBlockWidgetBlock)
+				scrollCharacterEntryLayout.addLayout(leftRightAlignBlockWidgetBlock)
 				######
-				
 				spacer=QtGui.QSpacerItem(10,10, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-				self.curImageDisplayEditBlock.addItem(spacer)
-				
-				self.curImageHelperBlock=QtGui.QHBoxLayout()
-				self.curImageHelperBlock.setSpacing(3)
-				self.curImageHelperBlock.setMargin(3)
-				self.curImageDisplay=TextCharacterViewer(self,self.textBase,0,self.curImageHelpers)
-				self.curImageHelperBlock.addWidget(self.curImageDisplay)
-				self.curImageOverlayDisplay=TextCharacterViewer(self,self.textBase,1,self.curImageHelpers)
-				self.curImageHelperBlock.addWidget(self.curImageOverlayDisplay)
-				self.curImageMaskDisplay=TextCharacterViewer(self,self.textBase,2,self.curImageHelpers)
-				self.curImageHelperBlock.addWidget(self.curImageMaskDisplay)
-				self.curImageHelperBlock.setAlignment(QtCore.Qt.AlignCenter)
-				self.curImageDisplayEditBlock.addLayout(self.curImageHelperBlock)
+				scrollCharacterEntryLayout.addItem(spacer)
 				
 				self.curImageSettings=QtGui.QVBoxLayout()
 				self.curImageDisplayEditBlock.addLayout(self.curImageSettings)
@@ -753,6 +782,11 @@ class ImageProcessor(QtGui.QMainWindow):
 				except:
 					self.textCharDisplay=TextToCharDisplay(self)
 					self.textCharDisplayBlock.addWidget(self.textCharDisplay)
+					
+					## Help with QTimer from
+					## https://stackoverflow.com/questions/21897322/pyqt-application-load-complete-event
+					timer=QtCore.QTimer()
+					timer.singleShot(0,lambda: self.textCharDisplay.buildTextDisplay(1))
 				
 					###### OUTPUT AND EXPORT ######
 					# Load directory text field
@@ -944,7 +978,7 @@ class ImageProcessor(QtGui.QMainWindow):
 			outPath=str(self.dirField.text())+"pxl_pageBuilderOutput/"
 			self.pageViewer.setPageOutputDir(outPath)
 
-		spacer=QtGui.QSpacerItem(10,100, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Maximum)
+		spacer=QtGui.QSpacerItem(10,5, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Fixed)
 		self.curImageSettings.addItem(spacer)
 		
 		self.textBaseViewWindow=TextBaseViewer(self,obj)
@@ -953,126 +987,28 @@ class ImageProcessor(QtGui.QMainWindow):
 		self.curEntryBlock.setMargin(0)
 		
 		### Sliders and Jazz ###
-		### Full ###
-		curImageFullSettings=QtGui.QHBoxLayout()
-		fullSizeText=QtGui.QLabel()
-		fullSizeText.setText("Base Line -")
-		fullSizeText.setMinimumWidth(150)
-		curImageFullSettings.addWidget(fullSizeText)
-		###
-		self.sliderBaseLine=QtGui.QSlider()
-		self.sliderBaseLine.setOrientation(QtCore.Qt.Horizontal)
-		self.sliderBaseLine.setMinimum(0)
-		self.sliderBaseLine.setMaximum(1024)
-		self.sliderBaseLine.setValue(210)
-		curImageFullSettings.addWidget(self.sliderBaseLine)
-		###
-		self.fullSizeVal=QtGui.QLabel()
-		self.fullSizeVal.setText("210 px")
-		self.fullSizeVal.setMinimumWidth(90)
-		self.fullSizeVal.setAlignment(QtCore.Qt.AlignRight)
-		curImageFullSettings.addWidget(self.fullSizeVal)
-		###
-		self.curImageSettings.addLayout(curImageFullSettings)
-		self.sliderBaseLine.valueChanged.connect(self.baseLineSliderChange)
+		self.sliderBaseLine=SliderGroup(self,"Base Line", [0,1024,210],3,"int"," px", "baseLineSliderChange()",1)
+		self.curImageSettings.addWidget(self.sliderBaseLine)
 		
 		spacer=QtGui.QSpacerItem(10,3, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Maximum)
 		self.curImageSettings.addItem(spacer)
-		
-		curImageThumbSettings=QtGui.QHBoxLayout()
-		thumbSizeText=QtGui.QLabel()
-		thumbSizeText.setText("PreMultiply Scale-")
-		thumbSizeText.setMinimumWidth(150)
-		curImageThumbSettings.addWidget(thumbSizeText)
 		###
-		self.sliderPreMult=QtGui.QSlider()
-		self.sliderPreMult.setOrientation(QtCore.Qt.Horizontal)
-		self.sliderPreMult.setMinimum(1)
-		self.sliderPreMult.setMaximum(20000)
-		curVal=self.imgThumbPerc
-		self.sliderPreMult.setValue(10000)
-		curImageThumbSettings.addWidget(self.sliderPreMult)
+		self.sliderPreMult=SliderGroup(self,"PreMultiply Scale", [0,200,100],3,"float"," %", "preMultScaleSliderChange()",1)
+		self.curImageSettings.addWidget(self.sliderPreMult)
 		###
-		self.preMultVal=QtGui.QLabel()
-		self.preMultVal.setText("100.00 %")	
-		self.preMultVal.setMinimumWidth(90)
-		self.preMultVal.setAlignment(QtCore.Qt.AlignRight)
-		curImageThumbSettings.addWidget(self.preMultVal)
-		self.curImageSettings.addLayout(curImageThumbSettings)
-		self.sliderPreMult.valueChanged.connect(self.preMultScaleSliderChange)
-		
 		spacer=QtGui.QSpacerItem(10,3, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Maximum)
 		self.curImageSettings.addItem(spacer)
 		
 		### Alpha Reach Settings ###
-		curAlphaReachSettings=QtGui.QHBoxLayout()
-		qualityText=QtGui.QLabel()
-		qualityText.setText("Alpha Fade Reach -")
-		qualityText.setMinimumWidth(100)
-		curAlphaReachSettings.addWidget(qualityText)
+		self.sliderAlphaReach=SliderGroup(self,"Alpha Fade Reach", [0,10,2],3,"int"," px", "alphaReachSliderReleased()",0)
+		self.curImageSettings.addWidget(self.sliderAlphaReach)
+		self.sliderContrast=SliderGroup(self,"Alpha Contrast", [0,110,70],3,"float"," %", "contrastSliderReleased()",0)
+		self.curImageSettings.addWidget(self.sliderContrast)
 		###
-		self.sliderAlphaReach=QtGui.QSlider()
-		self.sliderAlphaReach.setOrientation(QtCore.Qt.Horizontal)
-		self.sliderAlphaReach.setMinimum(1)
-		self.sliderAlphaReach.setMaximum(10)
-		self.sliderAlphaReach.setValue(2)
-		curAlphaReachSettings.addWidget(self.sliderAlphaReach)
-		###
-		self.qualityVal=QtGui.QLabel()
-		self.qualityVal.setText("2 px")	
-		self.qualityVal.setMinimumWidth(90)
-		self.qualityVal.setAlignment(QtCore.Qt.AlignRight)
-		curAlphaReachSettings.addWidget(self.qualityVal)
-		self.curImageSettings.addLayout(curAlphaReachSettings)
-		self.sliderAlphaReach.valueChanged.connect(self.alphaReachSliderChange)
-		self.sliderAlphaReach.sliderReleased.connect(self.alphaReachSliderReleased)
-		###
-		
-		### Medium ###
-		curImageThumbSettings=QtGui.QHBoxLayout()
-		thumbSizeText=QtGui.QLabel()
-		thumbSizeText.setText("Alpha Contrast -")
-		thumbSizeText.setMinimumWidth(150)
-		curImageThumbSettings.addWidget(thumbSizeText)
-		###
-		self.sliderContrast=QtGui.QSlider()
-		self.sliderContrast.setOrientation(QtCore.Qt.Horizontal)
-		self.sliderContrast.setMinimum(0)
-		self.sliderContrast.setMaximum(200)
-		self.sliderContrast.setValue(70)
-		curImageThumbSettings.addWidget(self.sliderContrast)
-		###
-		self.contrastVal=QtGui.QLabel()
-		self.contrastVal.setText("70")	
-		self.contrastVal.setMinimumWidth(90)
-		self.contrastVal.setAlignment(QtCore.Qt.AlignRight)
-		curImageThumbSettings.addWidget(self.contrastVal)
-		self.curImageSettings.addLayout(curImageThumbSettings)
-		self.sliderContrast.valueChanged.connect(self.contrastSliderChange)
-		self.sliderContrast.sliderReleased.connect(self.contrastSliderReleased)
-		
-		### Medium ###
-		curImageMedSettings=QtGui.QHBoxLayout()
-		medSizeText=QtGui.QLabel()
-		medSizeText.setText("Degree Rotation -")
-		medSizeText.setMinimumWidth(150)
-		curImageMedSettings.addWidget(medSizeText)
-		###
-		self.sliderRotate=QtGui.QSlider()
-		self.sliderRotate.setOrientation(QtCore.Qt.Horizontal)
-		self.sliderRotate.setMinimum(-6000)
-		self.sliderRotate.setMaximum(6000)
-		self.sliderRotate.setValue(0)
-		curImageMedSettings.addWidget(self.sliderRotate)
-		###
-		self.rotateSliderVal=QtGui.QLabel()
-		self.rotateSliderVal.setText("0.0 deg")
-		self.rotateSliderVal.setMinimumWidth(90)
-		self.rotateSliderVal.setAlignment(QtCore.Qt.AlignRight)
-		curImageMedSettings.addWidget(self.rotateSliderVal)
-		self.curImageSettings.addLayout(curImageMedSettings)
-		self.sliderRotate.valueChanged.connect(self.degreesSliderChange)
-		self.sliderRotate.sliderReleased.connect(self.degreesSliderReleased)
+		spacer=QtGui.QSpacerItem(10,3, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Maximum)
+		self.curImageSettings.addItem(spacer)
+		self.sliderRotate=SliderGroup(self,"Degree Rotation", [-20,20,0],3,"float"," *", "degreesSliderReleased()",0)
+		self.curImageSettings.addWidget(self.sliderRotate)
 		
 		spacer=QtGui.QSpacerItem(10,50, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Maximum)
 		self.curImageSettings.addItem(spacer)
@@ -1107,6 +1043,7 @@ class ImageProcessor(QtGui.QMainWindow):
 		curChar.charField.selectAll()
 		#self.curImgListBlock.addWidget(curChar)
 		self.resetCurTextCharacter()
+		curChar.loadEntry()
 		self.unsavedChanges=1
 	def curImgListPushTop(self, addChar, mode='top'):
 		if mode == 'top':
@@ -1196,8 +1133,7 @@ class ImageProcessor(QtGui.QMainWindow):
 				pass;
 		######
 	def baseLineSliderChange(self):
-		val=self.sliderBaseLine.value()
-		self.fullSizeVal.setText(str(val)+" px")
+		val=self.sliderBaseLine.value
 		if self.runValChangeEvent == 1 and self.charSampled==1:
 			thumbIndex=self.curImageFinalDisplay.thumbIndex
 			if thumbIndex>-1:
@@ -1207,52 +1143,53 @@ class ImageProcessor(QtGui.QMainWindow):
 			self.unsavedChanges=1
 			if self.textCharDisplay.autoUpdate==True:
 				self.textCharDisplay.reloadText()
-	def degreesSliderChange(self):
-		val=float(self.sliderRotate.value())
-		self.rotateSliderVal.setText(str(val/100.0)+" deg")
 	def degreesSliderReleased(self):
-		val=float(self.sliderRotate.value())
-		self.rotateSliderVal.setText(str(val/100.0)+" deg")
+		val=self.sliderRotate.value
+		#self.rotateSliderVal.setText(str(val/100.0)+" deg")
 		if self.runValChangeEvent == 1 and self.charSampled==1:
 			self.curImageMaskDisplay.pullCharacterRect(1)
 			self.curImageFinalDisplay.pullCharacterRect(1)
+			thumbIndex=self.curImageFinalDisplay.thumbIndex
+			if thumbIndex>-1:
+				thumbWidget=self.curImgListBlock.itemAt(thumbIndex).widget()
+				thumbWidget.degRotation=val
 			self.unsavedChanges=1
 			if self.textCharDisplay.autoUpdate==True:
 				self.textCharDisplay.reloadText()
 	def preMultScaleSliderChange(self):
-		val=float(self.sliderPreMult.value())
-		self.preMultVal.setText(str(val/100.0)+" %")
+		val=self.sliderPreMult.value
 		if self.runValChangeEvent == 1 and self.charSampled==1:
 			thumbIndex=self.curImageFinalDisplay.thumbIndex
 			if thumbIndex>-1:
 				thumbWidget=self.curImgListBlock.itemAt(thumbIndex).widget()
-				thumbWidget.premultiply=self.sliderPreMult.value()
+				thumbWidget.premultiply=val
 			self.unsavedChanges=1
 			if self.textCharDisplay.autoUpdate==True:
 				self.textCharDisplay.reloadText()
-	def contrastSliderChange(self):
-		val=self.sliderContrast.value()
-		self.contrastVal.setText(str(val))
 	def contrastSliderReleased(self):
-		val=self.sliderContrast.value()
-		self.contrastVal.setText(str(val))
+		val=self.sliderContrast.value
+		#self.contrastVal.setText(str(val))
 		if self.runValChangeEvent == 1 and self.charSampled==1:
 			self.curImageMaskDisplay.pullCharacterRect(1)
 			self.curImageFinalDisplay.pullCharacterRect(1)
+			thumbIndex=self.curImageFinalDisplay.thumbIndex
+			if thumbIndex>-1:
+				thumbWidget=self.curImgListBlock.itemAt(thumbIndex).widget()
+				thumbWidget.contrast=val
 			self.unsavedChanges=1
 			if self.textCharDisplay.autoUpdate==True:
 				self.textCharDisplay.reloadText()
-	def alphaReachSliderChange(self):
-		val=self.sliderAlphaReach.value()
-		self.qualityVal.setText(str(val)+" px")
 	def alphaReachSliderReleased(self):
-		val=self.sliderAlphaReach.value()
-		self.qualityVal.setText(str(val)+" px")
+		val=self.sliderAlphaReach.value
 		if self.runValChangeEvent == 1 and self.charSampled==1:
 			self.curImageDisplay.pullCharacterRect(1)
 			self.curImageOverlayDisplay.pullCharacterRect(1)
 			self.curImageMaskDisplay.pullCharacterRect(1)
 			self.curImageFinalDisplay.pullCharacterRect(1)
+			thumbIndex=self.curImageFinalDisplay.thumbIndex
+			if thumbIndex>-1:
+				thumbWidget=self.curImgListBlock.itemAt(thumbIndex).widget()
+				thumbWidget.alphaReach=val
 			self.unsavedChanges=1
 			if self.textCharDisplay.autoUpdate==True:
 				self.textCharDisplay.reloadText()
@@ -1291,6 +1228,8 @@ class ImageProcessor(QtGui.QMainWindow):
 		self.statusBarUpdate(" -- Select a larger area than your character ... Clicking and draging to make bounds -- ", 0,1)
 	def displayOutlineOnly(self):
 		self.textBaseViewWindow.drawReachMask(1,0,1)
+	def displayNormalView(self):
+		self.textBaseViewWindow.drawReachMask()
 	def setNewThresholdColor(self, posXY):
 		img=self.imgData[self.curImage]#self.img.pixmap()
 		#img=QtGui.QPixmap.fromImage(img.toImage())
@@ -1382,6 +1321,12 @@ class ImageProcessor(QtGui.QMainWindow):
 					curChar.charBase=letter
 					for data in charListKey.charList[letter][char].keys():
 						curCharData=charListKey.charList[letter][char][data]
+						### I shouldn't care about this....
+						### Are people seriously downloading my script yet?
+						### Hell with it.
+						if data in ["premultiply","contrast","degRotation"]:
+							if "." not in str(curCharData):
+								curCharData=float(curCharData)/100.0
 						setattr(curChar,data,curCharData)
 					curTextBasePath=charListKey.charList[letter][char]['textBaseFile']
 					curChar.textBaseFile=curTextBasePath
@@ -1452,7 +1397,6 @@ class ImageProcessor(QtGui.QMainWindow):
 				path+="charListKey.py"
 				with open(path, "w") as f:
 					f.write(export)
-				#print "Wrote out to - "+path
 				self.statusBarUpdate(" -- Wrote out to - "+path+" --", 10000,1)
 				curTime=dt.datetime.now().strftime("%H:%M - %m/%d/%Y")
 				self.unsavedChanges=0
@@ -1460,8 +1404,14 @@ class ImageProcessor(QtGui.QMainWindow):
 				self.statusBarUpdate(" -- No created characters, please select and 'Finish Character' first -- ", 5000,2)
 		else:
 			self.statusBarUpdate(" -- No characters found, please 'Load Text Image' to load existing character data -- ", 5000,2)
+	def resizeEvent(self,event):
+		if hasattr(self, "textCharDisplay"):
+			self.textCharDisplay.buildTextDisplay(1)
 	def closeEvent(self,event):
 		self.quitPromptCreate()
+		### Was used to javascript, attempted simply return False, yeah, that didn't work
+		### https://stackoverflow.com/questions/18256459/qdialog-prevent-closing-in-python-and-pyqt
+		event.ignore()
 	def quitPromptCreate(self):
 		self.closePrompt=QtGui.QMessageBox()
 		self.closePrompt.setIcon(QtGui.QMessageBox.Question)

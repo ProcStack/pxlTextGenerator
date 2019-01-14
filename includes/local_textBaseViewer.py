@@ -333,7 +333,7 @@ class TextBaseViewer(QtGui.QWidget):
 					if self.win.loopLatch==1:
 						self.win.loopLatch=0
 					# Update scanRange to display bounding box better
-					alphaPadding=self.win.sliderAlphaReach.value()
+					alphaPadding=self.win.sliderAlphaReach.value
 					self.scanRange[0]=max(tempScanRange[0]-alphaPadding, 0) if tempScanRange[0] != self.scanRange[0] else self.scanRange[0]
 					self.scanRange[1]=max(tempScanRange[1]-alphaPadding, 0) if tempScanRange[1] != self.scanRange[1] else self.scanRange[1]
 					self.scanRange[2]=min(tempScanRange[2]+alphaPadding, self.cWOrig-1) if tempScanRange[2] != self.scanRange[2] else self.scanRange[2]
@@ -351,7 +351,7 @@ class TextBaseViewer(QtGui.QWidget):
 		self.setZoom(targetZoom)
 	def setCustomPixels(self,mode,pos,brushSize):
 		brushSize=float(brushSize)/2.0
-		alphaPadding=self.win.sliderAlphaReach.value()
+		alphaPadding=self.win.sliderAlphaReach.value
 		origRangePixels=[[0,0]]
 		if brushSize > 1:
 			self.buildBrushPixels()
@@ -676,7 +676,7 @@ class TextBaseViewer(QtGui.QWidget):
 			self.rebuildReachPixels(self.reachPixels,1)
 			if imgLoaded==0:
 				self.scanRange=tempScanRange
-				alphaPadding=self.win.sliderAlphaReach.value()
+				alphaPadding=self.win.sliderAlphaReach.value
 				self.scanRange[0]=max(tempScanRange[0]-alphaPadding, 0) if tempScanRange[0] != self.scanRange[0] else self.scanRange[0]
 				self.scanRange[1]=max(tempScanRange[1]-alphaPadding, 0) if tempScanRange[1] != self.scanRange[1] else self.scanRange[1]
 				self.scanRange[2]=min(tempScanRange[2]+alphaPadding, self.cWOrig) if tempScanRange[2] != self.scanRange[2] else self.scanRange[2]

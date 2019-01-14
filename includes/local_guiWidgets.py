@@ -132,7 +132,7 @@ def strCheck(val):
 ######
 ### SliderGroup(self,"Bottom",[0,2048,1948],7,"int",' px',"updatePaddingBars()")
 class SliderGroup(QtGui.QWidget):	
-	def __init__(self, win,title,minMaxVal,padding,type,suffix,function=None):
+	def __init__(self, win,title,minMaxVal,padding,type,suffix,function=None, continuous=0):
 		QtGui.QWidget.__init__(self)
 		self.win=win
 		self.title=title
@@ -142,6 +142,7 @@ class SliderGroup(QtGui.QWidget):
 		self.min=minMaxVal[0]
 		self.max=minMaxVal[1]
 		self.value=minMaxVal[2]
+		self.defaultValue=minMaxVal[2]
 		startVal=self.value
 		if self.type == "float":
 			self.min=minMaxVal[0]*100
@@ -149,8 +150,10 @@ class SliderGroup(QtGui.QWidget):
 			self.value=float(minMaxVal[2])
 			startVal=minMaxVal[2]*100
 		self.function=function
+		self.continuous=continuous
 		self.editTextMode=0
 		self.runEvents=0
+		self.textChanged=0
 	
 		sliderBlock=QtGui.QHBoxLayout()
 		sliderBlock.setSpacing(0)
@@ -165,7 +168,8 @@ class SliderGroup(QtGui.QWidget):
 		self.slider.setMinimum(self.min)
 		self.slider.setMaximum(self.max)
 		self.slider.setValue(startVal)
-		self.slider.valueChanged.connect(self.sliderChange)
+		self.slider.valueChanged.connect(lambda: self.sliderChange(0))
+		self.slider.sliderReleased.connect(lambda: self.sliderChange(1))
 		sliderBlock.addWidget(self.slider)
 		###
 		self.sliderValueTextBlock=QtGui.QHBoxLayout()
@@ -181,8 +185,15 @@ class SliderGroup(QtGui.QWidget):
 	def setValue(self,val): # Expecting str()
 		val=str(val)
 		if "." in val:
-			val=str("".join( filter( lambda x: x!=".", list(val) ) ))
-		if val.isdigit() == True:
+			val=val.split(".")
+			val[1]=val[1][0:2]
+			val[1]+='0'*(2-len(val[1]))
+			val="".join(val)
+			#val=str("".join( filter( lambda x: x!=".", list(val) ) ))
+		dig=val.isdigit()
+		if val[0] == "-":
+			dig=val[1:].isdigit()
+		if dig == True:
 			self.slider.setValue( int(val) )
 			#self.setValueText(self,val)
 	def valueTextPress(self, e):
@@ -205,6 +216,9 @@ class SliderGroup(QtGui.QWidget):
 	def valueTextDone(self):
 		self.sliderValueTextEdit.editingFinished.disconnect(self.valueTextDone)
 		val=self.sliderValueTextEdit.text()
+		self.textChanged=1
+		if val=='':
+			val=self.defaultValue
 		if self.type == "float":
 			if "." in val:
 				varr=map(str, val.split("."))
@@ -228,9 +242,11 @@ class SliderGroup(QtGui.QWidget):
 			self.slider.setValue(-1)
 		self.editTextMode=0
 		self.slider.setValue(val)
-	def sliderChange(self):
+		self.setValueText(val)
+		self.textChanged=0
+	def sliderChange(self,release=0):
 		self.setValueText()
-		if self.function != None:
+		if self.function != None and (release==1 or self.textChanged==1 or self.continuous==1):
 			eval("self.win."+self.function)
 	def setValueText(self,val=None):
 		if val == None:
