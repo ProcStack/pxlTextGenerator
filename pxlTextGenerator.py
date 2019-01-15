@@ -129,6 +129,7 @@ class ImageProcessor(QtGui.QMainWindow):
 		self.textBaseViewWindow=''
 		self.textBasePath=''
 		self.imgData={}
+		self.scanRangeStorage={}
 		self.curImage=None
 		self.curImagePath=None
 		self.sampleMode=1
@@ -141,10 +142,17 @@ class ImageProcessor(QtGui.QMainWindow):
 		self.checkerBoard=None
 		self.displayCheckerBoard=1
 		self.buttonStyle="height:25px;padding-left:10px;padding-right:10px;"
+		self.bgBrushStyle="margin:3px;padding:3px;"
+		bgBrushStyleSelected="font-weight:bold;border:1px solid #232323;color:#eeeeee;"
+		self.bgBrushColor=["background-color:#229022;","background-color:#228060;font-weight:bold;","background-color:#8f227a;font-weight:bold;"]
+		self.bgBrushColor=map(lambda x: x+bgBrushStyleSelected, self.bgBrushColor)
 		self.curImageFull=512
 		self.curImageHelpers=196
 		self.unsavedChanges=0
 		self.charSampled=0
+		self.setWorkingAreaButtonText=["Set Working Area", "Remove Work Area"]
+		self.cropWorkingAreaButtonText=["Crop To Work Area", "Exit Work Area Crop"]
+		self.workAreaCrop=0
 		
 		self.setWindowStyleSheet()
 		self.statusBarMsg=''
@@ -155,25 +163,13 @@ class ImageProcessor(QtGui.QMainWindow):
 		self.statusBarMode=0
 		self.statusBarModeSet=0
 		
-		## BELOW IS OLD ##
-		self.websiteName=""
-		self.websiteSettingsFile=""
-		self.galleryName=""
-		self.galleryPath=""
 		self.curEntryObj=-1
-		self.dirImageList={}
 		self.loadIndexList=[]
 		self.loadScrollList=[]
 		self.charSamplePoints=[]
 		self.scrollIndexVal=0
 		self.scrollIndexHeight=-1
 		self.mainWidget=QtGui.QWidget(self)
-		self.imgFullPerc=50
-		self.imgFullTilePerc=5
-		self.imgMedPerc=25
-		self.imgThumbPerc=10
-		self.imgQualityPerc=50
-		###
 		
 		### Menu Bar ###
 		self.menuBar=self.menuBar()
@@ -501,8 +497,10 @@ class ImageProcessor(QtGui.QMainWindow):
 				resetCharBlock.addLayout(thresholdColorBlock)
 				######
 				textBaseModeBlock=QtGui.QHBoxLayout()
+				textBaseModeBlock.setSpacing(3)
 				self.textBaseMode_select=QtGui.QRadioButton("Select Area")
 				self.textBaseMode_select.setChecked(True)
+				self.textBaseMode_select.setStyleSheet(self.bgBrushStyle+self.bgBrushColor[0])
 				self.textBaseMode_select.mode="sel"
 				self.textBaseMode_select.toggled.connect(lambda: self.setTextBaseMode(self.textBaseMode_select))
 				textBaseModeBlock.addWidget(self.textBaseMode_select)
@@ -511,6 +509,7 @@ class ImageProcessor(QtGui.QMainWindow):
 				textBaseModeBlock.addItem(spacer)
 				###
 				self.textBaseMode_add=QtGui.QRadioButton("Add Brush")
+				self.textBaseMode_add.setStyleSheet(self.bgBrushStyle)
 				self.textBaseMode_add.mode="add"
 				self.textBaseMode_add.toggled.connect(lambda: self.setTextBaseMode(self.textBaseMode_add))
 				textBaseModeBlock.addWidget(self.textBaseMode_add)
@@ -519,6 +518,7 @@ class ImageProcessor(QtGui.QMainWindow):
 				textBaseModeBlock.addItem(spacer)
 				###
 				self.textBaseMode_subtract=QtGui.QRadioButton("Remove Brush")
+				self.textBaseMode_subtract.setStyleSheet(self.bgBrushStyle)
 				self.textBaseMode_subtract.mode="rem"
 				self.textBaseMode_subtract.toggled.connect(lambda: self.setTextBaseMode(self.textBaseMode_subtract))
 				textBaseModeBlock.addWidget(self.textBaseMode_subtract)
@@ -538,11 +538,20 @@ class ImageProcessor(QtGui.QMainWindow):
 				displayOptionBlock.setSpacing(3)
 				displayOptionBlock.setMargin(0)
 				###
-				setWorkingArea=QtGui.QPushButton("Set Working Area",self)
-				setWorkingArea.setStyleSheet(self.buttonStyle)
-				setWorkingArea.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-				setWorkingArea.clicked.connect(self.setWorkingArea)
-				displayOptionBlock.addWidget(setWorkingArea)
+				self.setWorkingAreaButton=QtGui.QPushButton(self.setWorkingAreaButtonText[0],self)
+				self.setWorkingAreaButton.setStyleSheet(self.buttonStyle)
+				self.setWorkingAreaButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+				self.setWorkingAreaButton.clicked.connect(self.setWorkingArea)
+				displayOptionBlock.addWidget(self.setWorkingAreaButton)
+				###
+				self.cropWorkingAreaButton=QtGui.QPushButton(self.cropWorkingAreaButtonText[0],self)
+				self.cropWorkingAreaButton.setStyleSheet(self.buttonStyle)
+				self.cropWorkingAreaButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+				self.cropWorkingAreaButton.clicked.connect(self.cropWorkingArea)
+				displayOptionBlock.addWidget(self.cropWorkingAreaButton)
+				###
+				spacer=QtGui.QSpacerItem(10,8, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
+				resetCharBlock.addItem(spacer)
 				###
 				showOutlineOnly=QtGui.QPushButton("Show Outline Only",self)
 				showOutlineOnly.setStyleSheet(self.buttonStyle)
@@ -841,12 +850,9 @@ class ImageProcessor(QtGui.QMainWindow):
 					activeList=[textBasePaths[0]]
 					for x,p in enumerate(activeList):
 						scrollOffset+=scrollAdd+pad
-						
-						#IndexImageEntry(win, index, name, relativePath, scaleSize, qtImg):
 						if loadObj==-1:
-							curImg=IndexImageEntry(self,x,p,folderPicker+"/",size, None)
+							curImg=IndexImageEntry(self,x,p,folderPicker+"/",size,None, None)
 							loadObj=curImg
-							#self.curImgListBlock.addWidget(curImg)
 							self.sideBarTextBase.addWidget(curImg)
 							curImg.offset=scrollOffset
 							self.loadIndexList.append(curImg)
@@ -854,23 +860,47 @@ class ImageProcessor(QtGui.QMainWindow):
 							self.loadScrollList[-1].append(scrollOffset)
 							self.loadScrollList[-1].append(scrollOffset+curImg.imgSizeIndexList[1])
 							scrollAdd=curImg.imgSizeIndexList[1]
-						#textBaseList
+					### textBase Relative Image Paths List Generation ###
 					for x,tbpath in enumerate( textBasePaths ):
-						item=QtGui.QListWidgetItem(tbpath)
+						formatted=self.formatPath(tbpath)
+						item=QtGui.QListWidgetItem(formatted)
+						item.raw=tbpath
+						item.formatted=formatted
 						item.absPath=textBaseAbsPaths[x]
 						self.baseListOptions.addItem(item)
 					self.scrollIndexBlock.setWidget(scrollInner)
 					self.sideBarBlock.addWidget(self.scrollIndexBlock)
 					entryBlock.addLayout(self.sideBarBlock)
 					self.imageDisplayBlock.addLayout(entryBlock)
-					#self.updateScrollIndex()
 					loadObj.loadImage()
 					self.textBasePath=loadObj.imgPath
 					self.loadImageEntry(loadObj,1)
+					self.baseListOptions.setCurrentRow(0)
+					self.updateTextBase()
 					
 					self.loadExistingData()
 					self.dispCheckerBoard(self.curImageFull,1)
 					#self.textBaseViewWindow.setDefaultScroll() ### GET THIS WORKING
+	def formatPath(self, name=None, relPath=0):
+		if name != None:
+			buildRelPath=repr(name)
+			buildRelPath="".join(filter(None, buildRelPath.split("'")))
+			if delimit in buildRelPath:
+				buildRelPath=buildRelPath.split(delimit)
+			elif '/' in buildRelPath:
+				buildRelPath=buildRelPath.split('/')
+			else:
+				buildRelPath=None
+			if buildRelPath != None:
+				buildRelPath=filter(None, buildRelPath)
+				if ":" not in name or relPath==1:
+					if self.projectName in buildRelPath:
+						projectIndex=buildRelPath.index(self.projectName)
+						buildRelPath=buildRelPath[projectIndex:]
+					buildRelPath=['']+buildRelPath
+				buildRelPath='/'.join(buildRelPath)
+				name=str(buildRelPath)
+		return name
 	def prepProjectFolder(self, scanFolder):
 		ext=("jpg", "jpeg", "png", "bmp")
 		
@@ -915,30 +945,47 @@ class ImageProcessor(QtGui.QMainWindow):
 		
 	def setTextBaseMode(self, modeRadio):
 		mode=modeRadio.mode
+		self.textBaseMode_select.setStyleSheet(self.bgBrushStyle)
+		self.textBaseMode_add.setStyleSheet(self.bgBrushStyle)
+		self.textBaseMode_subtract.setStyleSheet(self.bgBrushStyle)
 		if mode=="sel":
+			self.textBaseMode_select.setStyleSheet(self.bgBrushStyle+self.bgBrushColor[0])
 			self.textBaseToolMode=0
 			if hasattr(self, "textBaseViewWindow"):
 				self.textBaseViewWindow.drawBrushRadius(0,None)
 		if mode=="add":
+			self.textBaseMode_add.setStyleSheet(self.bgBrushStyle+self.bgBrushColor[1])
 			self.textBaseToolMode=1
 		if mode=="rem":
+			self.textBaseMode_subtract.setStyleSheet(self.bgBrushStyle+self.bgBrushColor[2])
 			self.textBaseToolMode=2
+			
+			
 	def extendEdges(self):
 		self.textBaseViewWindow.extendReachEdges()
 	def updateTextBase(self):
 		sel=str(self.baseListOptions.selectedItems()[0].text())
+		raw=self.baseListOptions.selectedItems()[0].raw
+		formatted=self.baseListOptions.selectedItems()[0].formatted
 		absPath=self.baseListOptions.selectedItems()[0].absPath
+		absPathFormatted=self.formatPath(absPath)
+		folderPath="/".join(absPathFormatted.split("/")[:-1]+[''])
+		imgName=absPathFormatted.split("/")[-1]
+		
 		#IndexImageEntry(win, index, name, relativePath, scaleSize, qtImg):
 		size=[128,128]
-
 		ClearLayout(self.sideBarTextBase)
-		curImg=IndexImageEntry(self,0,sel.split(delimit)[0],"/".join(absPath.split(delimit)),size, None)
+		curImg=IndexImageEntry(self,0,imgName,folderPath,size,None, None)
 		#self.curImgListBlock.addWidget(curImg)
 		self.sideBarTextBase.addWidget(curImg)
 		self.loadIndexList=[curImg]
 		curImg.loadImage()
-		self.textBasePath=curImg.imgPath
+		self.textBasePath=formatted
+		curImg.textBaseEntry=formatted
+		self.curImage=formatted
+		self.curImagePath=absPath
 		self.loadImageEntry(curImg,0)
+		self.resetCurTextCharacter()
 	def toggleTextBaseListVis(self):
 		self.toggleTextBaseListButton.visCheck=(self.toggleTextBaseListButton.visCheck+1)%2
 		if self.toggleTextBaseListButton.visCheck==0:
@@ -985,8 +1032,6 @@ class ImageProcessor(QtGui.QMainWindow):
 		ClearLayout(self.curEntryBlock)
 		
 		if boot==1:
-			### Set Output Dir ###
-			##outPath="/".join(self.dirField.text().split("/")[:-1])+"/"+str(self.galleryName)+"_compressed"
 			self.dirField.setText(obj.imgFolder+self.projectName+'/')
 			outPath=str(self.dirField.text())+"pxl_textCharacterOutput/"
 			self.setOutputDir(outPath)
@@ -1048,15 +1093,27 @@ class ImageProcessor(QtGui.QMainWindow):
 		self.curImageFinalDisplay.pullCharacterRect(1)
 		
 		self.curImageFinalDisplay.setPaddingLine()
+		
 	def finishCurTextCharacter(self):
 		##self.curImageDisplay.addCharacterToList()
 		#charData=TextCharacterViewer(self,self.textBase,4)
 		#charData.pullCharacterRect(1)
-		curChar=IndexImageEntry(self,1,'thumb','local',[128,128], [self.curImageFinalDisplay])#[self.curImageDisplay, self.curImageMaskDisplay])
+		#tempRange=scanRange
+		scanRange=[]
+		scanRange.extend(self.textBaseViewWindow.scanRange)
+		scanRange[2]=scanRange[2]-scanRange[0]
+		scanRange[3]=scanRange[3]-scanRange[1]
+		curChar=IndexImageEntry(self,1,'thumb','local',[128,128],scanRange, [self.curImageFinalDisplay])#[self.curImageDisplay, self.curImageMaskDisplay])
 		self.curImgListPushTop(curChar)
 		curChar.charField.setFocus()
 		curChar.charField.selectAll()
 		#self.curImgListBlock.addWidget(curChar)
+		
+		scanRangeKeys=self.scanRangeStorage.keys()
+		if self.curImage not in scanRangeKeys:
+			self.scanRangeStorage[self.curImage]=[]
+		self.scanRangeStorage[self.curImage].append(scanRange)
+		
 		self.resetCurTextCharacter()
 		curChar.loadEntry()
 		self.unsavedChanges=1
@@ -1096,9 +1153,6 @@ class ImageProcessor(QtGui.QMainWindow):
 	def resetCurTextCharacter(self):
 		self.textBaseViewWindow.resetScanRange()
 		self.charSamplePoints=[]
-	def updateGalleryVariables(self):
-		self.galleryName=self.globalGalleryName.text()
-		######
 	def paddingTopSliderChange(self):
 		val=self.sliderTopPadding.value()
 		strVal=str(val)
@@ -1238,9 +1292,34 @@ class ImageProcessor(QtGui.QMainWindow):
 		self.textBaseViewWindow.setCursor(QtGui.QCursor(QtCore.Qt.CrossCursor))
 		self.statusBarUpdate(" -- Select a new threshold color ... Clicking and draging will blend colors together -- ", 0,1)
 	def setWorkingArea(self):
-		self.textBaseToolMode=4
-		self.textBaseViewWindow.setCursor(QtGui.QCursor(QtCore.Qt.CrossCursor))
-		self.statusBarUpdate(" -- Select a larger area than your character ... Clicking and draging to make bounds -- ", 0,1)
+		workAreaActive=self.textBaseViewWindow.workAreaActive
+		if self.textBaseToolMode==4 or workAreaActive==1:
+			self.textBaseToolMode=0
+			self.setWorkingAreaButton.setText(self.setWorkingAreaButtonText[0])
+			self.setWorkingAreaButton.setStyleSheet(self.buttonStyle)
+			self.textBaseViewWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+			self.textBaseViewWindow.workAreaActiveToggle(0)
+			self.statusBarUpdate(" -- Canceled selecting a 'Work Area' -- ", 3000,1)
+		else:
+			self.textBaseToolMode=4
+			self.setWorkingAreaButton.setText(self.setWorkingAreaButtonText[1])
+			self.setWorkingAreaButton.setStyleSheet(self.buttonStyle+"background-color:#0077cc;")
+			self.textBaseViewWindow.setCursor(QtGui.QCursor(QtCore.Qt.CrossCursor))
+			self.textBaseViewWindow.workAreaActiveToggle(1)
+			self.statusBarUpdate(" -- Select a larger area than your character ... Clicking and draging to make bounds -- ", 0,1)
+	def cropWorkingArea(self):
+		workArea=self.textBaseViewWindow.workingRectArea
+		if workArea[0] < workArea[2]:
+			if self.workAreaCrop==0:
+				self.workAreaCrop=1
+				self.cropWorkingAreaButton.setStyleSheet(self.buttonStyle+"background-color:#0077cc;")
+			else:
+				self.workAreaCrop=0
+				self.cropWorkingAreaButton.setStyleSheet(self.buttonStyle)
+			self.cropWorkingAreaButton.setText(self.cropWorkingAreaButtonText[self.workAreaCrop])
+			self.textBaseViewWindow.workAreaCropVis(self.workAreaCrop)
+		else:
+			self.statusBarUpdate(" -- No valid Work Area found - Use 'Set Work Area' before cropping. -- ", 5000,2)
 	def displayOutlineOnly(self):
 		self.textBaseViewWindow.drawReachMask(1,0,1)
 	def displayNormalView(self):
@@ -1312,6 +1391,8 @@ class ImageProcessor(QtGui.QMainWindow):
 		exec(fread)
 		patternRecognition(self,self.curEntryObj,self.textBaseViewWindow)
 	def loadExistingData(self):
+		### Do I really want to start making things backwards compatable during an Alpha?
+		### How many people would have really downloaded it, except just to muck around?
 		dirField=str(self.dirField.text())
 		path=dirField
 		if path[-1] != "/":
@@ -1332,9 +1413,16 @@ class ImageProcessor(QtGui.QMainWindow):
 				curCharKeys=charListKey.charList[letter].keys()
 				curCharKeys.sort()
 				for char in curCharKeys:
-					curChar=IndexImageEntry(self,1,'thumb','local',[128,128], 'preload')
+					curChar=IndexImageEntry(self,1,'thumb','local',[128,128],None, 'preload')
 					curChar.charBase=letter
-					for data in charListKey.charList[letter][char].keys():
+					curCharNameKeys=charListKey.charList[letter][char].keys()
+					buildRelPath=0
+					if 'textBaseEntry' not in curCharNameKeys:
+						buildRelPath=1
+					buildRectData=0
+					if 'rect' in curCharNameKeys:
+						buildRectData=1
+					for data in curCharNameKeys:
 						curCharData=charListKey.charList[letter][char][data]
 						### I shouldn't care about this....
 						### Are people seriously downloading my script yet?
@@ -1342,6 +1430,18 @@ class ImageProcessor(QtGui.QMainWindow):
 						if data in ["premultiply","contrast","degRotation"]:
 							if "." not in str(curCharData):
 								curCharData=float(curCharData)/100.0
+						if data=='textBaseFile':
+							if buildRelPath==1:
+								buildRelPath=self.formatPath(curCharData,1)
+								setattr(curChar,'textBaseEntry',buildRelPath)
+						if data=='textBaseEntry':
+							if buildRectData==1:
+								curRect=charListKey.charList[letter][char]['rect']
+								if curRect[0]>-1 and curRect[1]>-1:
+									srStorageKeys=self.scanRangeStorage.keys()
+									if curCharData not in srStorageKeys:
+										self.scanRangeStorage[curCharData]=[]
+									self.scanRangeStorage[curCharData].append(curRect)
 						setattr(curChar,data,curCharData)
 					curTextBasePath=charListKey.charList[letter][char]['textBaseFile']
 					curChar.textBaseFile=curTextBasePath
@@ -1369,6 +1469,7 @@ class ImageProcessor(QtGui.QMainWindow):
 						exportData[char][title]['imgName']=curChar.imgName
 						exportData[char][title]['imgFolder']=curChar.imgFolder
 						exportData[char][title]['imgPath']=curChar.imgPath
+						exportData[char][title]['textBaseEntry']=curChar.textBaseEntry
 						
 						exportData[char][title]['baseline']=curChar.baseline
 						exportData[char][title]['premultiply']=curChar.premultiply

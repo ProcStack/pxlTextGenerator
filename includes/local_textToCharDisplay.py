@@ -790,12 +790,6 @@ class PageBuilder(QtGui.QWidget):
 		scrollOffset=0
 		scrollAdd=0
 		loadObj=-1
-		""""for x,p in enumerate(activeList):
-			scrollOffset+=scrollAdd
-			curImg=IndexImageEntry(self,x,p,folderPicker+'/',size, None)
-			#self.curPageListBlock.addWidget(curImg)
-			self.sideBarTextBase.addWidget(curImg)
-		"""
 		self.scrollIndexBlock.setWidget(scrollInner)
 		self.sideBarBlock.addWidget(self.scrollIndexBlock)
 		pagePanel.addLayout(self.sideBarBlock)

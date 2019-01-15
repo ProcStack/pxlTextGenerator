@@ -187,7 +187,7 @@ class TextCharacterViewer(QtGui.QWidget):
 				reachPixels.extend(self.win.textBaseViewWindow.customPixels['add'])
 				reachPixels=map(lambda x: [ max(0, min(rect[2]-1,x[0]-rect[0])), max(0, min(rect[3]-1,x[1]-rect[1])) ], reachPixels)
 				#reachPixels=map(lambda x: [int(x.split(",")[0])-rect[0], int(x.split(",")[1])-rect[1]] , reachPixels)
-				contrast=self.win.sliderContrast.value
+				contrast=self.win.sliderContrast.value/100.0
 				pmap.fill(QtCore.Qt.black)
 				mask=pmap.toImage()
 				for xy in reachPixels:

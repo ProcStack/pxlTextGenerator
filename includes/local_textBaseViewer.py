@@ -16,9 +16,13 @@ class TextBaseViewer(QtGui.QWidget):
 		self.img.setGeometry(0,0,self.cW,self.cH) # Placeholder
 		
 		self.curCanvasData=None
+		self.curCanvasPreWorkAreaData=None
+		self.workAreaData=None
 		self.scanRange=[self.cW,self.cH,0,0]
 		self.workingRectArea=[self.cW,self.cH,0,0]
 		self.initWorkingRectArea=[self.cW,self.cH,0,0]
+		self.workAreaActive=0
+		self.workAreaCrop=0 # Maybe I should just leave this on the main window
 		self.rect=[0,0,256,256]
 		self.reachPixelsBase=[]
 		self.reachPixels=[]
@@ -55,11 +59,44 @@ class TextBaseViewer(QtGui.QWidget):
 		self.img.setMouseTracking(True)
 		self.img.mouseMoveEvent=self.mouseMoveEvent
 
-	def setDefaultScroll(self): ### Not running right now
-		curScrollH=self.curImgBlock.parent().parent().parent().parent().horizontalScrollBar().maximum()
-		curScrollV=self.curImgBlock.parent().parent().parent().parent().verticalScrollBar().maximum()
-		self.curImgBlock.parent().parent().parent().parent().horizontalScrollBar().setValue(curScrollH)
-		self.curImgBlock.parent().parent().parent().parent().verticalScrollBar().setValue(curScrollV)
+	def workAreaCropVis(self, workAreaVis=None, rebuild=0):
+		if workAreaVis == None:
+			workAreaVis=self.workAreaCrop
+		else:
+			self.workAreaCrop=workAreaVis
+		if workAreaVis == 1 or rebuild==1:
+			curWA=self.workingRectArea
+			if curWA[0] < curWA[2]:
+				img=self.win.imgData[self.win.curImage]
+				img=img.copy(curWA[0],curWA[1], (curWA[2]-curWA[0]),(curWA[3]-curWA[1]))
+				offset=[curWA[0],curWA[1],[1,1,curWA[2]-curWA[0],curWA[3]-curWA[1]]]
+				img=img.toImage()
+				self.workAreaData=QtGui.QPixmap.fromImage(img)
+				self.img.setPixmap(self.workAreaData)
+				"""if workAreaActive==1:
+					textBaseViewSize=[]
+					textBaseViewSize.append(float(self.parent().parent().width()-25))
+					textBaseViewSize.append(float(self.parent().parent().height()-25))
+					displaySize=[float(midRun.width()), float(midRun.height())]
+					
+					ratio=textBaseViewSize[0]/displaySize[0]
+					xScale=[displaySize[0]*ratio, displaySize[1]*ratio]
+					ratio=textBaseViewSize[1]/displaySize[1]
+					yScale=[displaySize[0]*ratio, displaySize[1]*ratio]
+					if xScale[0]>textBaseViewSize[0] or xScale[1]>textBaseViewSize[1]:
+						displaySize=yScale
+					else:
+						displaySize=xScale
+					displaySize=[int(displaySize[0]*(1.0/self.zoom)), int(displaySize[1]*(1.0/self.zoom))]
+				"""
+		if rebuild==0:
+			self.drawReachMask()
+	def workAreaActiveToggle(self,workAreaActive=None):
+		if workAreaActive == None:
+			workAreaActive=self.workAreaActive
+		else:
+			self.workAreaActive=workAreaActive
+		self.drawReachMask()
 	def resetScanRange(self):
 		pmap=QtGui.QPixmap()
 		pmap.load(self.imgPath)
@@ -83,6 +120,8 @@ class TextBaseViewer(QtGui.QWidget):
 		if self.win.textBaseToolMode==4:
 			self.initWorkingRectArea=[-1,-1]
 			self.workingRectArea=[self.cW,self.cH,0,0]
+			self.workAreaActive=1
+			self.win.workAreaCrop=0
 		scrollH=self.curImgBlock.parent().parent().parent().parent().horizontalScrollBar().value()
 		scrollV=self.curImgBlock.parent().parent().parent().parent().verticalScrollBar().value()
 		self.scrollStart=[scrollH, scrollV]
@@ -147,22 +186,26 @@ class TextBaseViewer(QtGui.QWidget):
 				self.win.setNewThresholdColor([posX,posY])
 				self.win.textBaseToolMode=0
 			elif self.win.textBaseToolMode==4:
+				
 				self.win.textBaseToolMode=0
 				self.workingRectArea[0]=max(1, min(self.initWorkingRectArea[0], posX) )
 				self.workingRectArea[1]=max(1, min(self.initWorkingRectArea[1], posY) )
 				self.workingRectArea[2]=min(self.cWOrig-1, max(self.initWorkingRectArea[0], posX) )
 				self.workingRectArea[3]=min(self.cHOrig-1, max(self.initWorkingRectArea[1], posY) )
 				self.drawReachMask()
+				
+				self.workAreaCropVis(self.win.workAreaCrop)
 			else:
 				posArr=[posX,posY]
 				if posArr not in self.reachPixels:
 					offset=[0,0,[1,1,self.cW-1,self.cH-1]]
-					workAreaActive=0
 					self.win.charSamplePoints.append(posArr)
 					img=self.win.imgData[self.win.curImage]#self.img.pixmap()
 					#img=QtGui.QPixmap.fromImage(img.toImage())
-					if self.workingRectArea[0] < self.workingRectArea[2]:
-						workAreaActive=1
+					if self.workingRectArea[0] > self.workingRectArea[2]:
+						self.workAreaActive=0
+						
+					if self.workAreaActive==1:
 						img=img.copy(self.workingRectArea[0],self.workingRectArea[1], (self.workingRectArea[2]-self.workingRectArea[0]),(self.workingRectArea[3]-self.workingRectArea[1]))
 						offset=[self.workingRectArea[0],self.workingRectArea[1],[1,1,self.workingRectArea[2]-self.workingRectArea[0],self.workingRectArea[3]-self.workingRectArea[1]]]
 
@@ -174,10 +217,13 @@ class TextBaseViewer(QtGui.QWidget):
 					midRun=self.img.pixmap()
 					midRun=midRun.scaled(self.cWOrig,self.cHOrig, QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
 					if self.workingRectArea[0] < self.workingRectArea[2]:
-						midRun=midRun.copy(self.workingRectArea[0],self.workingRectArea[1], (self.workingRectArea[2]-self.workingRectArea[0]),(self.workingRectArea[3]-self.workingRectArea[1]))
+						if self.workAreaCrop==0:
+							midRun=midRun.copy(self.workingRectArea[0],self.workingRectArea[1], (self.workingRectArea[2]-self.workingRectArea[0]),(self.workingRectArea[3]-self.workingRectArea[1]))
+						else:
+							midRun=QtGui.QPixmap.fromImage( self.workAreaData.toImage().copy() )
 					midRun=midRun.toImage()
 					displaySize=[self.cW, self.cH]
-					if workAreaActive==1:
+					if self.workAreaActive==1 and self.workAreaCrop==0:
 						textBaseViewSize=[]
 						textBaseViewSize.append(float(self.parent().parent().width()-25))
 						textBaseViewSize.append(float(self.parent().parent().height()-25))
@@ -339,10 +385,11 @@ class TextBaseViewer(QtGui.QWidget):
 					self.scanRange[2]=min(tempScanRange[2]+alphaPadding, self.cWOrig-1) if tempScanRange[2] != self.scanRange[2] else self.scanRange[2]
 					self.scanRange[3]=min(tempScanRange[3]+alphaPadding, self.cHOrig-1) if tempScanRange[3] != self.scanRange[3] else self.scanRange[3]
 					
-					self.workingRectArea=[self.cW,self.cH,0,0]
+					#self.workingRectArea=[self.cW,self.cH,0,0]
 					self.drawReachMask()
 					self.win.statusBarUpdate(" -- Character Search Complete! --", 5000, 1)
 
+		self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
 		self.mouseDown=0
 		self.mouseDrag=0
 	def wheelEvent(self, event):
@@ -427,24 +474,39 @@ class TextBaseViewer(QtGui.QWidget):
 			self.brushEdgePixelData=curBrushEdge
 			self.brushSize=self.win.brushSizeSlider.value
 	def drawReachMask(self,bbox=1,ret=0,outlineOnly=0):
-		img=self.win.imgData[self.win.curImage]
+		img=None
+		offset=[0,0]
+		if self.workAreaCrop==1:
+			if self.workAreaData == None:
+				self.workAreaCropVis(None, 1)
+			img=self.workAreaData
+			offset=[self.workingRectArea[0],self.workingRectArea[1]]
+		else:
+			img=self.win.imgData[self.win.curImage]
+		res=[img.width(), img.height()]
 		img=img.toImage()
 		if outlineOnly == 0:
 			for xy in self.reachPixels:
-				img.setPixel(xy[0],xy[1],QtGui.QColor(0,255,0,255).rgb())
+				x=xy[0]-offset[0]
+				y=xy[1]-offset[1]
+				if x>0 and x<res[0] and y>0 and y<res[1]:
+					img.setPixel(x,y,QtGui.QColor(0,255,0,255).rgb())
 			if self.extendShrinkEdge==1:
 				for xy in self.edgePixelsBase:
-					x=xy[0]
-					y=xy[1]
-					img.setPixel(x,y,QtGui.QColor(0,255,150,255).rgb())
+					x=xy[0]-offset[0]
+					y=xy[1]-offset[1]
+					if x>0 and x<res[0] and y>0 and y<res[1]:
+						img.setPixel(x,y,QtGui.QColor(0,255,150,255).rgb())
 		else:
 			for xy in self.edgePixelsBase:
-				x=xy[0]
-				y=xy[1]
-				img.setPixel(x,y,QtGui.QColor(0,255,150,255).rgb())
+				x=xy[0]-offset[0]
+				y=xy[1]-offset[1]
+				if x>0 and x<res[0] and y>0 and y<res[1]:
+					img.setPixel(x,y,QtGui.QColor(0,255,150,255).rgb())
 		if bbox==1:
+			img=self.drawBoundingBox(img,res)
+			self.curCanvasPreWorkAreaData=QtGui.QPixmap.fromImage(img)
 			img=self.drawWorkingRectArea(img)
-			img=self.drawBoundingBox(img)
 		pmap=QtGui.QPixmap.fromImage(img)
 		self.curCanvasData=pmap
 		pmap=pmap.scaled(self.cW,self.cH, QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
@@ -453,51 +515,85 @@ class TextBaseViewer(QtGui.QWidget):
 		else:
 			self.img.setPixmap(pmap)
 			return None
-	def drawBoundingBox(self, img):
+	def drawBoundingBox(self, img,res):
 		# Build Bounding Box
 		# Might be cool to make this interactive
 		# Still don't know why I try to avoid QPainter so much
 		# Something about QPainter bothers me, and can't put my finger on it....
-		bboxRun=[]
-		bboxRun.append( [[max(0, self.scanRange[0]-1), self.scanRange[0]], [ self.scanRange[1], self.scanRange[3]] ] )
-		bboxRun.append( [[self.scanRange[2], min(self.cWOrig-1, self.scanRange[2]+1)], [ self.scanRange[1], self.scanRange[3]] ] )
-		bboxRun.append( [[self.scanRange[0], self.scanRange[2]], [ max(0, self.scanRange[1]-1), self.scanRange[1]] ] )
-		bboxRun.append( [[self.scanRange[0], self.scanRange[2]], [ self.scanRange[3], min(self.cHOrig-1, self.scanRange[3]+1)] ] )
-		for xy in bboxRun:
-			for x in range(xy[0][0],xy[0][1]):
-				for y in range(xy[1][0],xy[1][1]):
-					img.setPixel(x,y,QtGui.QColor(255,0,0,255).rgb())
+		
+		offset=[0,0]
+		pmap=None
+		if self.workAreaCrop==1:
+			if self.workAreaData == None:
+				self.workAreaCropVis(None, 1)
+			pmap=self.workAreaData
+			offset=[self.workingRectArea[0],self.workingRectArea[1]]
+		runScanRangeBBox=0
+		queue=[]
+		if self.scanRange[0] < self.scanRange[2]:
+			queue.append([])
+			queue[-1].extend(self.scanRange)
+			queue[-1][2]=queue[-1][2]-queue[-1][0]
+			queue[-1][3]=queue[-1][3]-queue[-1][1]
+			runScanRangeBBox=1
+		srStorageKeys=self.win.scanRangeStorage.keys()
+		if self.win.curImage in srStorageKeys:
+			for r in self.win.scanRangeStorage[self.win.curImage]:
+				queue.append(r)
+		if len(queue) > 0:
+			if pmap==None:
+				pmap=QtGui.QPixmap.fromImage(img)
+			painter=QtGui.QPainter(pmap)
+			for x in range(len(queue)):
+				tempRange=[]
+				tempRange.append(queue[x][0]-offset[0])
+				tempRange.append(queue[x][1]-offset[1])
+				tempRange.append(queue[x][2]-offset[0])
+				tempRange.append(queue[x][3]-offset[1])
+				if x==0 and runScanRangeBBox==1:
+					painter.setPen(QtGui.QPen(QtGui.QColor(255,0,0,220)))
+				elif x==1 or (x==0 and runScanRangeBBox==0):
+					painter.setPen(QtGui.QPen(QtGui.QColor(110,10,30,190)))
+					painter.setBrush(QtGui.QColor(140,70,70,170))
+				painter.drawRect(tempRange[0],tempRange[1],tempRange[2],tempRange[3])
+			painter.end()
+			return pmap.toImage()
 		return img
 	def drawWorkingRectArea(self, img=None):
-		if self.workingRectArea[0] < self.workingRectArea[2]:
-			bboxRun=[]
-			bboxRun.append( [[max(0, self.workingRectArea[0]-1), self.workingRectArea[0]], [ self.workingRectArea[1], self.workingRectArea[3]] ] )
-			bboxRun.append( [[self.workingRectArea[2], min(self.cWOrig-1, self.workingRectArea[2]+1)], [ self.workingRectArea[1], self.workingRectArea[3]] ] )
-			bboxRun.append( [[self.workingRectArea[0], self.workingRectArea[2]], [ max(0, self.workingRectArea[1]-1), self.workingRectArea[1]] ] )
-			bboxRun.append( [[self.workingRectArea[0], self.workingRectArea[2]], [ self.workingRectArea[3], min(self.cHOrig-1, self.workingRectArea[3]+1)] ] )
-			
-			inputImg=1
-			if img == None:
-				inputImg=0
-				img=self.curCanvasData
-				img=img.toImage()
-				"""for x in range(len(bboxRun)):
-					for c in range(len(bboxRun[x])):
-						for v in range(len(bboxRun[x][c])):
-							bboxRun[x][c][v]=int(float(bboxRun[x][c][v])*self.zoom)
-				"""
-			for xy in bboxRun:
-				for x in range(xy[0][0],xy[0][1]):
-					for y in range(xy[1][0],xy[1][1]):
-						img.setPixel(x,y,QtGui.QColor(0,100,255,255).rgb())
-			if inputImg == 0:
-				pmap=QtGui.QPixmap.fromImage(img)
-				pmap=pmap.scaled(self.cW,self.cH, QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
-				self.img.setPixmap(pmap)
-			return img
-		else:
-			return img
-		return None
+		if self.workAreaActive==1 and self.workAreaCrop==0:
+			if self.workingRectArea[0] < self.workingRectArea[2]:
+				offset=[0,0]
+				pmap=None
+				
+				queue=[]
+				queue.append([])
+				queue[-1].extend(self.workingRectArea)
+				queue[-1][2]=queue[-1][2]-queue[-1][0]
+				queue[-1][3]=queue[-1][3]-queue[-1][1]
+				runScanRangeBBox=1
+				
+				inputImg=1
+				if img == None:
+					inputImg=0
+					img=self.curCanvasPreWorkAreaData.toImage()
+					#img=img.toImage()
+				pmap=QtGui.QPixmap.fromImage(img.copy())
+				if len(queue) > 0:
+					painter=QtGui.QPainter(pmap)
+					painter.setPen(QtGui.QPen(QtGui.QColor(0,100,255,200)))
+					for x in range(len(queue)):
+						tempRange=[]
+						tempRange.append(queue[x][0]-offset[0])
+						tempRange.append(queue[x][1]-offset[1])
+						tempRange.append(queue[x][2]-offset[0])
+						tempRange.append(queue[x][3]-offset[1])
+						painter.drawRect(tempRange[0],tempRange[1],tempRange[2],tempRange[3])
+					painter.end()
+				if inputImg == 0:
+					pmap=pmap.scaled(self.cW,self.cH, QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
+					self.img.setPixmap(pmap)
+				return pmap.toImage()
+		return img
 	def setZoom(self, targetZoom):
 		targetW=int(float(self.cWOrig)*targetZoom)
 		targetH=int(float(self.cHOrig)*targetZoom)

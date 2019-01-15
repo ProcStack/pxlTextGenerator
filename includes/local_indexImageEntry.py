@@ -11,11 +11,13 @@ I'll need to make a decision in the the future to merge or not.
 
 ### CHARACTER DISPLAY ENTRY ###
 class IndexImageEntry(QtGui.QWidget): #Individual indexList image entries
-	def __init__(self, win, index, name, path, scaleSize, qtImg):
+	def __init__(self, win, index, name, path, scaleSize,rect, qtImg):
 		super(IndexImageEntry,self).__init__(win)
 		self.win=win
 		self.offset=0 # Offset from 0 scroll in indexList side bar
-		
+
+		fName=self.win.formatPath(name)
+		self.textBaseEntry=fName
 		self.imgName=name
 		self.imgFolder=path
 		self.imgPath=path+name # Path to image on disk
@@ -50,14 +52,16 @@ class IndexImageEntry(QtGui.QWidget): #Individual indexList image entries
 		self.textBaseFile=None
 		self.exported=0
 		self.fileName=None #Export file name
-		self.rect=[0,0,256,256]
+		self.rect=rect
+		if rect == None:
+			self.rect=[0,0,256,256]
 
 		if qtImg == None:
 			# Using PyQt's Pixmap is great for displaying image, but really slow just for reading basic info
 			# Since loading an image into a Pixmap loads the image into memory.
 			# Using PIL.Image reads the fist 16 characters of the image to retrieve size info
 			# TLDR; SO MUCH FASTER THROUGH PIL!!1!
-			self.win.curImage=name
+			self.win.curImage=fName
 			self.win.curImagePath=self.imgPath
 			imageStats=Image.open(str(self.imgPath)) # PIL.Image
 			
@@ -76,6 +80,7 @@ class IndexImageEntry(QtGui.QWidget): #Individual indexList image entries
 			self.img.setGeometry(0,0,self.imgSizeIndexList[0],self.imgSizeIndexList[1]) # Placeholder
 			curImgBlock.addWidget(self.img)
 		else:
+			self.textBaseEntry=self.win.curImage
 			self.imgSize=scaleSize # Disk image size
 			self.imgSizeFull=self.imgSize # Full size image for web
 			
@@ -83,6 +88,14 @@ class IndexImageEntry(QtGui.QWidget): #Individual indexList image entries
 			self.img.setAlignment(QtCore.Qt.AlignCenter)
 			self.img.setGeometry(0,0,self.imgSizeIndexList[0],self.imgSizeIndexList[1]) # Placeholder
 			if type(qtImg) == list:
+				### Doing this in the main window, debating where to do it, leaving the code for now
+				### def finishCurTextCharacter(self):
+				"""scanRangeKeys=self.scanRangeStorage.keys()
+				if fName not in scanRangeKeys:
+					self.scanRangeStorage[fName]=[]
+				self.scanRangeStorage.append(self.rect)
+				"""
+											
 				rotationVal=self.win.sliderRotate.value
 				offset=[ int(float(self.outputSize[0]-qtImg[0].data.width())/2.0), int(float(self.outputSize[1]-qtImg[0].data.height())/2.0) ]
 				
