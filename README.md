@@ -1,4 +1,4 @@
-# **pxlTextGenerator**  *v0.1.1 - Alpha*
+# **pxlTextGenerator**  *v0.1.2 - Alpha*
 ## **Text to Handwriting Generator**
 #### *Turn your written characters into an image based font*
 #### *Export with custom page backgrounds to PNG*
@@ -93,7 +93,7 @@ If all went well, the tool should load up the first image it finds from `pxl_tex
   * **`Edge Grow/Shrink`** - Contract or Expand your character's edge per pixel
     * *Negative (-1) to Contract*
     * *Positive (1) to Expand*
-  * **`Set Working Area`** / **`Remove Work Area`** - To help speed up character searching, setting a Working Area will work on a smaller image when searching for Character Data
+  * **`Set Working Area`** / **`Remove Work Area`** - Isolate an area of your TextBase Image to help speed up performance and make tools/brushes easier to use.
     * *Click it, the button's text will switch to **`Remove Work Area`** and turn blue, then click and drag in the TextBase area to draw a blue working area outline.*
     * *Clicking again will remove the current work area you have set.*
   * **`Crop To Work Area`** / **`Exit Work Area Crop`** - To help speed up things further, you can view the Work Area by itself for faster feed back for `Select`/`Add`/`Remove` Brushes.

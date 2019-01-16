@@ -1,5 +1,5 @@
 ############################################
-## pxlTextGenerator v0.1.1                ##
+## pxlTextGenerator v0.1.2                ##
 ## Text to Handwriting Generator          ##
 ##  Written by Kevin Edzenga; ~2018-2019  ##
 ##   http://metal-asylum.net              ##
@@ -32,6 +32,33 @@
  Stay awesome and open source for life!
 
 ######
+- - v0.1.2 - -
+ Tons and Tons of checks for Errors, Cancels, and Parameter updates
+   Search Clean Up Pass supports canceling by hittin Escape
+     _Also displays progress in the status bar now
+   Grow / Shrink supports canceling now
+     _Also checks if the parameter value changes and restarts the function
+   Zooming too far or too many setPixel edits would case QImage to run out of memory,
+     Causing the TextBase Viewer image to disapear.
+	 Now checks if the image failed to render and zooms out until the image displays
+ Working Area is fully functional
+   When searching for Character Data with a set Work Area,
+     The image will crop to the Work Area to speed up efficiency and time.
+   With a smaller image, you'll be able to zoom in further.
+   Zooming in further, makes Add/Remove Brushes easier and faster to use
+   Resetting Character Data and Finishing Character will clear current working area
+   One known bug-
+     Resolution size doesn't seem to update correctly as soon as you crop to working area,
+	 Causing mouse clicks to not align correctly.
+	   To get around this, Zoom in and out a few times
+ Finished Characters will highlight in red
+   These highlights will remain/show up -
+     -When gathering new Character Data
+     -Switching between TextBase Images
+	 -Exporting Character List and show up when you re-open pxlTextGenerator
+ More bug fixes as always.
+ I'm sure there is more, I updated a lot
+ 
 - - v0.1.1 - -
  Support for windows smaller than 2200x1200 like it was restricted to in the past!!
  Allowing me to do that resorted to-
@@ -48,19 +75,8 @@
    This way, you don't need to manually load up the background.
  Finally got 'Help...' pointing to the pxlTextGenerator GitHub repo ReadMe.md
  
-- - Prior Changes to v0.1.0 - -
- When does alpha modes hit beta mode for a tool?
- Character Builder appears to be 100%
- The Page Output system is NOT 100%
-   See Issue List for more details -
+ For the list of existing Issues and To-Do's -
    https://github.com/ProcStack/pxlTextGenerator/issues
- ReadMe.md written up
- New --
- Add / Remove brushes with visual representations of the brush before usage
- Easy file list to load existing textBase images/photos/scans found in the project
- Beginings of support for special characters
-   This will have to expand into project based special characters
-   Currently hardcoding special characters
  
 """
 
@@ -367,11 +383,14 @@ class ImageProcessor(QtGui.QMainWindow):
 			r=g=b=int(grey)
 			perc=self.statusBarPerc/self.statusBarFadeMax
 			
-			if self.statusBarMode == 1: # Good / Alert
+			if self.statusBarMode == 1: # Good
 				g=int(grey*(1.0-perc) + 200.0*perc)
 				b=int(grey*(1.0-perc) + 50.0*perc)
 			elif self.statusBarMode == 2: # Error
 				r= int(grey*(1.0-perc) + 255.0*perc)
+			elif self.statusBarMode == 3: # Alert
+				r=int(grey*(1.0-perc) + 200.0*perc)
+				g=int(grey*(1.0-perc) + 180.0*perc)
 			rgb=QtGui.QColor(r,g,b)
 			rgb=rgb.name()
 			self.statusBar.setStyleSheet("QStatusBar {color:#ffffff;font-weight:bold;background-color:"+rgb+";border:1px solid #202020;}")
@@ -547,7 +566,7 @@ class ImageProcessor(QtGui.QMainWindow):
 				self.cropWorkingAreaButton=QtGui.QPushButton(self.cropWorkingAreaButtonText[0],self)
 				self.cropWorkingAreaButton.setStyleSheet(self.buttonStyle)
 				self.cropWorkingAreaButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-				self.cropWorkingAreaButton.clicked.connect(self.cropWorkingArea)
+				self.cropWorkingAreaButton.clicked.connect(lambda: self.cropWorkingArea())
 				displayOptionBlock.addWidget(self.cropWorkingAreaButton)
 				###
 				spacer=QtGui.QSpacerItem(10,8, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
@@ -1151,14 +1170,13 @@ class ImageProcessor(QtGui.QMainWindow):
 				curChar=self.curImgListBlock.itemAt(c).widget()
 				curChar.show()
 	def resetCurTextCharacter(self):
+		if self.textBaseViewWindow.workAreaActive==1:
+			self.setWorkingArea()
 		self.textBaseViewWindow.resetScanRange()
 		self.charSamplePoints=[]
 	def paddingTopSliderChange(self):
 		val=self.sliderTopPadding.value()
 		strVal=str(val)
-		#else:
-		#self.charSampled=1
-		#	self.win.statusBarUpdate(" -- Please 'Load Text Image' to load existing character data -- ", 5000,1)
 		for x in range(len(strVal),4):
 			strVal=" "+strVal
 		strVal='\n'.join(strVal)
@@ -1297,6 +1315,8 @@ class ImageProcessor(QtGui.QMainWindow):
 			self.textBaseToolMode=0
 			self.setWorkingAreaButton.setText(self.setWorkingAreaButtonText[0])
 			self.setWorkingAreaButton.setStyleSheet(self.buttonStyle)
+			if self.workAreaCrop==1:
+				self.cropWorkingArea()
 			self.textBaseViewWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
 			self.textBaseViewWindow.workAreaActiveToggle(0)
 			self.statusBarUpdate(" -- Canceled selecting a 'Work Area' -- ", 3000,1)
@@ -1307,23 +1327,29 @@ class ImageProcessor(QtGui.QMainWindow):
 			self.textBaseViewWindow.setCursor(QtGui.QCursor(QtCore.Qt.CrossCursor))
 			self.textBaseViewWindow.workAreaActiveToggle(1)
 			self.statusBarUpdate(" -- Select a larger area than your character ... Clicking and draging to make bounds -- ", 0,1)
-	def cropWorkingArea(self):
+	def cropWorkingArea(self, setStyle=1):
 		workArea=self.textBaseViewWindow.workingRectArea
 		if workArea[0] < workArea[2]:
-			if self.workAreaCrop==0:
-				self.workAreaCrop=1
-				self.cropWorkingAreaButton.setStyleSheet(self.buttonStyle+"background-color:#0077cc;")
-			else:
-				self.workAreaCrop=0
-				self.cropWorkingAreaButton.setStyleSheet(self.buttonStyle)
-			self.cropWorkingAreaButton.setText(self.cropWorkingAreaButtonText[self.workAreaCrop])
+			self.workAreaCrop=(self.workAreaCrop+1)%2
+			if setStyle==1:
+				curStyle=self.buttonStyle
+				if self.workAreaCrop==1:
+					curStyle+="background-color:#0077cc;"
+				self.cropWorkingAreaButton.setStyleSheet(curStyle)
+				self.cropWorkingAreaButton.setText(self.cropWorkingAreaButtonText[self.workAreaCrop])
 			self.textBaseViewWindow.workAreaCropVis(self.workAreaCrop)
 		else:
-			self.statusBarUpdate(" -- No valid Work Area found - Use 'Set Work Area' before cropping. -- ", 5000,2)
+			self.statusBarUpdate(" -- No valid Work Area found - Use 'Set Work Area' before cropping -- ", 5000,3)
 	def displayOutlineOnly(self):
-		self.textBaseViewWindow.drawReachMask(1,0,1)
+		if len(self.textBaseViewWindow.reachPixels) == 0 and self.textBaseViewWindow.workAreaActive==0:
+			self.statusBarUpdate(" -- No Character Data found - Select a character first -- ", 5000,3)
+		else:
+			self.textBaseViewWindow.drawReachMask(1,0,1)
 	def displayNormalView(self):
-		self.textBaseViewWindow.drawReachMask()
+		if len(self.textBaseViewWindow.reachPixels) == 0 and self.textBaseViewWindow.workAreaActive==0:
+			self.statusBarUpdate(" -- No Character Data found - Select a character first -- ", 5000,3)
+		else:
+			self.textBaseViewWindow.drawReachMask()
 	def setNewThresholdColor(self, posXY):
 		img=self.imgData[self.curImage]#self.img.pixmap()
 		#img=QtGui.QPixmap.fromImage(img.toImage())
