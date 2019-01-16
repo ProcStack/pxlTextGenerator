@@ -47,10 +47,6 @@
    With a smaller image, you'll be able to zoom in further.
    Zooming in further, makes Add/Remove Brushes easier and faster to use
    Resetting Character Data and Finishing Character will clear current working area
-   One known bug-
-     Resolution size doesn't seem to update correctly as soon as you crop to working area,
-	 Causing mouse clicks to not align correctly.
-	   To get around this, Zoom in and out a few times
  Finished Characters will highlight in red
    These highlights will remain/show up -
      -When gathering new Character Data
