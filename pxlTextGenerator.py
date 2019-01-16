@@ -32,7 +32,7 @@
  Stay awesome and open source for life!
 
 ######
-- - v0.1.2 - -
+- - v0.1.2 - - 5049 lines of Python & PyQt
  Tons and Tons of checks for Errors, Cancels, and Parameter updates
    Search Clean Up Pass supports canceling by hittin Escape
      _Also displays progress in the status bar now
@@ -122,7 +122,7 @@ class ImageProcessor(QtGui.QMainWindow):
 		global woVersion
 		
 		self.scriptNameText="pxlTextGenerator"
-		self.versionText="v0.1.1"
+		self.versionText="v0.1.2"
 		self.setTitleBar()
 		
 		self.winSize=[1920,1080]
