@@ -66,14 +66,14 @@ If all went well, the tool should load up the first image it finds from `pxl_tex
   * After you select your character and run `Read Found Character Data` the `Final Output` thumbnail will have 3 red lines on it.  You can click near those red lines and drag to adjust the values without fudging around with the sliders.
   * If you are working on editing a Character Entry, type the character out in the TextBed on the bottom to see your changes in real time. (Vertical/Left/Right Alignment and Scaling mostly)
   * Hotkeys --
-    * P - Load a Project Folder
-    * T - Sample Threshold Color; toggle
-    * S - Select Mode
-    * A - Set to Add Brush
-    * R - Set to Remove Brush
-    * W - Set Working Area; toggle
-    * C - Crop to Work Area; toggle
-    * O - Show Outline Only; toggle
+    * **`P`** - Load a Project Folder
+    * **`T`** - Sample Threshold Color; toggle
+    * **`S`** - Select Mode
+    * **`A`** - Set to Add Brush
+    * **`R`** - Set to Remove Brush
+    * **`W`** - Set Working Area; toggle
+    * **`C`** - Crop to Work Area; toggle
+    * **`O`** - Show Outline Only; toggle
 ##### <p align="right">[^ Top](#index)</p>
 ##
 ## **Character Builder Tab**
