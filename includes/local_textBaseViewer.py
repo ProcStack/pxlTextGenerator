@@ -110,7 +110,9 @@ class TextBaseViewer(QtGui.QWidget):
 		self.img.setPixmap(pmap)
 		self.curCanvasData=pmap
 		self.scanRange=[self.cW,self.cH,0,0]
-		self.workingRectArea=[self.cW,self.cH,0,0]
+		resetWorkArea=self.win.resetWorkAreaToggle.isChecked()
+		if resetWorkArea==1:
+			self.workingRectArea=[self.cW,self.cH,0,0]
 		self.reachPixelsBase=[]
 		self.reachPixels=[]
 		self.edgePixelsBase=[]
@@ -204,6 +206,10 @@ class TextBaseViewer(QtGui.QWidget):
 				self.win.textBaseToolMode=0
 			elif self.win.textBaseToolMode==4:
 				
+				posX=int(pos.x()*(1.0/self.zoom))
+				posY=int(pos.y()*(1.0/self.zoom))
+				if self.initWorkingRectArea[0] == -1:
+					self.initWorkingRectArea=[posX,posY]
 				self.win.textBaseToolMode=0
 				self.workingRectArea[0]=max(1, min(self.initWorkingRectArea[0], posX) )
 				self.workingRectArea[1]=max(1, min(self.initWorkingRectArea[1], posY) )

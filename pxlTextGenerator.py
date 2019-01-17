@@ -462,11 +462,19 @@ class ImageProcessor(QtGui.QMainWindow):
 				##### ENTRY EDITED IMAGE DISPLAY #####
 				
 				resetCharBlock=QtGui.QVBoxLayout()
+				resetCharTopBlock=QtGui.QHBoxLayout()
 				resetCharButton=QtGui.QPushButton("Reset Character Data",self)
 				resetCharButton.setStyleSheet(self.buttonStyle)
 				resetCharButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 				resetCharButton.clicked.connect(self.resetCurTextCharacter)
-				resetCharBlock.addWidget(resetCharButton)
+				resetCharTopBlock.addWidget(resetCharButton)
+				###
+				self.resetWorkAreaToggle=QtGui.QCheckBox()
+				self.resetWorkAreaToggle.setText("Exit Work Area on Reset")
+				self.resetWorkAreaToggle.setCheckState(QtCore.Qt.Checked)
+				resetCharTopBlock.addWidget(self.resetWorkAreaToggle)
+				###
+				resetCharBlock.addLayout(resetCharTopBlock)
 				entryEditBlock.addLayout(resetCharBlock)
 				######
 				thresholdColorRes=[150,50]
@@ -1166,7 +1174,8 @@ class ImageProcessor(QtGui.QMainWindow):
 				curChar=self.curImgListBlock.itemAt(c).widget()
 				curChar.show()
 	def resetCurTextCharacter(self):
-		if self.textBaseViewWindow.workAreaActive==1:
+		resetWorkArea=self.resetWorkAreaToggle.isChecked()
+		if self.textBaseViewWindow.workAreaActive==1 and resetWorkArea==1:
 			self.setWorkingArea()
 		self.textBaseViewWindow.resetScanRange()
 		self.charSamplePoints=[]
