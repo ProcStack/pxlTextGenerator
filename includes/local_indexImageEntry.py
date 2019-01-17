@@ -133,6 +133,7 @@ class IndexImageEntry(QtGui.QWidget): #Individual indexList image entries
 			
 			self.charField=QtGui.QLineEdit()
 			self.charField.setText("_")
+			self.charField.installEventFilter(self.win)
 			self.charField.editingFinished.connect(self.charCheck)
 			curImgBlock.addWidget(self.charField)
 			
@@ -383,6 +384,7 @@ class IndexPageEntry(QtGui.QWidget): #Individual indexList image entries
 			###
 			self.charField=QtGui.QLineEdit()
 			self.charField.setText(self.imgName)
+			self.charField.installEventFilter(self.win)
 			self.charField.editingFinished.connect(self.charCheck)
 			pageGroupBlock.addWidget(self.charField)
 			###

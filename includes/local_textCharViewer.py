@@ -145,7 +145,8 @@ class TextCharacterViewer(QtGui.QWidget):
 				self.win.sliderPreMult.setValue(premult)
 			elif self.mode == 1:
 				img=pmap.toImage()
-				self.win.textBaseViewWindow.rebuildReachPixels()
+				### Originally passing no reachPixels
+				self.win.textBaseViewWindow.rebuildReachPixels(self.win.textBaseViewWindow.reachPixels)
 				reachPixels=[]
 				reachPixels.extend(self.win.textBaseViewWindow.reachPixels)
 				if self.win.textBaseViewWindow.extendShrinkEdge == 1:
@@ -175,7 +176,8 @@ class TextCharacterViewer(QtGui.QWidget):
 				pmap=QtGui.QPixmap.fromImage(img)
 			elif self.mode == 2:
 				reachPixels=[]
-				self.win.textBaseViewWindow.rebuildReachPixels()
+				### Originally passing no reachPixels
+				self.win.textBaseViewWindow.rebuildReachPixels(self.win.textBaseViewWindow.reachPixels)
 				reachPixels.extend(self.win.textBaseViewWindow.reachPixels)
 				if self.win.textBaseViewWindow.extendShrinkEdge == 1:
 					reachPixels.extend(self.win.textBaseViewWindow.edgePixels)

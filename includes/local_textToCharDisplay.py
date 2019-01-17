@@ -67,6 +67,7 @@ class TextToCharDisplay(QtGui.QWidget):
 		charInputText.setStyleSheet("QLabel {margin:5px;}")
 		charInputTextBlock.addWidget(charInputText)
 		self.charTestText=QtGui.QLineEdit()
+		self.charTestText.installEventFilter(self.win)
 		self.charTestText.editingFinished.connect(self.buildTextDisplay)
 		charInputTextBlock.addWidget(self.charTestText)
 		self.charTestOptionBlock.addLayout(charInputTextBlock)
@@ -561,6 +562,7 @@ class PageBuilder(QtGui.QWidget):
 		self.pageFileLocationBlock.setSpacing(0)
 		self.pageFileLocationBlock.setMargin(0) 
 		self.pageFileLocation=QtGui.QLineEdit()
+		self.pageFileLocation.installEventFilter(self.win)
 		self.pageFileLocationBlock.addWidget(self.pageFileLocation)
 		###
 		charTestButton=QtGui.QPushButton('Load Page BG Image', self)
@@ -597,6 +599,7 @@ class PageBuilder(QtGui.QWidget):
 		self.inputTextBlock.setMargin(0) 
 		self.inputTextBlock.setAlignment(QtCore.Qt.AlignCenter)
 		self.inputText=QtGui.QPlainTextEdit()
+		self.inputText.installEventFilter(self.win)
 		self.inputText.setStyleSheet("QPlainTextEdit {margin:5px;selection-color:#ffffff;selection-background-color:#454545;background-color:#909090;}")
 		self.inputText.resize(700,400)
 		self.inputTextBlock.addWidget(self.inputText)
@@ -712,6 +715,7 @@ class PageBuilder(QtGui.QWidget):
 		self.pageOutputDirTextBlock.setSpacing(0)
 		self.pageOutputDirTextBlock.setMargin(0) 
 		self.pageOutputDirText=QtGui.QLineEdit()
+		self.pageOutputDirText.installEventFilter(self.win)
 		self.pageOutputDirTextBlock.addWidget(self.pageOutputDirText)
 		###
 		pageOutputSetDir=QtGui.QPushButton('Output Directory', self)

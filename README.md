@@ -1,4 +1,4 @@
-# **pxlTextGenerator**  *v0.1.2 - Alpha*
+# **pxlTextGenerator**  *v0.1.3 - Alpha*
 ## **Text to Handwriting Generator**
 #### *Turn your written characters into an image based font*
 #### *Export with custom page backgrounds to PNG*
@@ -65,42 +65,54 @@ If all went well, the tool should load up the first image it finds from `pxl_tex
     * Only vertical sliders and the Left/Right Align sliders on the `Character Entry Editor` *(Right side)* don't have this feature yet.
   * After you select your character and run `Read Found Character Data` the `Final Output` thumbnail will have 3 red lines on it.  You can click near those red lines and drag to adjust the values without fudging around with the sliders.
   * If you are working on editing a Character Entry, type the character out in the TextBed on the bottom to see your changes in real time. (Vertical/Left/Right Alignment and Scaling mostly)
+  * Hotkeys --
+    * P - Load a Project Folder
+    * T - Sample Threshold Color; toggle
+    * S - Select Mode
+    * A - Set to Add Brush
+    * R - Set to Remove Brush
+    * W - Set Working Area; toggle
+    * C - Crop to Work Area; toggle
+    * O - Show Outline Only; toggle
 ##### <p align="right">[^ Top](#index)</p>
 ##
 ## **Character Builder Tab**
 #### TextBase Image Viewer
-  * **`Set Project Folder`** - Sets and Attempts to load existing data
+  * **`Set Project Folder`** - `P` hotkey - Sets and Attempts to load existing data
   * **`Reset Character Data`** - Resets all currently selected character data (The green color after sampling)
   * **`TextBase Image List`** - List of all your images, Hide/Show Toggle
   * **`Hide/Show TextBase List`** - Hide/Show visibility toggle for the TextBase Image List
   * **`Searching Threshold`** - Value of brightness that searching stops at.
     * *(Searching finds darker colors than the threshold value.)*
-  * **`Sample Threshold by Color`** - Lets you select pixels to set the Searching Threshold
+  * **`Sample Threshold by Color`** - `T` hotkey - Lets you select pixels to set the Searching Threshold
     * *(Set the threshold lower once it's set, its the exact value it found, you want darker)*
     
 ![pxlTextGenerator Page Output](http://metal-asylum.net/python/pxlTextGenerator/show/TextBaseOptions_brushes_all.png)
   * **`Modes`**- \[When *Active* image\]
-    * **`Select Area`** -<br/> ![Select Character Mode Option](http://metal-asylum.net/python/pxlTextGenerator/show/TextBaseOptions_brushes_sel.png)
+    * **`Select Area`** - `S` hotkey -<br/> ![Select Character Mode Option](http://metal-asylum.net/python/pxlTextGenerator/show/TextBaseOptions_brushes_sel.png)
       * *Search for a character*
       * *No Brush Indicator*
-    * **`Add Brush`** -<br/> ![Add Brush Option](http://metal-asylum.net/python/pxlTextGenerator/show/TextBaseOptions_brushes_add.png)
+    * **`Add Brush`** - `A` hotkey -<br/> ![Add Brush Option](http://metal-asylum.net/python/pxlTextGenerator/show/TextBaseOptions_brushes_add.png)
       * *Add pixels to found area*
       * *Brush Indicator is a Green color*
-    * **`Remove Brush`** -<br/> ![Remove Brush Option](http://metal-asylum.net/python/pxlTextGenerator/show/TextBaseOptions_brushes_rem.png)
+    * **`Remove Brush`** - `R` hotkey -<br/> ![Remove Brush Option](http://metal-asylum.net/python/pxlTextGenerator/show/TextBaseOptions_brushes_rem.png)
       * *Remove pixels to found area*
       * *Brush Indicator is a Purple color*
   * **`Add/Remove Brush Size`** - Size of Add/Remove Brushes
   * **`Edge Grow/Shrink`** - Contract or Expand your character's edge per pixel
     * *Negative (-1) to Contract*
     * *Positive (1) to Expand*
-  * **`Set Working Area`** / **`Remove Work Area`** - Isolate an area of your TextBase Image to help speed up performance and make tools/brushes easier to use.
+  * **`Set Working Area`** / **`Remove Work Area`** - `W` hotkey - Isolate an area of your TextBase Image to help speed up performance and make tools/brushes easier to use.
     * *Click it, the button's text will switch to **`Remove Work Area`** and turn blue, then click and drag in the TextBase area to draw a blue working area outline.*
     * *Clicking again will remove the current work area you have set.*
-  * **`Crop To Work Area`** / **`Exit Work Area Crop`** - To help speed up things further, you can view the Work Area by itself for faster feed back for `Select`/`Add`/`Remove` Brushes.
+  * **`Crop To Work Area`** / **`Exit Work Area Crop`** - `C` hotkey - To help speed up things further, you can view the Work Area by itself for faster feed back for `Select`/`Add`/`Remove` Brushes.
     * *Click it to isolate your Work Area, the button's text will change to `Exit Work Area Crop` and turn blue.*
     * *Clicking it again will bring back the whole image you are working on.*
-  * **`Show Outline Only`** - Sometimes the character found might have grabbed some junk, this will outline the found character
-  * **`Show Normal Display`** - When viewing the outline, this button will redraw the found area as it normally looks
+  * **`Exit Work Area on Reset`** - Auto Exit Work Area Crop
+    * When `Off`, if you **`Reset Character Data`**, it will keep the TextBase Viewer in Crop mode.
+    * When `On`, it will exit Crop mode when you **`Reset Character Data`**.
+  * **`Show Outline Only`** / **`Exit Outline Only`** - `O` hotkey - Sometimes the character found might have grabbed some junk, this will outline the found character
+    *  Clicking again will redraw the found area as it normally looks
 #### Character Settings
   * **`Read Found Character Data`** - Load your character data.
     * Once you search for a character in the TextBase Viewer,
