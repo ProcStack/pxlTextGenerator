@@ -31,6 +31,7 @@ class ImageProcessor(QtGui.QMainWindow):
 		self.runValChangeEvent=1
 		self.loopLatch=0
 		self.textBaseToolMode=0
+		self.prevBrushMode=0
 		self.selectColorMode=0
 		self.selectColorSamples=[]
 		self.checkerBoard=None
@@ -865,14 +866,18 @@ class ImageProcessor(QtGui.QMainWindow):
 		if mode=="sel":
 			self.textBaseMode_select.setStyleSheet(self.bgBrushStyle+self.bgBrushColor[0])
 			self.textBaseToolMode=0
-			if hasattr(self, "textBaseViewWindow"):
-				self.textBaseViewWindow.drawBrushRadius(0,None)
+			self.prevBrushMode=0
 		if mode=="add":
 			self.textBaseMode_add.setStyleSheet(self.bgBrushStyle+self.bgBrushColor[1])
 			self.textBaseToolMode=1
+			self.prevBrushMode=1
 		if mode=="rem":
 			self.textBaseMode_subtract.setStyleSheet(self.bgBrushStyle+self.bgBrushColor[2])
 			self.textBaseToolMode=2
+			self.prevBrushMode=2
+			
+		if hasattr(self, "textBaseViewWindow"):
+			self.textBaseViewWindow.drawBrushRadius(self.textBaseToolMode,None)
 	def extendEdges(self):
 		self.textBaseViewWindow.extendReachEdges()
 	def updateTextBase(self):
@@ -1205,13 +1210,13 @@ class ImageProcessor(QtGui.QMainWindow):
 		else:
 			self.sampleThreshold=0
 			self.selectColorMode=0
-			self.textBaseToolMode=0
+			self.textBaseToolMode=self.prevBrushMode
 			self.textBaseViewWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
 			self.thresholdColorSampleButton.setStyleSheet(self.buttonStyle)
 	def setWorkingArea(self):
 		workAreaActive=self.textBaseViewWindow.workAreaActive
 		if self.textBaseToolMode==4 or workAreaActive==1:
-			self.textBaseToolMode=0
+			self.textBaseToolMode=self.prevBrushMode
 			self.setWorkingAreaButton.setText(self.setWorkingAreaButtonText[0])
 			self.setWorkingAreaButton.setStyleSheet(self.buttonStyle)
 			if self.workAreaCrop==1:
@@ -1248,7 +1253,7 @@ class ImageProcessor(QtGui.QMainWindow):
 			else:
 				curStyle+="background-color:#00af46;"
 				self.outlineToggle=1
-				self.textBaseViewWindow.drawReachMask(1,0)
+				self.textBaseViewWindow.checkOutlineUpdate()
 		else:
 			self.outlineToggle=0
 			self.textBaseViewWindow.drawReachMask()

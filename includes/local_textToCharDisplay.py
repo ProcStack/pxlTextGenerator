@@ -396,25 +396,24 @@ class TextToCharDisplay(QtGui.QWidget):
 					skip=0
 					inTag=0
 					maxTagLength=10
-					tags=["ocl","ocr","oll","olr","osl","osr","oal","oar"]
+					tags=["ocl","ocr","oll","olr","osl","osr","oal","oar","str"]
 					curTag=''
 					missingChars=[]
 					keepPrinting=1
 					for x,c in enumerate(val):
 						self.runner+=1.0
-						if c == "b":
-							if x < len(val)-1:
-								if val[x+1] in backChars:
-									skip=1
-									cc=c
-						elif c=="%":
+						if c=="%":
+							print "hit",x
+							print "|",val[x:x+4]
 							if inTag==1:
 								inTag=2
 								skip=0
 							else:
+								curTag=''
 								for v in range(1,maxTagLength):
-									if x+v<maxTagLength:
+									if x+v<min(maxTagLength,len(val)):
 										curTag+=val[x+v]
+										print x,v,curTag
 										if curTag in tags:
 											inTag=1
 											break;
@@ -424,9 +423,15 @@ class TextToCharDisplay(QtGui.QWidget):
 											break;
 									else:
 										break;
+								print "---"
 						if inTag==1:
 							skip=1
 						elif inTag==0:
+							if c == "b":
+								if x < len(val)-1:
+									if val[x+1] in backChars:
+										skip=1
+										cc=c
 							if skip==0:
 								cc=c
 							elif skip==2:
