@@ -677,6 +677,11 @@ class PageBuilder(QtGui.QWidget):
 		self.charTestBlock.addWidget(charTextSeedBlockWidget)
 		charTextSeedBlockWidget.setLayout(self.charTestOptionBlock)
 		
+		self.pageFlipOutput=QtGui.QCheckBox()
+		self.pageFlipOutput.setText("Flip Text Output Horizontally")
+		self.pageFlipOutput.stateChanged.connect(self.setFlipOutput)
+		self.charTestOptionBlock.addWidget(self.pageFlipOutput)
+		
 		hBar=HorizontalBar()#[0,30],2) ## For custome bar
 		self.charTestOptionBlock.addWidget(hBar)
 		
@@ -838,10 +843,14 @@ class PageBuilder(QtGui.QWidget):
 		self.seedSliderVal.setText(str(val))
 		self.seed=val
 		self.buildTextDisplay()
+	def setFlipOutput(self):
+		if self.autoUpdate == True:
+			self.buildTextOutput()
 	def setAutoReload(self):
 		val=self.pageAutoUpdate.isChecked()
 		self.autoUpdate=val
-		self.buildTextOutput()
+		if val==True:
+			self.buildTextOutput()
 	def buildTextOutput(self, force=1):
 		runUpdate=1
 		if force==0:
@@ -942,6 +951,13 @@ class PageBuilder(QtGui.QWidget):
 			if k not in ["lineData", "pageFlip", "pageGroupName"]:
 				if k == "inputText": # Might need to change this to 'in []'
 					eval('self.'+k+'.setPlainText(r"""'+str(pageDataArray[k])+'""")')
+				elif k == "pageFlipOutput": # Might need to change this to 'in []'
+					checkState=pageDataArray[k]
+					if checkState==True:
+						checkState="QtCore.Qt.Checked"
+					else:
+						checkState="QtCore.Qt.Unchecked"
+					eval("self."+k+".setCheckState("+checkState+")")
 				else:
 					eval("self."+k+".setValue(str("+str(pageDataArray[k])+"))")
 		self.editPrep=False
@@ -1191,9 +1207,13 @@ class PageBuilderViewer(QtGui.QWidget):
 				pmap=QtGui.QPixmap(self.cWOrig, self.cHOrig)
 				pmap.fill(QtGui.QColor(0,0,0,255))
 
+			pageFlipOutput=self.parent.pageFlipOutput.isChecked()
+			textBuild=self.textBuildData.copy()
+			if pageFlipOutput==True:
+				textBuild=textBuild.transformed(QtGui.QTransform().scale(-1,1))
 			painter=QtGui.QPainter(pmap)
 			painter.setCompositionMode(painter.CompositionMode_SourceOver)
-			painter.drawPixmap(0,0,self.textBuildData)
+			painter.drawPixmap(0,0,textBuild)
 			painter.end()
 			set=1
 			
@@ -1266,6 +1286,8 @@ class PageBuilderViewer(QtGui.QWidget):
 		padRight=self.parent.pageIndentRight.value
 		padTop=self.parent.pageIndentTop.value
 		padBottom=self.parent.pageIndentBottom.value
+		###
+		pageFlipOutput=self.parent.pageFlipOutput.isChecked()
 		
 		curPageData={}
 		curPageData['inputText']=val
@@ -1280,6 +1302,7 @@ class PageBuilderViewer(QtGui.QWidget):
 		curPageData['pageIndentRight']=padRight
 		curPageData['pageIndentTop']=padTop
 		curPageData['pageIndentBottom']=padBottom
+		curPageData['pageFlipOutput']=pageFlipOutput
 		curPageGroupName="Page"
 		grabName=1
 		if pageGroupName!=None:
@@ -1635,11 +1658,19 @@ class PageBuilderViewer(QtGui.QWidget):
 		lineAlign='left'
 		
 		
+		padLeftBuild=padLeft
+		padRightBuild=padRight
 		padLeft=curPageData['pageIndentLeft']
 		padRight=curPageData['pageIndentRight']
 		padTop=curPageData['pageIndentTop']
 		padBottom=curPageData['pageIndentBottom']
-		pageSize=[padRight-padLeft, padBottom-padTop]
+		padLeftBuild=padLeft
+		padRightBuild=padRight
+		if pageFlipOutput==True:
+			padTemp=padLeftBuild
+			padLeftBuild=res[0]-padRightBuild
+			padRightBuild=res[0]-padTemp
+		pageSize=[padRightBuild-padLeftBuild, padBottom-padTop]
 		for line in curLineData:
 			lineWidth=line['lineWidth']
 			lineAlign=line['align']
@@ -1659,7 +1690,7 @@ class PageBuilderViewer(QtGui.QWidget):
 					curOffset[1]=char['offset'][1]+lineOffset[1]
 					if char['opacity']!=100.0:
 						painter.setOpacity(char['opacity']/100.0)
-					painter.drawPixmap(curOffset[0]+padLeft,curOffset[1]+padTop,pmap)
+					painter.drawPixmap(curOffset[0]+padLeftBuild,curOffset[1]+padTop,pmap)
 					if char['opacity']!=100.0:
 						painter.setOpacity(1.0)
 		painter.end()

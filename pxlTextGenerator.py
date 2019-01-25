@@ -1,5 +1,5 @@
 ############################################
-## pxlTextGenerator v0.2.0                ##
+## pxlTextGenerator v0.2.1                ##
 ## Text to Handwriting Generator          ##
 ##  Written by Kevin Edzenga; ~2018-2019  ##
 ##   http://metal-asylum.net              ##
@@ -32,6 +32,10 @@
  Stay awesome and open source for life!
 
 ######
+- - v0.2.1 - - 5711 lines of Python & PyQt - -
+ Page Output updates-
+   Added Flip Text check box
+     Saves and loads correctly
 - - v0.2.0 - - 5676 lines of Python & PyQt - -
  Page Output updates-
    Exporting and Loading pageData working correctly now.
@@ -127,7 +131,7 @@
  
 """
 scriptNameText="pxlTextGenerator"
-versionText="v0.2.0; Beta"
+versionText="v0.2.1; Beta"
 
 import sys, os
 import re

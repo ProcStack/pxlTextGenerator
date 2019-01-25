@@ -1,4 +1,4 @@
-# **pxlTextGenerator**  *v0.2.0 - Beta*
+# **pxlTextGenerator**  *v0.2.1 - Beta*
 ## **Text to Handwriting Generator**
 #### *Turn your written characters into an image based font*
 #### *Export with custom page backgrounds to PNG*
@@ -180,7 +180,8 @@ If all went well, the tool should load up the first image it finds from `pxl_tex
     * *Lets say you have 4 'A' characters and type 'AAAA'*
     * *Random Seed 0.0 might give you A3,A2,A4,A1*
     * *Random Seed 3.1 might give you A1,A4,A1,A2*
-  * **`Auto Update`** - Any changes will rebuild the page, when `On`
+  * **`Flip Text Output Horizontally`** - Will flip the text on page horizontally, when `On`
+  * **`Auto Update Page`** - Any changes will rebuild the page, when `On`
   * **`Update Output Text to Writing`** - Update the current page you are editing
   * **`New Empty Page Entry`** - Creates a new empty Page Group, resetting you values
     * *Any unsaved changes to the current page you are working on will be lost*
