@@ -51,7 +51,9 @@ def formatArrayToString(depth, arrayData):
 					ret+=formatted
 					ret+=cr+tabIn+"],\n"
 				else:
-					listBuild=listBuild[:-1]+"],\n"
+					if listBuild!="[":
+						listBuild=listBuild[:-1]
+					listBuild=listBuild+"],\n"
 					ret+=listBuild
 			elif type(x) == dict:
 				ret+=tabIn+"{\n"
@@ -86,7 +88,9 @@ def formatArrayToString(depth, arrayData):
 					ret+=formatted
 					ret+=cr+tabIn+"],\n"
 				else:
-					listBuild=listBuild[:-1]+"],\n"
+					if listBuild!="[":
+						listBuild=listBuild[:-1]
+					listBuild=listBuild+"],\n"
 					out=strCheck(x)
 					ret+=tabIn+out+":"+listBuild
 			elif type(curDict) == dict:
@@ -182,14 +186,22 @@ class SliderGroup(QtGui.QWidget):
 		sliderBlock.addLayout(self.sliderValueTextBlock)
 		self.runEvents=1
 		self.setLayout(sliderBlock)
-	def setValue(self,val): # Expecting str()
+	def resetValue(self):
+		self.runEvents=0
+		self.setValue(self.defaultValue)
+		self.runEvents=1
+	def setValue(self,val):
 		val=str(val)
-		if "." in val:
-			val=val.split(".")
-			val[1]=val[1][0:2]
-			val[1]+='0'*(2-len(val[1]))
-			val="".join(val)
-			#val=str("".join( filter( lambda x: x!=".", list(val) ) ))
+		if "." in val: # All this just to check for correct values?
+			if self.type == "float":
+				val=val.split(".")
+				val[1]=val[1][0:2]
+				val[1]+='0'*(2-len(val[1]))
+				val="".join(val)
+				#val=str("".join( filter( lambda x: x!=".", list(val) ) ))
+			elif self.type == "int":
+				val=val.split(".")
+				val=val[0]
 		dig=val.isdigit()
 		if val[0] == "-":
 			dig=val[1:].isdigit()
@@ -246,8 +258,9 @@ class SliderGroup(QtGui.QWidget):
 		self.textChanged=0
 	def sliderChange(self,release=0):
 		self.setValueText()
-		if self.function != None and (release==1 or self.textChanged==1 or self.continuous==1):
-			eval("self.win."+self.function)
+		if self.runEvents==1:
+			if self.function != None and (release==1 or self.textChanged==1 or self.continuous==1):
+				eval("self.win."+self.function)
 	def setValueText(self,val=None):
 		if val == None:
 			val=self.slider.value()

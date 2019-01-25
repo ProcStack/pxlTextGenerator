@@ -100,6 +100,20 @@ class ImageProcessor(QtGui.QMainWindow):
 		self.mainLayout.setSpacing(0)
 		self.mainLayout.setMargin(0)
 		
+		# Load directory text field
+		self.dirBlock=QtGui.QHBoxLayout()
+		self.dirField=QtGui.QLineEdit()
+		self.dirField.installEventFilter(self)
+		self.dirBlock.addWidget(self.dirField)
+		# Create Load Dir button
+		self.loadDir=QtGui.QPushButton('Set &Project Folder', self)
+		self.loadDir.setStyleSheet(self.buttonStyle)
+		self.loadDir.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+		self.loadDir.clicked.connect(self.loadAndScanDir)
+		self.dirBlock.addWidget(self.loadDir)
+		#tab0.addLayout(self.dirBlock)
+		self.mainLayout.addLayout(self.dirBlock)
+		
 		self.tabWidget=QtGui.QTabWidget()
 		###
 		self.tabLayout_processing=QtGui.QWidget()
@@ -118,20 +132,6 @@ class ImageProcessor(QtGui.QMainWindow):
 		selfSize=self.geometry()
 		menuSize=self.menuBar.geometry()
 		selfSize=[selfSize.width(), selfSize.height()-menuSize.height()]
-
-		# Load directory text field
-		self.dirBlock=QtGui.QHBoxLayout()
-		self.dirField=QtGui.QLineEdit()
-		self.dirField.installEventFilter(self)
-		self.dirBlock.addWidget(self.dirField)
-		# Create Load Dir button
-		self.loadDir=QtGui.QPushButton('Set &Project Folder', self)
-		self.loadDir.setStyleSheet(self.buttonStyle)
-		self.loadDir.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-		self.loadDir.clicked.connect(self.loadAndScanDir)
-		self.dirBlock.addWidget(self.loadDir)
-		#tab0.addLayout(self.dirBlock)
-		self.processingTabLayout.addLayout(self.dirBlock)
 		
 		# Load directory text field
 		self.imageDisplayBlock=QtGui.QVBoxLayout()
@@ -793,7 +793,7 @@ class ImageProcessor(QtGui.QMainWindow):
 					self.baseListOptions.setCurrentRow(0)
 					self.updateTextBase()
 					
-					self.loadExistingData()
+					self.loadExistingData(0)
 					self.dispCheckerBoard(self.curImageFull,1)
 					self.autoAlt()
 					#self.textBaseViewWindow.setDefaultScroll() ### GET THIS WORKING
@@ -1353,7 +1353,7 @@ class ImageProcessor(QtGui.QMainWindow):
 			fread=f.read()
 		exec(fread)
 		patternRecognition(self,self.curEntryObj,self.textBaseViewWindow)
-	def loadExistingData(self):
+	def loadExistingData(self, displayError=1):
 		### Do I really want to start making things backwards compatable during an Alpha?
 		### How many people would have really downloaded it, except just to muck around?
 		dirField=str(self.dirField.text())
@@ -1414,7 +1414,10 @@ class ImageProcessor(QtGui.QMainWindow):
 					curChar.charField.setText(char)
 					self.curImgListPushTop(curChar, mode='fast')
 			self.curImgListPushTop(curChar, mode='update')
-			self.statusBarUpdate(" -- All characters from local CharListKey file built --", 5000,1)
+		
+		self.pageViewer.loadPageBackground(1)
+		self.pageViewer.loadPageDataFile(0)
+		self.statusBarUpdate(" -- All data loaded for Project `"+self.projectName+"` --", 5000,1)
 	def exportCharList(self):
 		if hasattr(self, "curImgListBlock"):
 			if self.curImgListBlock.count()>0:
@@ -1486,14 +1489,14 @@ class ImageProcessor(QtGui.QMainWindow):
 	def launchHelp(self):
 		url=QtCore.QUrl('https://github.com/ProcStack/pxlTextGenerator')
 		QtGui.QDesktopServices.openUrl(url)
-	def resizeEvent(self,event):
+	def resizeEvent(self,e):
 		if hasattr(self, "textCharDisplay"):
 			self.textCharDisplay.buildTextDisplay(1)
-	def closeEvent(self,event):
+	def closeEvent(self,e):
 		self.quitPromptCreate()
 		### Was used to javascript, attempted simply return False, yeah, that didn't work
 		### https://stackoverflow.com/questions/18256459/qdialog-prevent-closing-in-python-and-pyqt
-		event.ignore()
+		e.ignore()
 	def quitPromptCreate(self):
 		self.closePrompt=QtGui.QMessageBox()
 		self.closePrompt.setIcon(QtGui.QMessageBox.Question)
@@ -1530,7 +1533,7 @@ class ImageProcessor(QtGui.QMainWindow):
 		if e.key()==QtCore.Qt.Key_Escape:
 			self.loopLatch=2
 			self.closePrompt.close()
-			event.ignore()
+			e.ignore()
 	def quitPromptReply(self, button):
 		self.loopLatch=0
 		try:
@@ -1539,8 +1542,6 @@ class ImageProcessor(QtGui.QMainWindow):
 				self.quitApp()
 			elif button.text() in ["Quit", "Discard Changes and Quit"]:
 				self.quitApp()
-			else:
-				event.ignore()
 		except:
 			pass;
 	def quitApp(self):

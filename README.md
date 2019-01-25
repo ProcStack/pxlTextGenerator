@@ -1,4 +1,4 @@
-# **pxlTextGenerator**  *v0.1.3 - Alpha*
+# **pxlTextGenerator**  *v0.2.0 - Beta*
 ## **Text to Handwriting Generator**
 #### *Turn your written characters into an image based font*
 #### *Export with custom page backgrounds to PNG*
@@ -10,8 +10,8 @@
 * [Page Output Tab](#page-output-tab)
 
 --------------------------------------------------------------------------------------------
-<p align='center'><img src='http://metal-asylum.net/python/pxlTextGenerator/show/intro.png' alt="pxlTextGenerator Overview" /></p>
-<p align='center'><img src='http://metal-asylum.net/python/pxlTextGenerator/show/intro_pageOutput.png' alt="pxlTextGenerator Page Output" /></p>
+<p align='center'><img src='http://metal-asylum.net/python/pxlTextGenerator/show/intro_characterBuilder_V020.png' alt="pxlTextGenerator Overview" /></p>
+<p align='center'><img src='http://metal-asylum.net/python/pxlTextGenerator/show/intro_pageOutput_V020.png' alt="pxlTextGenerator Page Output" /></p>
 
 --------------------------------------------------------------------------------------------
 
@@ -38,10 +38,9 @@ This tool is designed to allow users to **gather hand written characters**,
 <br/>*(Especially for the OCR support)*
 <br/>Python and PyQt was just the easy route to start with.
 <br/>
-<br/> **\*\* Since this is still in Alpha, many aspects are in flux \*\***
-<br/> If you are looking to explore this tool and use it with an end goal in mind,
-<br/> Everything is working, but it's still deep in dev mode right now.
-<br/> I'd suggest emailing me to find out how mucky the current state of everything is.
+<br/> **\*\* Since this is still in Beta, some aspects are in flux \*\***
+<br/> The only major changes I forsee is GUI layout and adding new features.
+<br/> If you find any bugs or have any suggestions, feel free to contact me at--
 <br/> [Kevin@Metal-Asylum.Net](mailto:Kevin@Metal-Asylum.Net)
 <br/> 
 ### - **Kevin Edzenga** <br/>
@@ -173,6 +172,7 @@ If all went well, the tool should load up the first image it finds from `pxl_tex
   * **`Page Indentation`**; Left, Top, Right, Bottom - Page margins 
     * *Indicated by red lines in the Page Output Viewer*
   * **`Font Scale`** - Global scale multiplier of characters as they are added into the page
+  * **`Font Kerning`** - Global kerning size in pixels, the distance between characters in the page
   * **`Space Size`** - Size of a 'space' in pixels
   * **`Line Height`** - How spread apart each new line is in pixels
   * **`Line Indent`** - Indentation distance of wrapped lines of text
@@ -182,10 +182,75 @@ If all went well, the tool should load up the first image it finds from `pxl_tex
     * *Random Seed 3.1 might give you A1,A4,A1,A2*
   * **`Auto Update`** - Any changes will rebuild the page, when `On`
   * **`Update Output Text to Writing`** - Update the current page you are editing
-  * **`Set to New Page Entry`** - Creates a new Page Group from your current settings
+  * **`New Empty Page Entry`** - Creates a new empty Page Group, resetting you values
+    * *Any unsaved changes to the current page you are working on will be lost*
+  * **`Set as New Page Entry`** - Creates a new Page Group from your current settings
   * **`Output Directory`** - Directory to export your Page Images to
   * **`Write Page Data File`** - Write out the Page Data File ONLY; *projectName*/pageListKey.py
   * **`Export All Page Data & Images`** - Write out the Page Data File and all Page Images
+  * Implimented scipting system for modifying your `Input Page Text`-
+<p align='center'><img src='http://metal-asylum.net/python/pxlTextGenerator/show/pageOutput_fontTagSample.png' alt="pxlTextGenerator Page Output" /></p>
+#### Special Characters-
+  * **`%charName%`** to output the character you desire
+    * eg- **`%str%`** for a star symbol instead of just a multiply symbol
+  * Custom special characters not implimented yet,
+    * Thats a little outside my current needs for this tool.
+  * Current supported special characters-
+    * **`ocl`**,**`ocr`**,**`oll`**,**`olr`**,**`osl`**,**`osr`**,**`oal`**,**`oar`**,**`str`**
+  * They can be set to what ever you'd like though
+    * Just because it's called **`str`** doesn't mean it needs to be a star.
+### Font Modifying Tags-
+  * **`%###%`** to scale text; **`%50%`** is 50 percent scale, **`%100%`** to get back to normal
+	  
+  * **`%align:position%`** - the positions can be **`left`**, **`center`**, or **`right`**
+    * %align:center%`** to align your text center then **`%align%`** to reset to left alignment.
+    * Affects whole line until set again or reset with **`%align%`**
+  * **`%a:position%`** - Set alignment for current line only
+    * Any return or `\n` will reset the alignment to `left`
+		
+  * **`%offset:#,#%`** - Offset characters in X,Y by pixels
+    * Relative offset for all following text.
+    * If you put only one number, it will offset only in Y
+      * **`%offset:10%`** - Will offset the following text [0,10]
+    * Affects whole lines until set again or reset with **`%offset%`** or **`%o%`**
+  * **`%o:#,#%`** - To set offset for the next character only
+    * It will reset to 0,0 offset after the next character.
+		
+  * **`%rotate:degrees%`** - Rotate characters in degrees for all following text.
+	  
+  * **`%spaceSize:pixels%`** - Line space size ixels is relative offset.
+    * %spaceSize:-10% - If space size is 50, it will be 40
+    * Affects whole lines until set again or reset with **`%spaceSize%`** or **`%ss%`**
+  * **`%ss:pixels%`** - Set spaceSize for current line only
+    * Any return or `\n` will reset the spaceSize to current setting
+		
+  * **`%kern:pixels%`** - Line character kerning in relative pixels offset.
+    * **`%kern:-10%`** - If kerning is 0, it will be -10
+    * Affects whole lines until set again or reset with **`%kern%`** or **`%k%`**
+  * **`%k:pixels%`** - Set kerning for next character only
+    * It will reset to a 0 pixel kerning offset after the next character.
+		
+  * **`%lineHeight:pixels%`** - pixels is relative offset
+    * **`%lineHeight:-20%`** - If line height is 70, it will be 50
+    * **`%lineHeight%`** to clear offset.
+    * Affects whole lines until set again or reset with **`%lineHeight%`** or **`%lh%`**
+  * **`%lh:pixels%`** - Set lineHeight pixels for current line only
+    * Any return or `\n` will reset the lineHeight to current setting
+	  
+  * **`%seed:#%`** - Set the seed random for following characters.
+    * **`%seed:12.4%`** to set a random value of 12.4
+    * **`%seed%`** to reset to your set seed
+    * This is good for changing a lot of characters in a word or line.
+  * **`%s%`** or **`%s:#%`** - To set a random or specific seed for the next character only
+    * If a specific character is a repeat of a near by variation-
+      * `will` and both 'l's are the same 'l'-
+      * `wil%s%l` changes the second 'l' to a different variation
+		  
+  * **`%opacity:percent%`** - Percentage is 0-100
+    * **`%opacity:50%`** - The characters following will be at 50% opacity.
+    * Affects whole lines until set again or reset with **`%opacity%`** or **`%op%`**
+  * **`%op:percent%`** - To set opacity for the next character only
+    * It will reset to 100% opacity after the next character.
 #### Bottom Bar (After loading a Page BG Image)
   * **`Page Group List`** - List of all your current work
   * **`Per Group`** - Isolated group of pages built from one text input

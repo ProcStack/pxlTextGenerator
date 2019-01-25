@@ -325,6 +325,8 @@ class TextToCharDisplay(QtGui.QWidget):
 			path=bundleDir+"/textBed_paperBackground.jpg"
 			if os.path.exists(path):
 				bgPicker=path
+			else:
+				return None
 		if bgPicker=='':
 			ext=("jpg", "jpeg", "png", "bmp")
 			bgPicker=QtGui.QFileDialog.getOpenFileName(self,"Select Background Image",curDir, "Image files (*.jpg *.jpeg *.png *.bmp)")
@@ -403,18 +405,16 @@ class TextToCharDisplay(QtGui.QWidget):
 					for x,c in enumerate(val):
 						self.runner+=1.0
 						if c=="%":
-							print "hit",x
-							print "|",val[x:x+4]
 							if inTag==1:
 								inTag=2
 								skip=0
 							else:
 								curTag=''
 								for v in range(1,maxTagLength):
-									if x+v<min(maxTagLength,len(val)):
+									if x+v<len(val):
 										curTag+=val[x+v]
-										print x,v,curTag
-										if curTag in tags:
+										if curTag.lower() in tags:
+											curTag=curTag.lower()
 											inTag=1
 											break;
 										if val[x+v] == "%":
@@ -423,7 +423,6 @@ class TextToCharDisplay(QtGui.QWidget):
 											break;
 									else:
 										break;
-								print "---"
 						if inTag==1:
 							skip=1
 						elif inTag==0:
@@ -538,6 +537,7 @@ class PageBuilder(QtGui.QWidget):
 		
 		self.pageData=[]
 		self.curPage=0
+		self.loadingData=0
 		
 		######
 		
@@ -663,6 +663,8 @@ class PageBuilder(QtGui.QWidget):
 		### Page Options ###
 		self.fontScale=SliderGroup(self,"Font Scale",[0,2,.75],7,"float",' %', "buildTextOutput(0)")
 		self.charTestOptionBlock.addWidget(self.fontScale)
+		self.fontKerning=SliderGroup(self,"Font Kerning",[-50,50,0],7,"int",' px', "buildTextOutput(0)")
+		self.charTestOptionBlock.addWidget(self.fontKerning)
 		self.spaceSize=SliderGroup(self,"Space Size",[0,200,50],7,"int",' px', "buildTextOutput(0)")
 		self.charTestOptionBlock.addWidget(self.spaceSize)
 		self.lineHeight=SliderGroup(self,"Line Height",[0,200,75],7,"int",' px', "buildTextOutput(0)")
@@ -700,13 +702,27 @@ class PageBuilder(QtGui.QWidget):
 		spacer=QtGui.QSpacerItem(10,50, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Maximum)
 		self.charTestOptionBlock.addItem(spacer)
 		
-		buildToNewPage=QtGui.QPushButton('Set to New Page Entry', self)
+		newEntryButtonBlock=QtGui.QHBoxLayout()
+		newEntryButtonBlock.setSpacing(0)
+		newEntryButtonBlock.setMargin(0) 
+		###
+		emptyNewPage=QtGui.QPushButton('New Empty Page Entry', self)
+		emptyNewPage.setFixedHeight(50)
+		emptyNewPage.setStyleSheet(self.win.buttonStyle)
+		emptyNewPage.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+		emptyNewPage.setStyleSheet("QPushButton {margin-top:5px;}")
+		emptyNewPage.clicked.connect(lambda: self.addPageIndex(1))
+		newEntryButtonBlock.addWidget(emptyNewPage)
+		###
+		buildToNewPage=QtGui.QPushButton('Set as New Page Entry', self)
 		buildToNewPage.setFixedHeight(50)
 		buildToNewPage.setStyleSheet(self.win.buttonStyle)
 		buildToNewPage.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 		buildToNewPage.setStyleSheet("QPushButton {margin-top:5px;}")
-		buildToNewPage.clicked.connect(self.addPageIndex)
-		self.charTestOptionBlock.addWidget(buildToNewPage)
+		buildToNewPage.clicked.connect(lambda: self.addPageIndex(0))
+		newEntryButtonBlock.addWidget(buildToNewPage)
+		###
+		self.charTestOptionBlock.addLayout(newEntryButtonBlock)
 		
 		spacer=QtGui.QSpacerItem(10,10, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
 		self.charTestOptionBlock.addItem(spacer)
@@ -774,11 +790,6 @@ class PageBuilder(QtGui.QWidget):
 		##### PAGE ENTRY LIST ######
 		bottomBarHeight=200
 		self.sideBarBlock=QtGui.QHBoxLayout()
-		self.sideBarTextBase=QtGui.QVBoxLayout()
-		self.sideBarTextBase.setAlignment(QtCore.Qt.AlignCenter)
-		self.sideBarTextBaseWidget=QtGui.QWidget()
-		self.sideBarTextBaseWidget.setLayout(self.sideBarTextBase)
-		self.sideBarBlock.addWidget(self.sideBarTextBaseWidget)
 		###
 		self.scrollIndexBlock=QtGui.QScrollArea()
 		self.scrollIndexBlock.setWidgetResizable(True)
@@ -838,9 +849,17 @@ class PageBuilder(QtGui.QWidget):
 				runUpdate=0
 		if runUpdate==1 and self.editPrep==False:
 			self.pageOutput.buildTextDisplay()
-	def loadPageBackground(self):
-		ext=("jpg", "jpeg", "png", "bmp")
-		bgPicker=QtGui.QFileDialog.getOpenFileName(self,"Select Background Image",curDir, "Image files (*.jpg *.jpeg *.png *.bmp)")
+	def loadPageBackground(self,checkLocal=0):
+		bgPicker=''
+		if checkLocal == 1:
+			path=bundleDir+"/pageOutput_pageBackground.png"
+			if os.path.exists(path):
+				bgPicker=path
+			else:
+				return None
+		if bgPicker=='':
+			ext=("jpg", "jpeg", "png", "bmp")
+			bgPicker=QtGui.QFileDialog.getOpenFileName(self,"Select Background Image",curDir, "Image files (*.jpg *.jpeg *.png *.bmp)")
 		if bgPicker != "":
 			if os.path.exists(bgPicker):
 				bgPicker=str(bgPicker)
@@ -855,9 +874,11 @@ class PageBuilder(QtGui.QWidget):
 				self.imgFolder=bgPath
 				self.pageOutput.imgFolder=bgPath
 				
+				self.loadingData=1
 				self.pageFileLocation.setText(bgPicker)
 				self.pageOutput.loadPageBackground(bgPicker)
 				self.buildTextOutput()
+				self.loadingData=0
 	def setPageOutputDir(self, setDir=None):
 		if setDir == None or setDir == False:
 			folderPicker=QtGui.QFileDialog.getExistingDirectory(self,"Set Output Directory")
@@ -870,38 +891,67 @@ class PageBuilder(QtGui.QWidget):
 			self.pageOutputDirText.setText(setDir)
 	def updatePageIndex(self, thumbIndex=None):
 		if len(self.pageData)>0:
-			if self.editPrep==False:
-				if thumbIndex==None:
-					thumbIndex=self.curPage
-				curThumb=None
-				if thumbIndex>=self.curPageListBlock.count():
-					curThumb=IndexPageEntry(self.win, self, self.curPage, "Page_"+str(thumbIndex), self.imgPath, [152,152], "H", [self.pageOutput.pageImgData], self.pageData[thumbIndex])
-					self.curPageListBlock.addWidget(curThumb)
-				else:
-					curThumb=self.curPageListBlock.itemAt(self.curPage).widget()
-					curThumb.pageData=self.pageData[self.curPage] # I don't like this method.....
-				curThumb.updatePageThumb(self.pageOutput.groupPage,self.pageOutput.pageImgData)
-	def addPageIndex(self):
+			#if self.editPrep==False:
+			if thumbIndex==None:
+				thumbIndex=self.curPage
+			curThumb=None
+			if thumbIndex>=self.curPageListBlock.count():
+				curThumb=IndexPageEntry(self.win, self, self.curPage, self.pageData[thumbIndex]['pageGroupName'], self.imgPath, [152,152], "H", [self.pageOutput.pageImgData], self.pageData[thumbIndex])
+				self.curPageListBlock.addWidget(curThumb)
+				if self.loadingData==0:
+					curThumb.nameFocus()
+			else:
+				curThumb=self.curPageListBlock.itemAt(self.curPage).widget()
+				curThumb.pageData=self.pageData[self.curPage] # I don't like this method.....
+			curThumb.updatePageThumb(self.pageOutput.groupPage,self.pageOutput.pageImgData)
+	def addPageIndex(self, resetSettings=0):
+		if resetSettings==1:
+			self.resetSettings()
 		self.pageOutput.buildTextDisplay(1)
+		#self.editGroup(1,pageGroup)
+	def resetSettings(self):
+		self.editPrep=True
+		###
+		self.inputText.setPlainText('')
+		###
+		self.pageIndentLeft.resetValue()
+		self.pageIndentTop.resetValue()
+		self.pageIndentRight.resetValue()
+		self.pageIndentBottom.resetValue()
+		self.fontScale.resetValue()
+		self.spaceSize.resetValue()
+		self.lineHeight.resetValue()
+		self.lineIndent.resetValue()
+		self.charSeed.resetValue()
+		###
+		self.editPrep=False
 	def editGroup(self,mode,groupData):
 		self.editPrep=True
 		pageDataArray=[]
 		if mode==0: # Edit Existing Group
-			self.pageOutput.img.setPixmap(groupData.data[0])
 			self.curPage=groupData.group
 			pageDataArray=groupData.pageData
+			if not hasattr(groupData,"data") or groupData.data==None:
+				self.pageOutput.buildTextDisplay()
+			self.pageOutput.img.setPixmap(groupData.data[0])
 		else:
 			pageDataArray=groupData
 		pageDataKeysArray=pageDataArray.keys()
 		#self.parent.pageData[self.group]=[]
 		for k in pageDataKeysArray:
-			if k not in ["lineData", "pageFlip"]:
+			if k not in ["lineData", "pageFlip", "pageGroupName"]:
 				if k == "inputText": # Might need to change this to 'in []'
 					eval('self.'+k+'.setPlainText(r"""'+str(pageDataArray[k])+'""")')
 				else:
 					eval("self."+k+".setValue(str("+str(pageDataArray[k])+"))")
 		self.editPrep=False
-		self.pageOutput.buildTextDisplay()
+		if mode!=-1:
+			self.pageOutput.buildTextDisplay()
+	def rebuildPageGroupIds(self):
+		pageGroupCount=self.curPageListBlock.count()
+		for x in range(pageGroupCount):
+			curThumb=self.curPageListBlock.itemAt(x).widget()
+			curThumb.setGroupId(x)
 	def writePageDataFile(self, exportFile=1, exportImages=0):
 		### When I get multi pages going, this might become an issue here ###
 		### The line data will be set within a Page dictionary ###
@@ -946,34 +996,70 @@ class PageBuilder(QtGui.QWidget):
 					
 				imgPath=delimit+delimit.join(imgPath.split(lim)[-3:])
 				self.win.statusBarUpdate(" -- Starting export of Page Images --", 0,0)
-				self.pageOutput.saveImage()
+				self.saveImages()
 				self.win.statusBarUpdate(" -- Wrote out data to - '"+delimit+self.win.projectName+delimit+"pageListKey.py'; Pages exported to - '"+imgPath+"' --", 10000,1)
 			self.win.unsavedChanges=0
 		else:
 			self.win.statusBarUpdate(" -- No characters found, please 'Load Text Image' to load existing character data -- ", 5000,2)
-	def loadPageDataFile(self):
+			
+	def saveImages(self):
+		path=self.pageOutputDirText.text()
+		diffuse="Busted"
+		if path[-1] != "/":
+			path+="/"
+		if not os.path.exists(path):
+			buildPath="\\".join(str(path).split("/"))
+			os.makedirs(buildPath)
+		pageGroupCount=self.curPageListBlock.count()
+		for x in range(pageGroupCount):
+			self.win.statusBarUpdate(" -- Exporting page group "+str(x+1)+" of "+str(pageGroupCount)+" --", 0,0)
+			curPageGroup=self.curPageListBlock.itemAt(x).widget()
+			curPagesCount=curPageGroup.pageListBlock.count()
+			for c in range(curPagesCount):
+				curThumb=curPageGroup.pageListBlock.itemAt(c).widget()
+				if curPagesCount==1:
+					diffuse=curPageGroup.pageName+".png"
+				else:
+					diffuse=curPageGroup.pageName+"_"+str(c)+".png"
+				difData=curThumb.data
+				difData.save(path+diffuse, "png")
+	def loadPageDataFile(self, displayError=1):
 		path=self.win.dirField.text()
 		if path == "":
-			self.win.statusBarUpdate(" -- No Page Output directory set; make sure your project is loaded or set an output directory -- ", 5000,2)
+			if displayError==1:
+				self.win.statusBarUpdate(" -- No Page Output directory set; make sure your project is loaded or set an output directory -- ", 5000,2)
 		else:
 			if path[-1] != "/":
 				path+="/"
 			path="\\".join(str(path).split("/"))
 			path+="pageListKey.py"
 			if os.path.exists(path):
-				self.win.statusBarUpdate(" -- Reading and building pages from local PageListKey file --", 0,0)
+				if displayError==1:
+					self.win.statusBarUpdate(" -- Reading and building pages from local PageListKey file --", 0,0)
 				
 				sys.path.append(self.win.projectName)
 				import pageListKey
 				reload(pageListKey)
 				
-				for pageGroup in pageListKey.pageList:
-					self.pageOutput.buildTextDisplay(1)
-					self.editGroup(1,pageGroup)
+				if len(pageListKey.pageList)>0:
+					curPageEntries=self.curPageListBlock.count()
+					for x in range(curPageEntries):
+						curEntry=self.curPageListBlock.itemAt(curPageEntries-1-x).widget()
+						curEntry.deleteGroup()
+					self.curPage=0
+					self.pageData=[]
+					self.loadingData=1
+					self.resetSettings()
+					for x in range(len(pageListKey.pageList)):
+						pageGroup=pageListKey.pageList[x]
+						self.editGroup(-1,pageGroup)
+						self.pageOutput.buildTextDisplay(1,pageGroup["pageGroupName"])
+					self.loadingData=0
+					curThumb=self.curPageListBlock.itemAt(0).widget()
+					curThumb.editGroup()
 			else:
-				self.win.statusBarUpdate(" -- No exported data found '"+self.win.projectName+delimit+"pageListKey.py'; please export a page first. -- ", 5000,2)
-	def buildTextDisplay(self, newPage=0):
-		self.win.statusBarUpdate(" -- All pages from local PageListKey file built --", 5000,1)
+				if displayError==1:
+					self.win.statusBarUpdate(" -- No exported data found '"+self.win.projectName+delimit+	"pageListKey.py'; please export a page first. -- ", 5000,2)
 class PageBuilderViewer(QtGui.QWidget):	
 	def __init__(self, win):
 		QtGui.QWidget.__init__(self)
@@ -995,7 +1081,7 @@ class PageBuilderViewer(QtGui.QWidget):
 		self.zoom=1.0
 		self.cWOrig=0
 		self.cHOrig=0
-		self.baseLine=75
+		self.baseLine=75.0
 		self.runner=0.0
 		self.seed=0.0
 		self.pageFileName="pageBuildExport"
@@ -1139,7 +1225,7 @@ class PageBuilderViewer(QtGui.QWidget):
 		return pmap
 	def inputText(self):
 		return str(self.parent.inputText.toPlainText())
-	def buildTextDisplay(self, newPage=0):
+	def buildTextDisplay(self, newPage=0, pageGroupName=None):
 		val=self.inputText()
 		#if val != self.pastTest or force==1:
 		textUpdated=0
@@ -1148,7 +1234,8 @@ class PageBuilderViewer(QtGui.QWidget):
 		self.pastTest=val
 		res=[self.cWOrig, self.cHOrig]
 		
-		charOffsets=[0,0]
+		charOffsets=[0.0,0.0]
+		prevCharOffsets=[0.0,0.0]
 		
 		if hasattr(self.win, "curImgListBlock"):
 			if self.win.curImgListBlock.count() == 0:
@@ -1158,52 +1245,90 @@ class PageBuilderViewer(QtGui.QWidget):
 			self.win.statusBarUpdate(" -- Please 'Load Text Image' to load existing character data -- ", 5000,2)
 			return
 		dir=str(self.win.dirField.text()).strip()
-		if dir != '':
-			#if val != '':
-			curPageData={}
-			curLineData=[]
-			pageFlip=0
-			#if textUpdated == 1:
-			self.buildCharListArray()
-			
-			fontScale=self.parent.fontScale.value
-			spaceSize=self.parent.spaceSize.value
-			lineHeight=self.parent.lineHeight.value
-			lineIndent=self.parent.lineIndent.value
-			###
-			charSeed=self.parent.charSeed.value
-			self.seed=charSeed
-			###
-			padLeft=self.parent.pageIndentLeft.value
-			padRight=self.parent.pageIndentRight.value
-			padTop=self.parent.pageIndentTop.value
-			padBottom=self.parent.pageIndentBottom.value
-			
-			curPageData={}
-			curPageData['inputText']=val
-			curPageData['pageFlip']=pageFlip
-			curPageData['fontScale']=fontScale
-			curPageData['spaceSize']=spaceSize
-			curPageData['lineHeight']=lineHeight
-			curPageData['lineIndent']=lineIndent
-			curPageData['charSeed']=charSeed
-			curPageData['pageIndentLeft']=padLeft
-			curPageData['pageIndentRight']=padRight
-			curPageData['pageIndentTop']=padTop
-			curPageData['pageIndentBottom']=padBottom
-			
-			curLineData=[]
-			self.runner=0
-			val=list(val)
-			backChars=["'",'"',"`"]
-			skip=0
-			
-			paintLine=0
-			genNewLine=1
-			fontScaleLine=fontScale
-			fontScaleChar=fontScale
-			for x,c in enumerate(val):
-				self.runner+=1.0
+		#if dir != '':
+		#if val != '':
+		curPageData={}
+		curLineData=[]
+		pageFlip=0
+		#if textUpdated == 1:
+		self.buildCharListArray()
+		
+		fontScale=self.parent.fontScale.value
+		fontKerning=float(self.parent.fontKerning.value)
+		spaceSize=float(self.parent.spaceSize.value)
+		lineHeight=float(self.parent.lineHeight.value)
+		lineIndent=self.parent.lineIndent.value
+		###
+		charSeed=self.parent.charSeed.value
+		self.seed=charSeed
+		###
+		padLeft=self.parent.pageIndentLeft.value
+		padRight=self.parent.pageIndentRight.value
+		padTop=self.parent.pageIndentTop.value
+		padBottom=self.parent.pageIndentBottom.value
+		
+		curPageData={}
+		curPageData['inputText']=val
+		curPageData['pageFlip']=pageFlip
+		curPageData['fontScale']=fontScale
+		curPageData['spaceSize']=spaceSize
+		curPageData['fontKerning']=fontKerning
+		curPageData['lineHeight']=lineHeight
+		curPageData['lineIndent']=lineIndent
+		curPageData['charSeed']=charSeed
+		curPageData['pageIndentLeft']=padLeft
+		curPageData['pageIndentRight']=padRight
+		curPageData['pageIndentTop']=padTop
+		curPageData['pageIndentBottom']=padBottom
+		curPageGroupName="Page"
+		grabName=1
+		if pageGroupName!=None:
+			pageGroupName=pageGroupName.strip()
+			if pageGroupName!='':
+				curPageGroupName=pageGroupName
+				grabName=0
+		if len(self.parent.pageData)>0 and self.parent.curPage <= len(self.parent.pageData):
+			if newPage==0 and grabName==1:
+				curPageGroupName=self.parent.pageData[self.parent.curPage]['pageGroupName']
+		curPageData['pageGroupName']=curPageGroupName
+		
+		curLineData=[]
+		self.runner=0
+		val=list(val)
+		backChars=["'",'"',"`"]
+		skip=0
+		inTag=0
+		maxTagLength=10
+		specialChars=["ocl","ocr","oll","olr","osl","osr","oal","oar","str"]
+		textTags=["align","a", "offset","o", "rotate", "kern","k", "spacesize","ss", "lineheight","lh", "seed","s", "opacity","op"]
+		tags=[]
+		tags+=specialChars
+		tags+=textTags
+		maxTagLength=len(max(tags, key=len))+2
+		checkTagLength=maxTagLength
+		curTag=''
+		curSingleCharTags=[]
+		curSingleLineTags=[]
+		fontTag=0
+		curTagPerc=1.0
+		curTagAlign="left"
+		curTagOffset=[0.0,0.0]
+		curTagRotate=0.0
+		curTagSeed=0.0
+		curTagSpaceSize=0.0
+		curTagKerning=0.0
+		curTagLineHeight=0.0
+		curTagOpacity=100.0
+		curTagSingleChar=0
+		curTagSingleLine=0
+		
+		paintLine=0
+		genNewLine=1
+		fontScaleLine=fontScale
+		fontScaleChar=fontScale
+		continueRun=-1
+		for x,c in enumerate(val):
+			if x >= continueRun:
 				if genNewLine==1:
 					newLineData={}
 					newLineData['wordData']=[]
@@ -1215,83 +1340,341 @@ class PageBuilderViewer(QtGui.QWidget):
 					newLineData['spaceWidth']=spaceSize
 					newLineData['fontScale']=1.0
 					newLineData['lineOffsets']=charOffsets
+					newLineData['lineWidth']=-1
+					newLineData['fontKerning']=fontKerning
+
+					newLineData['align']=curTagAlign
 					curLineData.append(newLineData)
 					genNewLine=0
-				
 					fontScale=self.parent.fontScale.value
 				
-				if c == "b":
-					if x < len(val)-1:
-						if val[x+1] in backChars:
-							skip=1
+				if c=="%":
+					if inTag==1:
+						inTag=2
+						skip=0
+					else:
+						curTag=''
+						setBreak=0
+						fontTagBuild=0
+						tagReset=0
+						for v in range(1,maxTagLength): # Gotta clean this up
+							if x+v<len(val):
+								if val[x+v] in ["%", "\n"]:
+									if val[x+v]=="\n":
+										setBreak=1
+										fontTag=0
+										break;
+									if curTag not in tags and fontTag==0:
+										setBreak=1
+										break;
+									if fontTag==2:
+										if curTag in textTags:
+											tagReset=1
+										else:
+											fontTag=0
+									continueRun=x+v
+									break;
+								else:
+									tagCurChar=val[x+v].lower()
+									if curTag=='':
+										if tagCurChar.isdigit() == True or tagCurChar==".":
+											fontTag=1
+									if fontTag==2:
+										if tagCurChar == ":":
+											fontTagBuild=v+1
+											break;
+										if (curTag+tagCurChar) not in textTags:
+											fontTag=0
+									curTag+=tagCurChar
+									if fontTag==0:
+										if curTag in tags:
+											inTag=1
+										if curTag in textTags:
+											fontTag=2
+									elif (fontTag==1 and (tagCurChar.isdigit()==True or tagCurChar==".")):
+										inTag=1
+									elif fontTag==2:
+										continue;
+									else:
+										inTag=0
+										setBreak=1
+										break;
+							else:
+								break;
+						curFontMod=''
+						if fontTagBuild>0 and setBreak==0:
+							for v in range(fontTagBuild,fontTagBuild+maxTagLength): # Gotta clean this up
+								if x+v<len(val):
+									if val[x+v] in ["%", "\n"]:
+										if val[x+v]=="\n":
+											setBreak=1
+											break;
+										continueRun=x+v
+										break;
+									tagCurChar=val[x+v].lower()
+									curFontMod+=tagCurChar
+							if curFontMod == '':
+								tagReset=1
+						checkTagLength=maxTagLength
+						if setBreak==0:
+							if fontTag==1: # Percent scale font
+								curTagPerc=float(curTag)
+								if "." not in curTag:
+									curTagPerc=curTagPerc/100.0
+							elif fontTag==2: # Text modifying tag
+								failCheck=map(lambda x: x.isdigit() or x in ['.', ',', '-', ' '], list(curFontMod))
+								if curTag not in ["align","a"] and False in failCheck:
+									curTag=''
+									setBreak=1
+								if curTag in ["align","a"]:
+									if curTag=='a':
+										curTag='align'
+										curSingleLineTags.append(curTag)
+										curTagSingleLine=1
+									if tagReset==1:
+										curTagAlign="left"
+									else:
+										if curFontMod in ['left','center','right']:
+											curTagAlign=curFontMod
+											curLineData[-1]['align']=curTagAlign
+										else:
+											setBreak=1
+								elif curTag in ["offset","o"]:
+									if curTag=='o':
+										curTag='offset'
+										curSingleCharTags.append(curTag)
+										curTagSingleChar=1
+									if tagReset==1:
+										curTagOffset=[0.0,0.0]
+									else:
+										buildOffset=[0.0,0.0]
+										xyOffsets=0
+										if "," in curFontMod:
+											if " " in curFontMod:
+												curFontMod="".join(curFontMod.split(" "))
+											curFontMod=curFontMod.split(",")
+										elif " " in curFontMod:
+											curFontMod=curFontMod.split(" ")
+										else:
+											curFontMod=[curFontMod]
+										curFontMod=filter(None, curFontMod)
+										if len(curFontMod)>2:
+											setBreak=1
+										else:
+											if len(curFontMod)==1:
+												buildOffset[1]=float(curFontMod[0])
+											else:
+												for o in range(len(curFontMod)):
+													buildOffset[o]=float(curFontMod[o])
+											curTagOffset=[]
+											curTagOffset+=buildOffset
+								elif curTag in ["kern","k"]:
+									if curTag=='k':
+										curTag='kern'
+										curSingleCharTags.append(curTag)
+										curTagSingleChar=1
+									if tagReset==1:
+										curTagKerning=0.0
+									else:
+										curTagKerning=float(curFontMod)
+								elif curTag=="rotate":
+									if tagReset==1:
+										curTagRotate=0.0
+									else:
+										curTagRotate=float(curFontMod)
+								elif curTag in ["spacesize","ss"]:
+									if curTag=='ss':
+										curTag='spacesize'
+										curSingleLineTags.append(curTag)
+										curTagSingleLine=1
+									if tagReset==1:
+										curTagSpaceSize=0.0
+									else:
+										curTagSpaceSize=float(curFontMod)
+								elif curTag in ["lineheight","lh"]:
+									if curTag=='lh':
+										curTag='lineheight'
+										curSingleLineTags.append(curTag)
+										curTagSingleLine=1
+									if tagReset==1:
+										curTagLineHeight=0.0
+									else:
+										curTagLineHeight=float(curFontMod)
+										charOffsets[1]=prevCharOffsets[1]+lineHeight+curTagLineHeight
+								elif curTag in ["seed","s"]:
+									if curTag=='s':
+										curTag='seed'
+										curSingleCharTags.append(curTag)
+										curTagSingleChar=1
+										if curFontMod=='':
+											tagReset=0
+											random.seed(self.runner)
+											curFontMod=random.random()
+											random.seed(self.runner+curFontMod)
+											curFontMod=random.random()
+									if tagReset==1:
+										curTagSeed=0.0
+									else:
+										curTagSeed=float(curFontMod)
+								elif curTag in ["opacity","op"]:
+									if curTag=='op':
+										curTag='opacity'
+										curSingleCharTags.append(curTag)
+										curTagSingleChar=1
+									if tagReset==1:
+										curTagOpacity=100.0
+									else:
+										curTagOpacity=float(curFontMod)
+								else:
+									setBreak=1
+								if setBreak==0:
+									cc=''
+									inTag=0
+									continueRun+=1
+									continue;
+									#inTag=1
+						if setBreak==1:
+							curTag=''
+							curFontMod=''
+							inTag=0
+							if fontTag>0: # To support broken tags inside altered scales
+								fontTag=0
+						if inTag==0:
 							cc=c
-				if skip==0:
-					cc=c
-				elif skip==2:
-					skip=0
-					cc+=c
+				if inTag==1:
+					skip=1
+				elif inTag==0:
+					if c == "b":
+						if x < len(val)-1:
+							if val[x+1] in backChars:
+								skip=1
+								cc=c
+					if skip==0:
+						cc=c
+					elif skip==2:
+						skip=0
+						cc+=c
 				if skip == 0:
+					if inTag==2:
+						inTag=0
+						if fontTag==0:
+							cc=curTag
+							curTag=''
 					if cc == " ":
 						#leftStart=leftStart+spaceSize
-						charOffsets[0]=charOffsets[0]+spaceSize
+						charOffsets[0]=charOffsets[0]+spaceSize+curTagSpaceSize
 						newWord={}
 						newWord['size']=[0,0]
 						newWord['chars']=[]
 						newWord['fontScale']=1.0
 						curLineData[-1]['wordData'].append(newWord)
 					elif cc=="\n":
-						charOffsets=[0,charOffsets[1]+lineHeight]
+						inTag=0
+						curLineData[-1]['lineWidth']=charOffsets[0]
+						prevCharOffsets=[]
+						prevCharOffsets.extend(charOffsets)
 						genNewLine=1
+						if curTagSingleLine==1:
+							curTagSingleLine=0
+							for tag in curSingleLineTags:
+								if tag=="align":
+									curTagAlign="left"
+								if tag=="lineheight":
+									curTagLineHeight=0.0
+								if tag=="spacesize":
+									curTagSpaceSize=0.0
+							curSingleLineTags=[]
+						charOffsets=[0,charOffsets[1]+lineHeight+curTagLineHeight]
 					else:
-						charData=self.pullCharData(cc,fontScaleChar)
+						charData=self.pullCharData(cc, fontScaleChar*curTagPerc, charSeed+curTagSeed)
 						if charData != None:
-							curOffset=[ charOffsets[0]-charData['spacingLeft'],charOffsets[1]-charData['baseline']+self.baseLine ]
+							self.runner+=1.0
+							curOffset=[ charOffsets[0]-charData['spacingLeft']+curTagOffset[0]+fontKerning+curTagKerning,charOffsets[1]-charData['baseline']+curTagOffset[1]+self.baseLine ]
 							charData['offset']=curOffset
-							charOffsets[0]=charOffsets[0]-charData['spacingLeft']+charData['spacingRight']
+							charOffsets[0]=charOffsets[0]-charData['spacingLeft']+charData['spacingRight']+fontKerning+curTagKerning
 
+							charData['charScale']=curTagPerc
+							charData['charOffset']=curTagOffset
+							charData['rotate']=curTagRotate
+							charData['opacity']=curTagOpacity
+							
 							curLineData[-1]['wordData'][-1]['chars'].append(charData)
+					
+					if curTagSingleChar==1:
+						curTagSingleChar=0
+						for tag in curSingleCharTags:
+							if tag=="offset":
+								curTagOffset=[0.0,0.0]
+							if tag=="kern":
+								curTagKerning=0.0
+							if tag=="seed":
+								curTagSeed=0.0
+							if tag=="opacity":
+								curTagOpacity=100.0
+						curSingleCharTags=[]
 				else:
 					skip+=1
-			curPageData['lineData']=curLineData
+				fontTag=0
+		curPageData['lineData']=curLineData
+		if newPage==1:
+			self.parent.curPage=len(self.parent.pageData)
+			self.parent.pageData.append(curPageData)
+		else:
 			if self.parent.curPage>=len(self.parent.pageData):
 				self.parent.pageData.append(curPageData)
 			else:
 				self.parent.pageData[self.parent.curPage]=curPageData
-			"""else:
-				if len(self.parent.pageData)==0:
-					return None
-				curPageData=self.parent.pageData[self.parent.curPage]
-				curLineData=curPageData['lineData']
-				pageFlip=curPageData['pageFlip']
-				padLeft=curPageData['pageIndentLeft']
-				padRight=curPageData['pageIndentRight']
-				padTop=curPageData['pageIndentTop']
-				padBottom=curPageData['pageIndentBottom']
-			"""
-			baseImg=QtGui.QPixmap(res[0], res[1])
-			baseImg.fill(QtGui.QColor(0,0,0,0))
-			painter=QtGui.QPainter(baseImg)
-			for line in curLineData:
-				for word in line['wordData']:
-					for char in word['chars']:
-						pmap=char['data']
-						curOffset=char['offset']
-						painter.drawPixmap(curOffset[0]+padLeft,curOffset[1]+padTop,pmap)
-			painter.end()
-			self.textBuildData=baseImg
-			if newPage==1:
-				self.parent.curPage+=1
-				self.parent.pageData.append(curPageData)
-			#else:
-			#	self.textBuildData=None
-			self.updateTextBackground()
-	def pullCharData(self,curChar, fontScale):
+
+		baseImg=QtGui.QPixmap(res[0], res[1])
+		baseImg.fill(QtGui.QColor(0,0,0,0))
+		painter=QtGui.QPainter(baseImg)
+		painter.setRenderHint(QtGui.QPainter.Antialiasing,True)
+		painter.setRenderHint(QtGui.QPainter.SmoothPixmapTransform,True)
+		lineWidth=0
+		lineOffset=[0,0]
+		lineAlign='left'
+		
+		
+		padLeft=curPageData['pageIndentLeft']
+		padRight=curPageData['pageIndentRight']
+		padTop=curPageData['pageIndentTop']
+		padBottom=curPageData['pageIndentBottom']
+		pageSize=[padRight-padLeft, padBottom-padTop]
+		for line in curLineData:
+			lineWidth=line['lineWidth']
+			lineAlign=line['align']
+			deltaX=0
+			deltaY=0
+			if lineAlign=='center':
+				deltaX=(pageSize[0]-lineWidth)/2
+				lineOffset=[0,0]
+			elif lineAlign=='right':
+				deltaX=(pageSize[0]-lineWidth)
+			lineOffset=[deltaX,deltaY]
+			for word in line['wordData']:
+				for char in word['chars']:
+					pmap=char['data']
+					curOffset=[0,0]
+					curOffset[0]=char['offset'][0]+lineOffset[0]
+					curOffset[1]=char['offset'][1]+lineOffset[1]
+					if char['opacity']!=100.0:
+						painter.setOpacity(char['opacity']/100.0)
+					painter.drawPixmap(curOffset[0]+padLeft,curOffset[1]+padTop,pmap)
+					if char['opacity']!=100.0:
+						painter.setOpacity(1.0)
+		painter.end()
+		self.textBuildData=baseImg
+		
+		#else:
+		#	self.textBuildData=None
+		self.updateTextBackground()
+	def pullCharData(self,curChar, fontScale, curSeed):
 		curChar=str(curChar)
 		charKeys=self.charListArray.keys()
 		if curChar in charKeys:
 			retDict={}
 			retDict['char']=curChar
-			random.seed( self.runner + self.seed )
+			random.seed( self.runner + curSeed )
 			charVar=random.choice(self.charListArray[curChar].keys())
 			retDict['key']=charVar
 			charVar=self.charListArray[curChar][charVar]
@@ -1305,16 +1688,16 @@ class PageBuilderViewer(QtGui.QWidget):
 			mm=int(float(max(pmap.width(), pmap.height()))*retDict['premultiply'])
 			retDict['resMax']=[mm,mm]
 			res=[ int(float(pmap.width())*retDict['premultiply']), int(float(pmap.height())*retDict['premultiply']) ]
-			pmap=pmap.scaled(res[0],res[1], QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
+			pmap=pmap.scaled(res[0],res[1], QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation)
 			retDict['res']=[pmap.width(), pmap.height()]
 			retDict['data']=pmap
-			retDict['baseline']=int(float(charVar['baseline'])*retDict['premultiply'])
-			retDict['spacingLeft']=int(float(charVar['spacingLeft'])*retDict['premultiply'])
-			retDict['spacingRight']=int(float(charVar['spacingRight'])*retDict['premultiply'])
+			retDict['baseline']=(float(charVar['baseline'])*retDict['premultiply'])
+			retDict['spacingLeft']=(float(charVar['spacingLeft'])*retDict['premultiply'])
+			retDict['spacingRight']=(float(charVar['spacingRight'])*retDict['premultiply'])
 			
 			return retDict
 		return None
-	def saveImage(self):
+	def saveImages(self):
 		path=self.parent.pageOutputDirText.text()
 		diffuse="Busted"
 		if path[-1] != "/":

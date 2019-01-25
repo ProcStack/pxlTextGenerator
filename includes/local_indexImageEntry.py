@@ -349,7 +349,7 @@ class IndexPageEntry(QtGui.QWidget): #Individual indexList image entries
 		self.win=win
 		self.parent=parent
 		
-		self.imgName=name
+		self.pageName=name
 		self.pagePathBG=bgPath
 		
 		self.pageSize=[-1,-1] # Disk image size
@@ -369,67 +369,65 @@ class IndexPageEntry(QtGui.QWidget): #Individual indexList image entries
 		self.exported=0
 		self.fileName=None #Export file name
 
+		self.img.setAlignment(QtCore.Qt.AlignCenter)
+		self.img.setGeometry(0,0,self.thumbSize[0],self.thumbSize[1]) # Placeholder
+		
+		pageGroupBlock=None
+		pageGroupBlock=QtGui.QVBoxLayout()
+		pageGroupBlock.setSpacing(0) # Spacing & Margin was giving me trouble calculating dynamic loading in window
+		pageGroupBlock.setMargin(0) # ||
+		###
+		self.charField=QtGui.QLineEdit()
+		self.charField.setText(self.pageName)
+		self.charField.installEventFilter(self.win)
+		self.charField.editingFinished.connect(self.charCheck)
+		pageGroupBlock.addWidget(self.charField)
+		###
+		pageAndOptionBlock=QtGui.QHBoxLayout()
+		pageAndOptionBlock.setSpacing(0) # Spacing & Margin was giving me trouble calculating dynamic loading in window
+		pageAndOptionBlock.setMargin(0) # ||
+		pageGroupBlock.addLayout(pageAndOptionBlock)
+		###
+		pageOptionBlock=QtGui.QVBoxLayout()
+		pageOptionBlock.setSpacing(0) # Spacing & Margin was giving me trouble calculating dynamic loading in window
+		pageOptionBlock.setMargin(0) # ||
+		pageAndOptionBlock.addLayout(pageOptionBlock)
+		#
+		spacer=QtGui.QSpacerItem(10,10, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+		pageAndOptionBlock.addItem(spacer)
+		#
+		editPages=QtGui.QPushButton('Edit Pages', self)
+		editPages.setStyleSheet(self.win.buttonStyle)
+		editPages.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+		editPages.setStyleSheet("QPushButton {margin-top:5px;}")
+		editPages.clicked.connect(self.editGroup)
+		pageOptionBlock.addWidget(editPages)
+		#
+		deletePages=QtGui.QPushButton('Delete Pages', self)
+		deletePages.setStyleSheet(self.win.buttonStyle)
+		deletePages.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+		deletePages.setStyleSheet("QPushButton {margin-top:5px;}")
+		deletePages.clicked.connect(self.deleteGroup)
+		pageOptionBlock.addWidget(deletePages)
+		######
+		if align.lower()=="v":
+			self.pageListBlock=QtGui.QVBoxLayout()
+		else:
+			self.pageListBlock=QtGui.QHBoxLayout()
+		self.pageListBlock.setSpacing(0) # Spacing & Margin was giving me trouble calculating dynamic loading in window
+		self.pageListBlock.setMargin(0) # ||
+		pageAndOptionBlock.addLayout(self.pageListBlock)
+		curImgBlock.addLayout(pageGroupBlock)
 		if qtImg != None:
 			self.pageSize=[ qtImg[0].width(), qtImg[0].height() ] # Disk image size
-			
-			self.img.setAlignment(QtCore.Qt.AlignCenter)
-			self.img.setGeometry(0,0,self.thumbSize[0],self.thumbSize[1]) # Placeholder
-			
 			self.data=qtImg
-			
-			pageGroupBlock=None
-			pageGroupBlock=QtGui.QVBoxLayout()
-			pageGroupBlock.setSpacing(0) # Spacing & Margin was giving me trouble calculating dynamic loading in window
-			pageGroupBlock.setMargin(0) # ||
-			###
-			self.charField=QtGui.QLineEdit()
-			self.charField.setText(self.imgName)
-			self.charField.installEventFilter(self.win)
-			self.charField.editingFinished.connect(self.charCheck)
-			pageGroupBlock.addWidget(self.charField)
-			###
-			pageAndOptionBlock=QtGui.QHBoxLayout()
-			pageAndOptionBlock.setSpacing(0) # Spacing & Margin was giving me trouble calculating dynamic loading in window
-			pageAndOptionBlock.setMargin(0) # ||
-			pageGroupBlock.addLayout(pageAndOptionBlock)
-			###
-			pageOptionBlock=QtGui.QVBoxLayout()
-			pageOptionBlock.setSpacing(0) # Spacing & Margin was giving me trouble calculating dynamic loading in window
-			pageOptionBlock.setMargin(0) # ||
-			pageAndOptionBlock.addLayout(pageOptionBlock)
-			#
-			spacer=QtGui.QSpacerItem(10,10, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-			pageAndOptionBlock.addItem(spacer)
-			#
-			editPages=QtGui.QPushButton('Edit Pages', self)
-			editPages.setStyleSheet(self.win.buttonStyle)
-			editPages.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-			editPages.setStyleSheet("QPushButton {margin-top:5px;}")
-			editPages.clicked.connect(self.editGroup)
-			pageOptionBlock.addWidget(editPages)
-			#
-			deletePages=QtGui.QPushButton('Delete Pages', self)
-			deletePages.setStyleSheet(self.win.buttonStyle)
-			deletePages.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-			deletePages.setStyleSheet("QPushButton {margin-top:5px;}")
-			deletePages.clicked.connect(self.deleteGroup)
-			pageOptionBlock.addWidget(deletePages)
-			######
-			if align.lower()=="v":
-				self.pageListBlock=QtGui.QVBoxLayout()
-			else:
-				self.pageListBlock=QtGui.QHBoxLayout()
-			self.pageListBlock.setSpacing(0) # Spacing & Margin was giving me trouble calculating dynamic loading in window
-			self.pageListBlock.setMargin(0) # ||
-			for pmap in qtImg:
-				entry=EntryDisplay(win, self, self.group, self.imgName, self.thumbSize, pmap)
+			for x in range(len(qtImg)):
+				pmap=qtImg[x]
+				entry=EntryDisplay(win, self, self.group, self.pageName+str(x), self.thumbSize, pmap)
 				self.groupPage.append(entry)
 				self.pageListBlock.addWidget(self.groupPage[-1])
-			pageAndOptionBlock.addLayout(self.pageListBlock)
-			###
-			curImgBlock.addLayout(pageGroupBlock)
 			
-			self.entryStyleSheet()
+		self.entryStyleSheet()
 		self.setFixedSize( (self.imgSizeIndexList[0]*(len(self.groupPage)+1)), self.imgSizeIndexList[1] ) # Layout size for Placeholder
 		self.setLayout(curImgBlock) # Layout to display in parent window
 	def entryStyleSheet(self):
@@ -440,11 +438,21 @@ class IndexPageEntry(QtGui.QWidget): #Individual indexList image entries
 		QLineEdit {color:#111111;selection-color:#cccccc;selection-background-color:#454545;background-color:#909090;padding:2px;border:1px solid #202020;height:25px;}
 		QLabel {color:#ffffff}"""
 		self.setStyleSheet(styleSheetCss)
+	def nameFocus(self):
+		self.charField.setFocus()
+		self.charField.selectAll()
+	def nameSet(self,val=None):
+		if val!=None:
+			self.charField.setText(val)
+			self.charFileName=val
 	def editGroup(self):
 		self.parent.editGroup(0,self)
+	def setGroupId(self,id):
+		self.group=id
 	def deleteGroup(self):
 		self.setParent(None)
 		self.deleteLater()
+		self.parent.rebuildPageGroupIds()
 	def loadImage(self):
 		pmap=QtGui.QPixmap()
 		pmap.load(self.imgPath) #Load image, currently disk path only
@@ -458,8 +466,8 @@ class IndexPageEntry(QtGui.QWidget): #Individual indexList image entries
 		self.charField.clearFocus()
 		val=self.charField.text()
 		val=str(val)
-		self.charFileName=val
 		self.win.unsavedChanges=1
+		self.charFileName=val
 		"""
 		for page in self.pages:
 			page.updateName(val)
@@ -479,7 +487,7 @@ class IndexPageEntry(QtGui.QWidget): #Individual indexList image entries
 				difData.save(path+diffuse, "png")
 		return path+diffuse
 	"""def mouseReleaseEvent(self, e):
-		if self.imgName == "thumb":
+		if self.pageName == "thumb":
 			#self.charSamplePoints=self.win.charSamplePoints
 			self.win.runValChangeEvent=0
 			self.win.sliderBaseLine.setValue(self.baseline)
@@ -507,7 +515,7 @@ class EntryDisplay(QtGui.QWidget): #Individual indexList image entries
 		
 		if name == "Entry_":
 			name=name+str(index)
-		self.imgName=name
+		self.pageName=name
 		
 		self.fullSize=[-1,-1] # Disk image size
 		self.thumbSize=scaleSize
@@ -531,7 +539,7 @@ class EntryDisplay(QtGui.QWidget): #Individual indexList image entries
 			curImgBlock.addWidget(self.img)
 			
 			self.charField=QtGui.QLineEdit()
-			self.charField.setText(self.imgName)
+			self.charField.setText(self.pageName)
 			#self.charField.editingFinished.connect(self.charCheck)
 			curImgBlock.addWidget(self.charField)
 			
@@ -554,15 +562,15 @@ class EntryDisplay(QtGui.QWidget): #Individual indexList image entries
 	def updateName(self, val):
 		if "_" not in val:
 			val=str(val)+"_"
-		self.imgName=val
+		self.pageName=val
 		self.charField.setText(val)
-	def mouseReleaseEvent(self, e):
-		if self.imgName == "thumb":
-			"""if self.exported==0:
+	"""def mouseReleaseEvent(self, e):
+		if self.pageName == "thumb":
+			""if self.exported==0:
 				difData=curChar.data
 				difData.setAlphaChannel(curChar.dataAlpha)
 				charListData[char][title]['imgData']=difData
-			"""
+			""
 			#self.charSamplePoints=self.win.charSamplePoints
 			self.win.runValChangeEvent=0
 			self.win.sliderBaseLine.setValue(self.baseline)
@@ -580,4 +588,4 @@ class EntryDisplay(QtGui.QWidget): #Individual indexList image entries
 			self.win.charSampled=1
 			self.win.curImageFinalDisplay.pullCharacterRect(self)
 		else:
-			self.win.loadImageEntry(self)
+			self.win.loadImageEntry(self)"""
