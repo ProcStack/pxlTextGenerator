@@ -190,6 +190,7 @@ If all went well, the tool should load up the first image it finds from `pxl_tex
   * **`Export All Page Data & Images`** - Write out the Page Data File and all Page Images
   * Implimented scipting system for modifying your `Input Page Text`-
 <p align='center'><img src='http://metal-asylum.net/python/pxlTextGenerator/show/pageOutput_fontTagSample.png' alt="pxlTextGenerator Page Output" /></p>
+
 #### Special Characters-
   * **`%charName%`** to output the character you desire
     * eg- **`%str%`** for a star symbol instead of just a multiply symbol
@@ -251,6 +252,29 @@ If all went well, the tool should load up the first image it finds from `pxl_tex
     * Affects whole lines until set again or reset with **`%opacity%`** or **`%op%`**
   * **`%op:percent%`** - To set opacity for the next character only
     * It will reset to 100% opacity after the next character.
+#### In the pageOutput image above, the following input text was used to generate that output-
+```
+Support for --
+%align:right%%140%ALL KINDS%100% of stuff!%a%
+%a:center%%60%Scale,%100%%opacity:50%Opacity,%op% %offset:-30,50%&%k:20%Offsets!%o%
+%lh:60%Change line heights.
+%lineHeight:30%Normal left align.
+%align:center%Center align text.%a%
+%align:right%Right align text.%align%%lh%
+%a:center%%ss:70%Changing space sizes
+%kern:35%%ss:30%%a:center%%lh:25%Kerning also!!%o%%k%
+%lh:-25%
+%a:center%- Edit current line only tags -
+%lineHeight:30%%%ss:-50%a:position%%ss% to change alignment
+%%ss:-50%ss:pixels%%ss% to change space size
+%%ss:-50%lh:pixels%%ss% to change line height%lh%
+
+%a:center%- Edit next character only tags -
+%lineHeight:30%%%ss:-50%k:#%%ss% to change kerning
+%lineHeight:30%%%ss:-50%o:#,#%%ss% to change offset
+%%ss:-50%op:percent%%ss% to change opacity
+%%ss:-50%s:pixels%%ss% to change character variation
+```
 #### Bottom Bar (After loading a Page BG Image)
   * **`Page Group List`** - List of all your current work
   * **`Per Group`** - Isolated group of pages built from one text input
