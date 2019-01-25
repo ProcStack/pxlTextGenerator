@@ -203,12 +203,14 @@ If all went well, the tool should load up the first image it finds from `pxl_tex
 #### Font Modifying Tags-
   * **`%###%`** to scale text; **`%50%`** is 50 percent scale, **`%100%`** to get back to normal
 <br/>
+
   * **`%align:position%`** - the positions can be **`left`**, **`center`**, or **`right`**
     * %align:center%`** to align your text center then **`%align%`** to reset to left alignment.
     * Affects whole line until set again or reset with **`%align%`**
   * **`%a:position%`** - Set alignment for current line only
     * Any return or `\n` will reset the alignment to `left`
 <br/>
+
   * **`%offset:#,#%`** - Offset characters in X,Y by pixels
     * Relative offset for all following text.
     * If you put only one number, it will offset only in Y
@@ -217,20 +219,24 @@ If all went well, the tool should load up the first image it finds from `pxl_tex
   * **`%o:#,#%`** - To set offset for the next character only
     * It will reset to 0,0 offset after the next character.
 <br/>
+
   * **`%rotate:degrees%`** - Rotate characters in degrees for all following text.
 <br/>
+
   * **`%spaceSize:pixels%`** - Line space size ixels is relative offset.
     * %spaceSize:-10% - If space size is 50, it will be 40
     * Affects whole lines until set again or reset with **`%spaceSize%`** or **`%ss%`**
   * **`%ss:pixels%`** - Set spaceSize for current line only
     * Any return or `\n` will reset the spaceSize to current setting
 <br/>
+
   * **`%kern:pixels%`** - Line character kerning in relative pixels offset.
     * **`%kern:-10%`** - If kerning is 0, it will be -10
     * Affects whole lines until set again or reset with **`%kern%`** or **`%k%`**
   * **`%k:pixels%`** - Set kerning for next character only
     * It will reset to a 0 pixel kerning offset after the next character.
 <br/>
+
   * **`%lineHeight:pixels%`** - pixels is relative offset
     * **`%lineHeight:-20%`** - If line height is 70, it will be 50
     * **`%lineHeight%`** to clear offset.
@@ -238,6 +244,7 @@ If all went well, the tool should load up the first image it finds from `pxl_tex
   * **`%lh:pixels%`** - Set lineHeight pixels for current line only
     * Any return or `\n` will reset the lineHeight to current setting
 <br/>
+
   * **`%seed:#%`** - Set the seed random for following characters.
     * **`%seed:12.4%`** to set a random value of 12.4
     * **`%seed%`** to reset to your set seed
@@ -247,6 +254,7 @@ If all went well, the tool should load up the first image it finds from `pxl_tex
       * `will` and both 'l's are the same 'l'-
       * `wil%s%l` changes the second 'l' to a different variation
 <br/>
+
   * **`%opacity:percent%`** - Percentage is 0-100
     * **`%opacity:50%`** - The characters following will be at 50% opacity.
     * Affects whole lines until set again or reset with **`%opacity%`** or **`%op%`**
