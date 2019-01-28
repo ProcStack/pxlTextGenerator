@@ -32,6 +32,29 @@
  Stay awesome and open source for life!
 
 ######
+
+ Added Hotkey support-
+	P - Load a Project Folder
+	T - Sample Threshold Color; toggle
+	S - Select Mode
+	A - Set to Add Brush
+	R - Set to Remove Brush
+	W - Set Working Area; toggle
+	C - Crop to Work Area; toggle
+	O - Show Outline Only; toggle
+ 
+ For the list of existing Issues and To-Do's -
+   https://github.com/ProcStack/pxlTextGenerator/issues
+   
+######
+- - v0.2.2 - - 5729 lines of Python & PyQt - -
+ Page Output updates-
+   Saves weren't picking up pageGroup names
+   Exporting all of the found data became rather obtuse
+     Was saving all character data found
+	 Removed, to avoid 5+ meg pageData files
+	 The data wasn't used, but wanted to be used 
+	 Might bring back in the future.
 - - v0.2.1 - - 5711 lines of Python & PyQt - -
  Page Output updates-
    Added Flip Text check box
@@ -105,33 +128,10 @@
         Affects whole lines until set again or reset with %opacity% or %op%
       %op:percent% - To set opacity for the next character only
         It will reset to 100% opacity after the next character.
-          
-
-- - v0.1.3 - - 5239 lines of Python & PyQt - -
- Main window Python code has been moved to `includes/local_mainWindow.py`
- Option to not exit from current Work Area upon Finishing Character
- Sample Threshold by Color is now toggleable
- After you Set Working Area, it will auto Crop To Work Area
- Exit Work Area on Reset checkbox moved next to the Work Area buttons
- Add Brush now finds Edge Pixels of the added areas
- Fixed bug edge bug in Read Found Character Data
-   Edge Pixels were getting cleared, requiring Grow/Shrink Edge to run again
- Added Hotkey support-
-	P - Load a Project Folder
-	T - Sample Threshold Color; toggle
-	S - Select Mode
-	A - Set to Add Brush
-	R - Set to Remove Brush
-	W - Set Working Area; toggle
-	C - Crop to Work Area; toggle
-	O - Show Outline Only; toggle
- 
- For the list of existing Issues and To-Do's -
-   https://github.com/ProcStack/pxlTextGenerator/issues
  
 """
 scriptNameText="pxlTextGenerator"
-versionText="v0.2.1; Beta"
+versionText="v0.2.2; Beta"
 
 import sys, os
 import re

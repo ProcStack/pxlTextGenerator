@@ -55,7 +55,6 @@ class IndexImageEntry(QtGui.QWidget): #Individual indexList image entries
 		self.rect=rect
 		if rect == None:
 			self.rect=[0,0,256,256]
-
 		if qtImg == None:
 			# Using PyQt's Pixmap is great for displaying image, but really slow just for reading basic info
 			# Since loading an image into a Pixmap loads the image into memory.
@@ -468,6 +467,7 @@ class IndexPageEntry(QtGui.QWidget): #Individual indexList image entries
 		val=str(val)
 		self.win.unsavedChanges=1
 		self.charFileName=val
+		self.pageData["pageGroupName"]=val
 		"""
 		for page in self.pages:
 			page.updateName(val)

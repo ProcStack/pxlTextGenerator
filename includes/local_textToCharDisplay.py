@@ -799,7 +799,8 @@ class PageBuilder(QtGui.QWidget):
 		self.scrollIndexBlock=QtGui.QScrollArea()
 		self.scrollIndexBlock.setWidgetResizable(True)
 		self.scrollIndexBlock.setFixedHeight(bottomBarHeight)
-		self.scrollIndexBlock.setStyleSheet("QWidget {background-color:#2a2a2a;}")
+		self.scrollIndexBlock.setStyleSheet("""QWidget {background-color:#2a2a2a;}
+		QScrollBar:horizontal {height:20px;background-color:#808080;border:1px solid #202020;}""")
 		#self.scrollIndexBlock.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 		self.scrollIndexBlock.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 		scrollInner=QtGui.QWidget(self.scrollIndexBlock)
@@ -982,11 +983,15 @@ class PageBuilder(QtGui.QWidget):
 				for e in range(self.curPageListBlock.count()):
 					curEntry=self.curPageListBlock.itemAt(e).widget()
 					exportData.append( curEntry.pageData )
-				for group in exportData:
-					for line in group['lineData']:
-						for wordData in line['wordData']:
-							for char in wordData['chars']:
-								char['data']=None
+				### The pageData file bloat
+				### Don't know if its needed
+				### But its wanted...
+				### Too much for not using it right now.
+				#for group in exportData:
+				#	for line in group['lineData']:
+				#		for wordData in line['wordData']:
+				#			for char in wordData['chars']:
+				#				char['data']=None
 				export=formatArrayToString(0, exportData)
 				export="pageList="+export
 				
@@ -1027,8 +1032,14 @@ class PageBuilder(QtGui.QWidget):
 			buildPath="\\".join(str(path).split("/"))
 			os.makedirs(buildPath)
 		pageGroupCount=self.curPageListBlock.count()
+		
+		self.win.loopLatch=1
 		for x in range(pageGroupCount):
 			self.win.statusBarUpdate(" -- Exporting page group "+str(x+1)+" of "+str(pageGroupCount)+" --", 0,0)
+			QtGui.QApplication.processEvents()
+			if self.win.loopLatch==0:
+				self.win.statusBarUpdate(" -- Exiting Page Export --", 5000,2)
+				break;
 			curPageGroup=self.curPageListBlock.itemAt(x).widget()
 			curPagesCount=curPageGroup.pageListBlock.count()
 			for c in range(curPagesCount):
@@ -1039,6 +1050,7 @@ class PageBuilder(QtGui.QWidget):
 					diffuse=curPageGroup.pageName+"_"+str(c)+".png"
 				difData=curThumb.data
 				difData.save(path+diffuse, "png")
+		self.win.loopLatch=0
 	def loadPageDataFile(self, displayError=1):
 		path=self.win.dirField.text()
 		if path == "":
@@ -1638,7 +1650,12 @@ class PageBuilderViewer(QtGui.QWidget):
 				else:
 					skip+=1
 				fontTag=0
-		curPageData['lineData']=curLineData
+		### I want to be able to keep the lineData
+		### But boy howdy does it baloon the pageData file....
+		### Was hitting 4 meg just for the 15 pages of Index, Resume, and MakingOf in testing for my site.
+		###
+		### Commented out in self.writePageDataFile() as well
+		#curPageData['lineData']=curLineData
 		if newPage==1:
 			self.parent.curPage=len(self.parent.pageData)
 			self.parent.pageData.append(curPageData)

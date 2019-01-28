@@ -486,7 +486,8 @@ class ImageProcessor(QtGui.QMainWindow):
 				curTextBaseEditScrollBlock.setWidgetResizable(True)
 				#curTextBaseEditScrollBlock.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 				curTextBaseEditScrollInner=QtGui.QWidget(curTextBaseEditScrollBlock)
-				curTextBaseEditScrollInner.setStyleSheet("QWidget {background-color:#2a2a2a;}")
+				curTextBaseEditScrollInner.setStyleSheet("""QWidget {background-color:#2a2a2a;}
+				QScrollBar:vertical {height:20px;background-color:#808080;border:1px solid #202020;}""")
 
 				self.curEntryBlock=QtGui.QVBoxLayout()
 				self.curEntryBlock.setAlignment(QtCore.Qt.AlignCenter)
