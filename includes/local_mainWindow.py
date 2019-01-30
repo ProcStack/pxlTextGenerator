@@ -486,8 +486,7 @@ class ImageProcessor(QtGui.QMainWindow):
 				curTextBaseEditScrollBlock.setWidgetResizable(True)
 				#curTextBaseEditScrollBlock.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 				curTextBaseEditScrollInner=QtGui.QWidget(curTextBaseEditScrollBlock)
-				curTextBaseEditScrollInner.setStyleSheet("""QWidget {background-color:#2a2a2a;}
-				QScrollBar:vertical {height:20px;background-color:#808080;border:1px solid #202020;}""")
+				#curTextBaseEditScrollBlock.setStyleSheet("QWidget {background-color:#2a2a2a;}")
 
 				self.curEntryBlock=QtGui.QVBoxLayout()
 				self.curEntryBlock.setAlignment(QtCore.Qt.AlignCenter)
@@ -529,7 +528,8 @@ class ImageProcessor(QtGui.QMainWindow):
 		
 				scrollCharacterEntryBlock=QtGui.QScrollArea()
 				scrollCharacterEntryBlock.setWidgetResizable(True)
-				scrollCharacterEntryBlock.setStyleSheet("QWidget {background-color:#323232;}")
+				scrollCharacterEntryBlock.setStyleSheet("""QWidget {background-color:#323232;}
+				QScrollBar:vertical {height:20px;background-color:#808080;border:1px solid #202020;}""")
 				scrollCharacterEntryBlock.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 				self.curImageDisplayEditBlock.addWidget(scrollCharacterEntryBlock)
 				###
@@ -705,7 +705,8 @@ class ImageProcessor(QtGui.QMainWindow):
 				self.scrollIndexBlock=QtGui.QScrollArea()
 				self.scrollIndexBlock.setWidgetResizable(True)
 				self.scrollIndexBlock.setFixedWidth(sideBarWidth)
-				self.scrollIndexBlock.setStyleSheet("QWidget {background-color:#2a2a2a;}")
+				self.scrollIndexBlock.setStyleSheet("""QWidget {background-color:#2a2a2a;}
+				QScrollBar:vertical {height:20px;background-color:#808080;border:1px solid #202020;}""")
 				self.scrollIndexBlock.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 				scrollInner=QtGui.QWidget(self.scrollIndexBlock)
 				

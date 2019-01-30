@@ -631,11 +631,11 @@ class PageBuilder(QtGui.QWidget):
 		###
 		self.charTestOptionBlock.addLayout(pageIndentBlock)
 		
-		self.pageIndentLeft=SliderGroup(self,"Left",[0,2048,150],7,"int",' px',"updatePaddingBars()")
+		self.pageIndentLeft=SliderGroup(self,"Left",[0,2048,75],7,"int",' px',"updatePaddingBars()")
 		self.charTestOptionBlock.addWidget(self.pageIndentLeft)
-		self.pageIndentTop=SliderGroup(self,"Top",[0,2048,100],7,"int",' px',"updatePaddingBars()")
+		self.pageIndentTop=SliderGroup(self,"Top",[0,2048,50],7,"int",' px',"updatePaddingBars()")
 		self.charTestOptionBlock.addWidget(self.pageIndentTop)
-		self.pageIndentRight=SliderGroup(self,"Right",[0,2048,1500],7,"int",' px',"updatePaddingBars()")
+		self.pageIndentRight=SliderGroup(self,"Right",[0,2048,1425],7,"int",' px',"updatePaddingBars()")
 		self.charTestOptionBlock.addWidget(self.pageIndentRight)
 		self.pageIndentBottom=SliderGroup(self,"Bottom",[0,2048,1948],7,"int",' px',"updatePaddingBars()")
 		self.charTestOptionBlock.addWidget(self.pageIndentBottom)
@@ -866,7 +866,11 @@ class PageBuilder(QtGui.QWidget):
 			if os.path.exists(path):
 				bgPicker=path
 			else:
-				return None
+				path=bundleDir+"/pageOutput_pageBackground.jpg"
+				if os.path.exists(path):
+					bgPicker=path
+				else:
+					return None
 		if bgPicker=='':
 			ext=("jpg", "jpeg", "png", "bmp")
 			bgPicker=QtGui.QFileDialog.getOpenFileName(self,"Select Background Image",curDir, "Image files (*.jpg *.jpeg *.png *.bmp)")
@@ -1624,10 +1628,10 @@ class PageBuilderViewer(QtGui.QWidget):
 						charData=self.pullCharData(cc, fontScaleChar*curTagPerc, charSeed+curTagSeed)
 						if charData != None:
 							self.runner+=1.0
-							curOffset=[ charOffsets[0]-charData['spacingLeft']+curTagOffset[0]+fontKerning+curTagKerning,charOffsets[1]-charData['baseline']+curTagOffset[1]+self.baseLine ]
+							curOffset=[ charOffsets[0]-charData['spacingLeft']+curTagOffset[0]+fontKerning+curTagKerning,charOffsets[1]-charData['baseline']+curTagOffset[1]+self.baseLine]
 							charData['offset']=curOffset
 							charOffsets[0]=charOffsets[0]-charData['spacingLeft']+charData['spacingRight']+fontKerning+curTagKerning
-
+							
 							charData['charScale']=curTagPerc
 							charData['charOffset']=curTagOffset
 							charData['rotate']=curTagRotate
@@ -1664,7 +1668,6 @@ class PageBuilderViewer(QtGui.QWidget):
 				self.parent.pageData.append(curPageData)
 			else:
 				self.parent.pageData[self.parent.curPage]=curPageData
-
 		baseImg=QtGui.QPixmap(res[0], res[1])
 		baseImg.fill(QtGui.QColor(0,0,0,0))
 		painter=QtGui.QPainter(baseImg)

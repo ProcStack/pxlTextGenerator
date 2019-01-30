@@ -1,5 +1,5 @@
 ############################################
-## pxlTextGenerator v0.2.1                ##
+## pxlTextGenerator v0.2.3                ##
 ## Text to Handwriting Generator          ##
 ##  Written by Kevin Edzenga; ~2018-2019  ##
 ##   http://metal-asylum.net              ##
@@ -47,6 +47,10 @@
    https://github.com/ProcStack/pxlTextGenerator/issues
    
 ######
+- - v0.2.3 - - 5733 lines of Python & PyQt - -
+ Better default page settings
+ Checks for JPG and PNG default page background
+ Fixed slider colors
 - - v0.2.2 - - 5729 lines of Python & PyQt - -
  Page Output updates-
    Saves weren't picking up pageGroup names
@@ -131,7 +135,7 @@
  
 """
 scriptNameText="pxlTextGenerator"
-versionText="v0.2.2; Beta"
+versionText="v0.2.3; Beta"
 
 import sys, os
 import re

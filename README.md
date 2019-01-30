@@ -1,4 +1,4 @@
-# **pxlTextGenerator**  *v0.2.2 - Beta*
+# **pxlTextGenerator**  *v0.2.3 - Beta*
 ## **Text to Handwriting Generator**
 #### *Turn your written characters into an image based font*
 #### *Export with custom page backgrounds to PNG*
