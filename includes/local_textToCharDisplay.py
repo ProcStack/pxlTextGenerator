@@ -1565,7 +1565,7 @@ class PageBuilderViewer(QtGui.QWidget):
 															buildOffset[o]=float(curFontMod[o])
 												curTagAbsolute=[0.0,0.0]
 												curTagAbsolute[0]=buildOffset[0]-padLeft
-												curTagAbsolute[1]=buildOffset[1]#-padTop
+												curTagAbsolute[1]=buildOffset[1]-padTop
 								elif curTag in ["kern","k"]:
 									if curTag=='k':
 										curTag='kern'
