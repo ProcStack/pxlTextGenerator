@@ -753,6 +753,11 @@ class PageBuilder(QtGui.QWidget):
 		self.pageOutputDirBlock.addLayout(self.pageOutputDirTextBlock)
 		self.charTestOptionBlock.addLayout(self.pageOutputDirBlock)
 		
+		self.scaleToPower=QtGui.QCheckBox()
+		self.scaleToPower.setText("Scale Page Resolution to Power of 2; for OpenGL textures (512/1024/2048 resolution)")
+		self.scaleToPower.setCheckState(QtCore.Qt.Checked)
+		self.charTestOptionBlock.addWidget(self.scaleToPower)
+		
 		outputButtonBlock=QtGui.QHBoxLayout()
 		outputButtonBlock.setSpacing(3)
 		outputButtonBlock.setMargin(0)
@@ -1037,6 +1042,7 @@ class PageBuilder(QtGui.QWidget):
 			os.makedirs(buildPath)
 		pageGroupCount=self.curPageListBlock.count()
 		
+		scaleToPower=self.scaleToPower.isChecked()
 		self.win.loopLatch=1
 		for x in range(pageGroupCount):
 			self.win.statusBarUpdate(" -- Exporting page group "+str(x+1)+" of "+str(pageGroupCount)+" --", 0,0)
@@ -1046,14 +1052,45 @@ class PageBuilder(QtGui.QWidget):
 				break;
 			curPageGroup=self.curPageListBlock.itemAt(x).widget()
 			curPagesCount=curPageGroup.pageListBlock.count()
+			ext="jpg"
 			for c in range(curPagesCount):
 				curThumb=curPageGroup.pageListBlock.itemAt(c).widget()
 				if curPagesCount==1:
-					diffuse=curPageGroup.pageName+".png"
+					diffuse=curPageGroup.pageName+"."+ext
 				else:
-					diffuse=curPageGroup.pageName+"_"+str(c)+".png"
+					diffuse=curPageGroup.pageName+"_"+str(c)+"."+ext
 				difData=curThumb.data
-				difData.save(path+diffuse, "png")
+				if scaleToPower==True:
+					dW=difData.width()
+					dH=difData.height()
+					fixScale=0
+					if not (dW&dW-1)==0:
+						fixScale=1
+						power=2
+						runner=0
+						while (power*2)<dW:
+							power*=2
+							runner+=1
+							if runner > 14:
+								fixScale=0
+								break;
+						if fixScale==1:
+							dW=power
+					if not (dH&dH-1)==0:
+						fixScale=1
+						power=2
+						runner=0
+						while (power*2)<dH:
+							power*=2
+							runner+=1
+							if runner > 14:
+								fixScale=0
+								break;
+						if fixScale==1:
+							dH=power
+					if fixScale==1:
+						difData=difData.scaled(dW,dH, QtCore.Qt.IgnoreAspectRatio, QtCore.Qt.SmoothTransformation)
+				difData.save(path+diffuse, ext,90)
 		self.win.loopLatch=0
 	def loadPageDataFile(self, displayError=1):
 		path=self.win.dirField.text()
@@ -1339,7 +1376,7 @@ class PageBuilderViewer(QtGui.QWidget):
 		inTag=0
 		maxTagLength=10
 		specialChars=["ocl","ocr","oll","olr","osl","osr","oal","oar","str"]
-		textTags=["align","a", "offset","o", "rotate", "kern","k", "spacesize","ss", "lineheight","lh", "seed","s", "opacity","op"]
+		textTags=["align","a", "offset","o", "absolute","abs", "rotate", "kern","k", "spacesize","ss", "lineheight","lh", "seed","s", "opacity","op"]
 		tags=[]
 		tags+=specialChars
 		tags+=textTags
@@ -1352,6 +1389,7 @@ class PageBuilderViewer(QtGui.QWidget):
 		curTagPerc=1.0
 		curTagAlign="left"
 		curTagOffset=[0.0,0.0]
+		curTagAbsolute=[-1.0,-1.0]
 		curTagRotate=0.0
 		curTagSeed=0.0
 		curTagSpaceSize=0.0
@@ -1478,13 +1516,20 @@ class PageBuilderViewer(QtGui.QWidget):
 											curLineData[-1]['align']=curTagAlign
 										else:
 											setBreak=1
-								elif curTag in ["offset","o"]:
+								elif curTag in ["offset","o", "absolute","abs"]:
 									if curTag=='o':
 										curTag='offset'
 										curSingleCharTags.append(curTag)
 										curTagSingleChar=1
+									if curTag in ["absolute","abs"]:
+										curTag='absolute'
+										curSingleLineTags.append(curTag)
+										curTagSingleLine=1
 									if tagReset==1:
-										curTagOffset=[0.0,0.0]
+										if curTag=='offset':
+											curTagOffset=[0.0,0.0]
+										elif curTag=='absolute':
+											curTagAbsolute=[None,None]
 									else:
 										buildOffset=[0.0,0.0]
 										xyOffsets=0
@@ -1500,13 +1545,27 @@ class PageBuilderViewer(QtGui.QWidget):
 										if len(curFontMod)>2:
 											setBreak=1
 										else:
-											if len(curFontMod)==1:
-												buildOffset[1]=float(curFontMod[0])
-											else:
-												for o in range(len(curFontMod)):
-													buildOffset[o]=float(curFontMod[o])
-											curTagOffset=[]
-											curTagOffset+=buildOffset
+											if curTag=='offset':
+												if len(curFontMod)==1:
+													buildOffset[1]=float(curFontMod[0])
+												else:
+													for o in range(len(curFontMod)):
+														buildOffset[o]=float(curFontMod[o])
+												curTagOffset=[]
+												curTagOffset+=buildOffset
+											elif curTag=='absolute':
+												if len(curFontMod)==1:
+													buildOffset[0]=None
+													buildOffset[1]=float(curFontMod[0])
+												else:
+													for o in range(len(curFontMod)):
+														if curFontMod[o]==-1:
+															buildOffset[o]=None
+														else:
+															buildOffset[o]=float(curFontMod[o])
+												curTagAbsolute=[0.0,0.0]
+												curTagAbsolute[0]=buildOffset[0]-padLeft
+												curTagAbsolute[1]=buildOffset[1]#-padTop
 								elif curTag in ["kern","k"]:
 									if curTag=='k':
 										curTag='kern'
@@ -1610,9 +1669,8 @@ class PageBuilderViewer(QtGui.QWidget):
 					elif cc=="\n":
 						inTag=0
 						curLineData[-1]['lineWidth']=charOffsets[0]
-						prevCharOffsets=[]
-						prevCharOffsets.extend(charOffsets)
 						genNewLine=1
+						clearAbs=0
 						if curTagSingleLine==1:
 							curTagSingleLine=0
 							for tag in curSingleLineTags:
@@ -1622,15 +1680,43 @@ class PageBuilderViewer(QtGui.QWidget):
 									curTagLineHeight=0.0
 								if tag=="spacesize":
 									curTagSpaceSize=0.0
+								if tag=="absolute":
+									clearAbs=1
+									curTagOffset=[0.0,0.0]
+									curTagAbsolute=[None,None]
 							curSingleLineTags=[]
-						charOffsets=[0,charOffsets[1]+lineHeight+curTagLineHeight]
+						if clearAbs==1:
+							charOffsets=[prevCharOffsets[0], prevCharOffsets[1]]
+						else:
+							prevCharOffsets=[]
+							prevCharOffsets.extend(charOffsets)
+							charOffsets=[0,charOffsets[1]+lineHeight+curTagLineHeight]
 					else:
 						charData=self.pullCharData(cc, fontScaleChar*curTagPerc, charSeed+curTagSeed)
 						if charData != None:
 							self.runner+=1.0
-							curOffset=[ charOffsets[0]-charData['spacingLeft']+curTagOffset[0]+fontKerning+curTagKerning,charOffsets[1]-charData['baseline']+curTagOffset[1]+self.baseLine]
-							charData['offset']=curOffset
+							"""curOffset=[ charOffsets[0]-charData['spacingLeft']+curTagOffset[0]+fontKerning+curTagKerning,charOffsets[1]-charData['baseline']+curTagOffset[1]+self.baseLine]
 							charOffsets[0]=charOffsets[0]-charData['spacingLeft']+charData['spacingRight']+fontKerning+curTagKerning
+							charData['offset']=curOffset
+							"""
+							curOffset=[ charOffsets[0]-charData['spacingLeft']+curTagOffset[0]+fontKerning+curTagKerning,charOffsets[1]-charData['baseline']+curTagOffset[1]+self.baseLine]
+							charOffsets[0]=charOffsets[0]-charData['spacingLeft']+charData['spacingRight']+fontKerning+curTagKerning
+							
+							charPlacement=[]
+							charPlacement+=charOffsets
+							if "absolute" in curSingleLineTags:
+								if curTagAbsolute[0]!=None:
+									charPlacement[0]=curTagAbsolute[0]-charData['spacingLeft']+curTagOffset[0]
+									curOffset[0]=charPlacement[0]
+								if curTagAbsolute[1]!=None:
+									charPlacement[1]=curTagAbsolute[1]+curTagOffset[1]
+									curOffset[1]=charPlacement[1]-charData['baseline']
+								curTagOffset=[0.0,0.0]
+								curTagAbsolute[0]=charPlacement[0]+charData['spacingRight']+fontKerning+curTagKerning
+								curTagAbsolute[1]=charPlacement[1]
+							charOffsets[0]=charPlacement[0]
+							charOffsets[1]=charPlacement[1]
+							charData['offset']=curOffset
 							
 							charData['charScale']=curTagPerc
 							charData['charOffset']=curTagOffset

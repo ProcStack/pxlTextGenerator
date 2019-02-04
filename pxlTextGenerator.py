@@ -1,5 +1,5 @@
 ############################################
-## pxlTextGenerator v0.2.3                ##
+## pxlTextGenerator v0.2.4                ##
 ## Text to Handwriting Generator          ##
 ##  Written by Kevin Edzenga; ~2018-2019  ##
 ##   http://metal-asylum.net              ##
@@ -47,6 +47,22 @@
    https://github.com/ProcStack/pxlTextGenerator/issues
    
 ######
+- - v0.2.4 - - 5845 lines of Python & PyQt - -
+ Page Output updates-
+   %absolute% / %abs% tag is now working
+     These are absolute placement of text on page.
+     Currently, absolute placement only works on the current line
+       It will act like all other tags in the future, but not needed for now
+     Much like %offset%, single values only modify Y position.
+       %abs:-10% will be a position of
+         X -> 0
+         Y -> -10
+     Alignment works within absolute position tags too.
+       %abs:-20%%a:center% Will center align your line, but Y -> -20
+   Exporting for OpenGL requires texture resolutions in powers of 2
+     Check box added to scale the output pages to the closest smallest power of 2
+     IE, a background image of 1536x2048
+       will output images with a scaled down resolution of 1024x2048
 - - v0.2.3 - - 5733 lines of Python & PyQt - -
  Better default page settings
  Checks for JPG and PNG default page background
@@ -135,7 +151,7 @@
  
 """
 scriptNameText="pxlTextGenerator"
-versionText="v0.2.3; Beta"
+versionText="v0.2.4; Beta"
 
 import sys, os
 import re

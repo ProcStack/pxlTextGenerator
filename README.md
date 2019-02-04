@@ -1,4 +1,4 @@
-# **pxlTextGenerator**  *v0.2.3 - Beta*
+# **pxlTextGenerator**  *v0.2.4 - Beta*
 ## **Text to Handwriting Generator**
 #### *Turn your written characters into an image based font*
 #### *Export with custom page backgrounds to PNG*
@@ -219,6 +219,17 @@ If all went well, the tool should load up the first image it finds from `pxl_tex
     * Affects whole lines until set again or reset with **`%offset%`** or **`%o%`**
   * **`%o:#,#%`** - To set offset for the next character only
     * It will reset to 0,0 offset after the next character.
+<br/>
+
+  * **`%absolute:#,#%`** / **`%abs:#,#%`** - Absolute line position in X,Y by pixels
+    * Absolute placement of text on page.
+    * (Currently only affects current line)
+    * If you put only one number, it will offset only in Y
+      * **`%abs:10%`** - Will position the text line to [0,10]
+    * Affects whole lines until set again or reset with **`%offset%`** or **`%o%`**
+    * Alignment works within absolute position tags too.
+      * **`%abs:20%%a:center%`** Will center align your line,
+	    with Y position 20 pixels from top of page.
 <br/>
 
   * **`%rotate:degrees%`** - Rotate characters in degrees for all following text.

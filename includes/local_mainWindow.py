@@ -80,17 +80,18 @@ class ImageProcessor(QtGui.QMainWindow):
 		self.infoMenu=self.menuBar.addMenu('Info')
 		scriptInfoItem=QtGui.QAction(self.scriptNameText+" - "+self.versionText,self)
 		self.infoMenu.addAction(scriptInfoItem)
-		authorItem=QtGui.QAction("Written by Kevin Edzenga",self)
+		authorItem=QtGui.QAction("Written by - Kevin Edzenga",self)
 		self.infoMenu.addAction(authorItem)
-		infoItem=QtGui.QAction("www.Metal-Asylum.net",self)
+		infoItem=QtGui.QAction("Personal Site - www.Metal-Asylum.net",self)
+		infoItem.triggered.connect(lambda: self.launchURL(1))
 		self.infoMenu.addAction(infoItem)
 		self.infoMenu.addSeparator()
 		totalLineCount=self.findTotalLineCount()
-		lineCountItem=QtGui.QAction("Total Line Count - "+str(totalLineCount),self)
+		lineCountItem=QtGui.QAction("Total Python/PyQt Line Count - "+str(totalLineCount),self)
 		self.infoMenu.addAction(lineCountItem)
 		self.infoMenu.addSeparator()
 		helpItem=QtGui.QAction("Help...",self)
-		helpItem.triggered.connect(self.launchHelp)
+		helpItem.triggered.connect(lambda: self.launchURL(0))
 		self.infoMenu.addAction(helpItem)
 		# Status Bar
 		self.statusBar=self.statusBar()
@@ -1488,9 +1489,14 @@ class ImageProcessor(QtGui.QMainWindow):
 				self.statusBarUpdate(" -- No created characters, please select and 'Finish Character' first -- ", 5000,2)
 		else:
 			self.statusBarUpdate(" -- No characters found, please 'Load Text Image' to load existing character data -- ", 5000,2)
-	def launchHelp(self):
-		url=QtCore.QUrl('https://github.com/ProcStack/pxlTextGenerator')
-		QtGui.QDesktopServices.openUrl(url)
+	def launchURL(self,site):
+		url=None
+		if site==0:
+			url=QtCore.QUrl('https://github.com/ProcStack/pxlTextGenerator')
+		elif site==1:
+			url=QtCore.QUrl('http://www.Metal-Asylum.net/')
+		if url != None:
+			QtGui.QDesktopServices.openUrl(url)
 	def resizeEvent(self,e):
 		if hasattr(self, "textCharDisplay"):
 			self.textCharDisplay.buildTextDisplay(1)
