@@ -1,5 +1,5 @@
 ############################################
-## pxlTextGenerator v0.2.4                ##
+## pxlTextGenerator v0.2.5                ##
 ## Text to Handwriting Generator          ##
 ##  Written by Kevin Edzenga; ~2018-2019  ##
 ##   http://metal-asylum.net              ##
@@ -33,20 +33,26 @@
 
 ######
 
- Added Hotkey support-
-	P - Load a Project Folder
-	T - Sample Threshold Color; toggle
-	S - Select Mode
-	A - Set to Add Brush
-	R - Set to Remove Brush
-	W - Set Working Area; toggle
-	C - Crop to Work Area; toggle
-	O - Show Outline Only; toggle
+  Hotkey support-
+    P - Load a Project Folder
+    T - Sample Threshold Color; toggle
+    S - Select Mode
+    A - Set to Add Brush
+    R - Set to Remove Brush
+    W - Set Working Area; toggle
+    C - Crop to Work Area; toggle
+    O - Show Outline Only; toggle
  
  For the list of existing Issues and To-Do's -
    https://github.com/ProcStack/pxlTextGenerator/issues
    
 ######
+- - v0.2.5 - - 5877 lines of Python & PyQt - -
+ Page Output updates-
+   %smallCaps:1% / %sc:1% implimented
+     Turns the following lower case letters into smaller scale capitals
+     %sc% or %sc% to exit from small capital letters
+   Issue with %offset% not working in %absolute% positioned text
 - - v0.2.4 - - 5845 lines of Python & PyQt - -
  Page Output updates-
    %absolute% / %abs% tag is now working
@@ -151,7 +157,7 @@
  
 """
 scriptNameText="pxlTextGenerator"
-versionText="v0.2.4; Beta"
+versionText="v0.2.5; Beta"
 
 import sys, os
 import re

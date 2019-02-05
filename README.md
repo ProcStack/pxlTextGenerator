@@ -1,4 +1,4 @@
-# **pxlTextGenerator**  *v0.2.4 - Beta*
+# **pxlTextGenerator**  *v0.2.5 - Beta*
 ## **Text to Handwriting Generator**
 #### *Turn your written characters into an image based font*
 #### *Export with custom page backgrounds to PNG*
@@ -186,6 +186,9 @@ If all went well, the tool should load up the first image it finds from `pxl_tex
   * **`New Empty Page Entry`** - Creates a new empty Page Group, resetting you values
     * *Any unsaved changes to the current page you are working on will be lost*
   * **`Set as New Page Entry`** - Creates a new Page Group from your current settings
+  * **`Scale Exports to Power of 2`** - Scales down the page image resolution to power of 2
+    * Finds the closest smaller resolution of *Height* & *Width*; scales down upon export.
+    * *(OpenGL textures require resolutions in powers of 2; 512, 1024, 2048, etc.)
   * **`Output Directory`** - Directory to export your Page Images to
   * **`Write Page Data File`** - Write out the Page Data File ONLY; *projectName*/pageListKey.py
   * **`Export All Page Data & Images`** - Write out the Page Data File and all Page Images
@@ -230,6 +233,11 @@ If all went well, the tool should load up the first image it finds from `pxl_tex
     * Alignment works within absolute position tags too.
       * **`%abs:20%%a:center%`** Will center align your line,
 	    with Y position 20 pixels from top of page.
+<br/>
+
+  * **`%smallCaps:1%`** / **`%sc:1%`** - Turn lower case letters into small capitals.
+    * You can set the **relative** scale of the small caps with the **`Small Capital Scale`** slider.
+	* **`%sc%`** to exit from small capitals.
 <br/>
 
   * **`%rotate:degrees%`** - Rotate characters in degrees for all following text.

@@ -663,6 +663,8 @@ class PageBuilder(QtGui.QWidget):
 		### Page Options ###
 		self.fontScale=SliderGroup(self,"Font Scale",[0,2,.75],7,"float",' %', "buildTextOutput(0)")
 		self.charTestOptionBlock.addWidget(self.fontScale)
+		self.fontSmallCapScale=SliderGroup(self,"Small Capital Scale",[0,1,.70],7,"float",' %', "buildTextOutput(0)")
+		self.charTestOptionBlock.addWidget(self.fontSmallCapScale)
 		self.fontKerning=SliderGroup(self,"Font Kerning",[-50,50,0],7,"int",' px', "buildTextOutput(0)")
 		self.charTestOptionBlock.addWidget(self.fontKerning)
 		self.spaceSize=SliderGroup(self,"Space Size",[0,200,50],7,"int",' px', "buildTextOutput(0)")
@@ -754,7 +756,7 @@ class PageBuilder(QtGui.QWidget):
 		self.charTestOptionBlock.addLayout(self.pageOutputDirBlock)
 		
 		self.scaleToPower=QtGui.QCheckBox()
-		self.scaleToPower.setText("Scale Page Resolution to Power of 2; for OpenGL textures (512/1024/2048 resolution)")
+		self.scaleToPower.setText("Scale Exports to Power of 2; required for OpenGL textures (512/1024/2048)")
 		self.scaleToPower.setCheckState(QtCore.Qt.Checked)
 		self.charTestOptionBlock.addWidget(self.scaleToPower)
 		
@@ -1327,6 +1329,7 @@ class PageBuilderViewer(QtGui.QWidget):
 		self.buildCharListArray()
 		
 		fontScale=self.parent.fontScale.value
+		fontSmallCapScale=self.parent.fontSmallCapScale.value
 		fontKerning=float(self.parent.fontKerning.value)
 		spaceSize=float(self.parent.spaceSize.value)
 		lineHeight=float(self.parent.lineHeight.value)
@@ -1376,7 +1379,7 @@ class PageBuilderViewer(QtGui.QWidget):
 		inTag=0
 		maxTagLength=10
 		specialChars=["ocl","ocr","oll","olr","osl","osr","oal","oar","str"]
-		textTags=["align","a", "offset","o", "absolute","abs", "rotate", "kern","k", "spacesize","ss", "lineheight","lh", "seed","s", "opacity","op"]
+		textTags=["align","a", "offset","o", "absolute","abs", "rotate", "kern","k", "spacesize","ss", "lineheight","lh", "smallCaps","sc", "seed","s", "opacity","op"]
 		tags=[]
 		tags+=specialChars
 		tags+=textTags
@@ -1387,9 +1390,11 @@ class PageBuilderViewer(QtGui.QWidget):
 		curSingleLineTags=[]
 		fontTag=0
 		curTagPerc=1.0
+		curTagSmallCap=0
 		curTagAlign="left"
 		curTagOffset=[0.0,0.0]
 		curTagAbsolute=[-1.0,-1.0]
+		absInit=0
 		curTagRotate=0.0
 		curTagSeed=0.0
 		curTagSpaceSize=0.0
@@ -1554,6 +1559,7 @@ class PageBuilderViewer(QtGui.QWidget):
 												curTagOffset=[]
 												curTagOffset+=buildOffset
 											elif curTag=='absolute':
+												absInit=1
 												if len(curFontMod)==1:
 													buildOffset[0]=None
 													buildOffset[1]=float(curFontMod[0])
@@ -1589,6 +1595,15 @@ class PageBuilderViewer(QtGui.QWidget):
 										curTagSpaceSize=0.0
 									else:
 										curTagSpaceSize=float(curFontMod)
+								elif curTag in ["smallCaps","sc"]:
+									if curTag=='sc':
+										curTag='smallCaps'
+										curSingleLineTags.append(curTag)
+										curTagSingleLine=1
+									if tagReset==1 or curFontMod==0:
+										curTagSmallCap=0
+									else:
+										curTagSmallCap=1
 								elif curTag in ["lineheight","lh"]:
 									if curTag=='lh':
 										curTag='lineheight'
@@ -1660,7 +1675,11 @@ class PageBuilderViewer(QtGui.QWidget):
 							curTag=''
 					if cc == " ":
 						#leftStart=leftStart+spaceSize
-						charOffsets[0]=charOffsets[0]+spaceSize+curTagSpaceSize
+						if "absolute" in curSingleLineTags:
+							if curTagAbsolute[0]!=None:
+								curTagAbsolute[0]+=spaceSize+curTagSpaceSize
+						else:
+							charOffsets[0]=charOffsets[0]+spaceSize+curTagSpaceSize
 						newWord={}
 						newWord['size']=[0,0]
 						newWord['chars']=[]
@@ -1680,6 +1699,8 @@ class PageBuilderViewer(QtGui.QWidget):
 									curTagLineHeight=0.0
 								if tag=="spacesize":
 									curTagSpaceSize=0.0
+								if tag=="smallCaps":
+									curTagSmallCap=0
 								if tag=="absolute":
 									clearAbs=1
 									curTagOffset=[0.0,0.0]
@@ -1692,26 +1713,31 @@ class PageBuilderViewer(QtGui.QWidget):
 							prevCharOffsets.extend(charOffsets)
 							charOffsets=[0,charOffsets[1]+lineHeight+curTagLineHeight]
 					else:
-						charData=self.pullCharData(cc, fontScaleChar*curTagPerc, charSeed+curTagSeed)
+						curSmallCapScale=1.0
+						if curTagSmallCap==1:
+							if cc.islower():
+								curSmallCapScale=fontSmallCapScale
+								cc=cc.upper()
+						charData=self.pullCharData(cc, fontScaleChar*curTagPerc*curSmallCapScale, charSeed+curTagSeed)
 						if charData != None:
 							self.runner+=1.0
-							"""curOffset=[ charOffsets[0]-charData['spacingLeft']+curTagOffset[0]+fontKerning+curTagKerning,charOffsets[1]-charData['baseline']+curTagOffset[1]+self.baseLine]
-							charOffsets[0]=charOffsets[0]-charData['spacingLeft']+charData['spacingRight']+fontKerning+curTagKerning
-							charData['offset']=curOffset
-							"""
 							curOffset=[ charOffsets[0]-charData['spacingLeft']+curTagOffset[0]+fontKerning+curTagKerning,charOffsets[1]-charData['baseline']+curTagOffset[1]+self.baseLine]
 							charOffsets[0]=charOffsets[0]-charData['spacingLeft']+charData['spacingRight']+fontKerning+curTagKerning
 							
 							charPlacement=[]
 							charPlacement+=charOffsets
 							if "absolute" in curSingleLineTags:
+								absTagOffset=[0.0,0.0]
+								if absInit==1:
+									absInit=0
+									absTagOffset=[curTagOffset[0], curTagOffset[1]]
+									absTagOffset[1]+=curTagOffset[1]+charData['baseline']#+self.baseLine
 								if curTagAbsolute[0]!=None:
-									charPlacement[0]=curTagAbsolute[0]-charData['spacingLeft']+curTagOffset[0]
-									curOffset[0]=charPlacement[0]
+									charPlacement[0]=curTagAbsolute[0]-charData['spacingLeft']+absTagOffset[0]
+									curOffset[0]=charPlacement[0]+curTagOffset[0]
 								if curTagAbsolute[1]!=None:
-									charPlacement[1]=curTagAbsolute[1]+curTagOffset[1]
-									curOffset[1]=charPlacement[1]-charData['baseline']
-								curTagOffset=[0.0,0.0]
+									charPlacement[1]=curTagAbsolute[1]+absTagOffset[1]
+									curOffset[1]=charPlacement[1]-charData['baseline']+curTagOffset[1]
 								curTagAbsolute[0]=charPlacement[0]+charData['spacingRight']+fontKerning+curTagKerning
 								curTagAbsolute[1]=charPlacement[1]
 							charOffsets[0]=charPlacement[0]
