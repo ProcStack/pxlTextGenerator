@@ -5,13 +5,11 @@
 
 ## <br/>**Index**
 * [Welcome & Tool Information](#welcome-message--tool-information)
+* [Graphical Overview](#graphical-overview)
+* [Gifs of Features](#gifs-of-features)
 * [Starting Out](#starting-out)
 * [Character Builder Tab](#character-builder-tab)
 * [Page Output Tab](#page-output-tab)
-
---------------------------------------------------------------------------------------------
-<p align='center'><img src='http://metal-asylum.net/python/pxlTextGenerator/show/intro_characterBuilder_V020.png' alt="pxlTextGenerator Overview" /></p>
-<p align='center'><img src='http://metal-asylum.net/python/pxlTextGenerator/show/intro_pageOutput_V020.png' alt="pxlTextGenerator Page Output" /></p>
 
 --------------------------------------------------------------------------------------------
 
@@ -45,6 +43,33 @@ This tool is designed to allow users to **gather hand written characters**,
 <br/> 
 ### - **Kevin Edzenga** <br/>
 ##### <p align="right">[^ Top](#index)</p>
+
+
+
+--------------------------------------------------------------------------------------------
+
+## **Graphical Overview**
+#### Letter to Character Interface
+<p align='center'><img src='http://metal-asylum.net/python/pxlTextGenerator/show/intro_characterBuilder_V020.png' alt="pxlTextGenerator Overview" /></p>
+
+#### Characer to Page Interface
+<p align='center'><img src='http://metal-asylum.net/python/pxlTextGenerator/show/intro_pageOutput_V020.png' alt="pxlTextGenerator Page Output" /></p>
+
+--------------------------------------------------------------------------------------------
+
+
+## **Gifs of Features**
+#### Turn Letters into Characters
+<p align='center'><img src='show/lowerY.gif' alt="Letter Picking" /></p>
+
+#### Size and Fit Characters
+<p align='center'><img src='show/sizingLetters.gif' alt="Testbed Letter Sizing" /></p>
+
+#### Build Pages
+<p align='center'><img src='show/makingPage.gif' alt="Build a Page" /></p>
+
+--------------------------------------------------------------------------------------------
+
 ##
 ## **Starting Out**
 The tool is expecting a folder in its root with images ( jpg, jpeg, png, bmp )
