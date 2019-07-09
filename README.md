@@ -55,6 +55,8 @@ This tool is designed to allow users to **gather hand written characters**,
 #### Characer to Page Interface
 <p align='center'><img src='http://metal-asylum.net/python/pxlTextGenerator/show/intro_pageOutput_V020.png' alt="pxlTextGenerator Page Output" /></p>
 
+##### <p align="right">[^ Top](#index)</p>
+
 --------------------------------------------------------------------------------------------
 
 
@@ -67,6 +69,8 @@ This tool is designed to allow users to **gather hand written characters**,
 
 #### Build Pages
 <p align='center'><img src='show/makingPage.gif' alt="Build a Page" /></p>
+
+##### <p align="right">[^ Top](#index)</p>
 
 --------------------------------------------------------------------------------------------
 
