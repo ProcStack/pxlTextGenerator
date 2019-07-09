@@ -681,6 +681,7 @@ class PageBuilder(QtGui.QWidget):
 		
 		self.pageFlipOutput=QtGui.QCheckBox()
 		self.pageFlipOutput.setText("Flip Text Output Horizontally")
+		self.pageFlipOutput.setStyleSheet("QCheckBox {margin-left:5px;}")
 		self.pageFlipOutput.stateChanged.connect(self.setFlipOutput)
 		self.charTestOptionBlock.addWidget(self.pageFlipOutput)
 		
@@ -689,6 +690,7 @@ class PageBuilder(QtGui.QWidget):
 		
 		self.pageAutoUpdate=QtGui.QCheckBox()
 		self.pageAutoUpdate.setText("Auto Update Page")
+		self.pageAutoUpdate.setStyleSheet("QCheckBox {margin-left:5px;}")
 		self.pageAutoUpdate.setCheckState(QtCore.Qt.Checked)
 		self.pageAutoUpdate.stateChanged.connect(self.setAutoReload)
 		self.charTestOptionBlock.addWidget(self.pageAutoUpdate)
@@ -757,6 +759,7 @@ class PageBuilder(QtGui.QWidget):
 		
 		self.scaleToPower=QtGui.QCheckBox()
 		self.scaleToPower.setText("Scale Exports to Power of 2; required for OpenGL textures (512/1024/2048)")
+		self.scaleToPower.setStyleSheet("QCheckBox {margin-left:5px;}")
 		self.scaleToPower.setCheckState(QtCore.Qt.Checked)
 		self.charTestOptionBlock.addWidget(self.scaleToPower)
 		
